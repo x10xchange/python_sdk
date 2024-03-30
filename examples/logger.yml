@@ -1,0 +1,21 @@
+version: 1
+
+formatters:
+  standard:
+    format: "%(asctime)s %(process)s %(thread)s %(levelname)s %(name)s %(message)s"
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: standard
+    stream: ext://sys.stdout
+
+root:
+  level: INFO
+  handlers: [console]
+  propagate: yes
+
+loggers:
+  x10:
+    level: DEBUG
