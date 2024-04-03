@@ -58,6 +58,32 @@ async def create_order_object(
     )
 
 
+def create_order_object_sync(
+    account: StarkPerpetualAccount,
+    market: MarketModel,
+    amount_of_synthetic: Decimal,
+    price: Decimal,
+    side: OrderSide,
+) -> PerpetualOrderModel:
+    """
+    Creates an order object to be placed on the exchange using the `place_order` method.
+    """
+    expire_time = utc_now() + timedelta(days=7)
+    fees = account.trading_fee.get(market.name, DEFAULT_FEES)
+    return __create_order_object(
+        market,
+        amount_of_synthetic,
+        price,
+        side,
+        account.vault,
+        fees,
+        account.sign,
+        account.public_key,
+        False,
+        expire_time,
+    )
+
+
 def __create_order_object(
     market: MarketModel,
     synthetic_amount: Decimal,
