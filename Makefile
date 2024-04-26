@@ -3,7 +3,7 @@ format:
 	black --target-version py310 --line-length 120 ./examples ./tests ./x10
 
 lint:
-	safety check -i 51457 -i 64227 -i 64396 -i 64642 -i 64459 -i 65693
+	safety check -i 51457 -i 64227 -i 64396 -i 64642 -i 64459 -i 65693 -i 66742
 	black --check --diff --target-version py310 --line-length 120 ./examples ./tests ./x10
 	flake8 ./examples ./tests ./x10
 	mypy

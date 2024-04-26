@@ -1,8 +1,14 @@
-from decimal import Decimal
+from decimal import ROUND_CEILING, Decimal
 from functools import cached_property
+from typing import List
 
 from x10.perpetual.assets import Asset
 from x10.utils.model import X10BaseModel
+
+
+class RiskFactorConfig(X10BaseModel):
+    upper_bound: Decimal
+    risk_factor: Decimal
 
 
 class MarketStatsModel(X10BaseModel):
@@ -26,17 +32,20 @@ class TradingConfigModel(X10BaseModel):
     min_order_size: Decimal
     min_order_size_change: Decimal
     min_price_change: Decimal
-    max_market_order_size: Decimal
-    max_limit_order_size: Decimal
-    max_position_size: Decimal
+    max_market_order_value: Decimal
+    max_limit_order_value: Decimal
+    max_position_value: Decimal
     max_leverage: Decimal
-    base_risk_limit: Decimal
-    risk_step: Decimal
-    initial_margin_fraction: Decimal
-    incremental_initial_margin_fraction: Decimal
     max_num_orders: int
     limit_price_cap: Decimal
     limit_price_floor: Decimal
+    risk_factor_config: List[RiskFactorConfig]
+
+    def price_precision(self) -> int:
+        return abs(int(self.min_price_change.log10().to_integral_exact(ROUND_CEILING)))
+
+    def quantity_precision(self) -> int:
+        return abs(int(self.min_order_size_change.log10().to_integral_exact(ROUND_CEILING)))
 
 
 class L2ConfigModel(X10BaseModel):
