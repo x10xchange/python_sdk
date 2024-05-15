@@ -74,7 +74,7 @@ for more information see [placing an order example](examples/placed_order_exampl
 The SDK currently provides functionality across three main modules
 
 ### Order Management Module 
-The order module is accessed using the account property of the trading client
+The order module is accessed using the `orders` property of the trading client
 ```python
 trading_client.orders
 ```
@@ -158,7 +158,7 @@ Updates the leverage for a specific market.
 ```
 
 ### Markets Info Module 
-The markets module is accessed using the account property of the trading client
+The markets module is accessed using the `markets_info` property of the trading client
 ```python
 trading_client.markets_info
 ```
