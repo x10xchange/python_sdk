@@ -10,6 +10,7 @@ from x10.utils.model import X10BaseModel
 class TradeType(Enum):
     TRADE = "TRADE"
     LIQUIDATION = "LIQUIDATION"
+    DELEVERAGE = "DELEVERAGE"
 
 
 class PublicTradeModel(X10BaseModel):

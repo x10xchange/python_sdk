@@ -26,7 +26,7 @@ class OrderType(Enum):
 class OrderStatus(Enum):
     UNKNOWN = "UNKNOWN"
     NEW = "NEW"
-    PENDING = "PENDING"
+    UNTRIGGERED = "UNTRIGGERED"
     PARTIALLY_FILLED = "PARTIALLY_FILLED"
     FILLED = "FILLED"
     CANCELLED = "CANCELLED"
