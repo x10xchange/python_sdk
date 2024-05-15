@@ -1,5 +1,3 @@
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Callable, Tuple
@@ -26,49 +24,20 @@ from x10.perpetual.orders import (
 from x10.utils.date import to_epoch_millis, utc_now
 from x10.utils.starkex import generate_nonce, hash_order
 
-order_executor = ThreadPoolExecutor(thread_name_prefix="order_builder")
 
-
-async def create_order_object(
+def create_order_object(
     account: StarkPerpetualAccount,
     market: MarketModel,
     amount_of_synthetic: Decimal,
     price: Decimal,
     side: OrderSide,
+    post_only: bool = False,
+    previous_order_id=None,
+    expire_time=utc_now() + timedelta(hours=8),
 ) -> PerpetualOrderModel:
     """
     Creates an order object to be placed on the exchange using the `place_order` method.
     """
-    expire_time = utc_now() + timedelta(days=7)
-    fees = account.trading_fee.get(market.name, DEFAULT_FEES)
-    pool = asyncio.get_event_loop()
-    return await pool.run_in_executor(
-        order_executor,
-        __create_order_object,
-        market,
-        amount_of_synthetic,
-        price,
-        side,
-        account.vault,
-        fees,
-        account.sign,
-        account.public_key,
-        False,
-        expire_time,
-    )
-
-
-def create_order_object_sync(
-    account: StarkPerpetualAccount,
-    market: MarketModel,
-    amount_of_synthetic: Decimal,
-    price: Decimal,
-    side: OrderSide,
-) -> PerpetualOrderModel:
-    """
-    Creates an order object to be placed on the exchange using the `place_order` method.
-    """
-    expire_time = utc_now() + timedelta(days=7)
     fees = account.trading_fee.get(market.name, DEFAULT_FEES)
     return __create_order_object(
         market,
@@ -81,6 +50,8 @@ def create_order_object_sync(
         account.public_key,
         False,
         expire_time,
+        post_only=post_only,
+        previous_order_id=previous_order_id,
     )
 
 
@@ -94,7 +65,9 @@ def __create_order_object(
     signer: Callable[[int], Tuple[int, int]],
     public_key: int,
     exact_only: bool = False,
-    expire_time: datetime = utc_now() + timedelta(days=7),
+    expire_time: datetime = utc_now() + timedelta(hours=8),
+    post_only: bool = False,
+    previous_order_id=None,
 ) -> PerpetualOrderModel:
     if exact_only:
         raise NotImplementedError("`exact_only` option is not supported yet")
@@ -137,7 +110,7 @@ def __create_order_object(
         qty=synthetic_amount_human.value,
         price=price,
         reduce_only=False,
-        post_only=False,
+        post_only=post_only,
         time_in_force=TimeInForce.GTT,
         fee=amounts.fee_rate,
         expiry_epoch_millis=to_epoch_millis(expire_time),
@@ -149,7 +122,7 @@ def __create_order_object(
         nonce=Decimal(nonce),
         take_profit_signature=None,
         stop_loss_signature=None,
-        cancel_id=None,
+        cancel_id=previous_order_id,
         trigger_price=None,
         take_profit_price=None,
         take_profit_limit_price=None,

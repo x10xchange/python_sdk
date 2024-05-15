@@ -1,3 +1,4 @@
+from datetime import timedelta
 from decimal import Decimal
 
 import pytest
@@ -6,6 +7,7 @@ from hamcrest import assert_that, equal_to
 from pytest_mock import MockerFixture
 
 from x10.perpetual.orders import OrderSide
+from x10.utils.date import utc_now
 
 FROZEN_NONCE = 1473459052
 
@@ -19,12 +21,13 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
 
     trading_account = create_trading_account()
     btc_usd_market = create_btc_usd_market()
-    order_obj = await create_order_object(
+    order_obj = create_order_object(
         account=trading_account,
         market=btc_usd_market,
         amount_of_synthetic=Decimal("0.00100000"),
         price=Decimal("43445.11680000"),
         side=OrderSide.SELL,
+        expire_time=utc_now() + timedelta(days=7),
     )
 
     assert_that(
@@ -78,12 +81,13 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
 
     trading_account = create_trading_account()
     btc_usd_market = create_btc_usd_market()
-    order_obj = await create_order_object(
+    order_obj = create_order_object(
         account=trading_account,
         market=btc_usd_market,
         amount_of_synthetic=Decimal("0.00100000"),
         price=Decimal("43445.11680000"),
         side=OrderSide.BUY,
+        expire_time=utc_now() + timedelta(days=7),
     )
 
     assert_that(

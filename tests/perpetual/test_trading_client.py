@@ -30,7 +30,7 @@ async def test_get_markets(aiohttp_server, create_btc_usd_market):
     server = await aiohttp_server(app)
     url = f"http://{server.host}:{server.port}"
 
-    trading_client = PerpetualTradingClient(api_url=url, api_key="api_key")
+    trading_client = PerpetualTradingClient(api_url=url)
     markets = await trading_client.markets_info.get_markets()
 
     assert_that(markets.status, equal_to("OK"))

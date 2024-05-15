@@ -1,7 +1,7 @@
 import importlib.metadata
 
-TRADING_API_URL_DEV = "http://api.x10.exchange/api/v1"
-STREAM_API_URL_DEV = "wss://api.x10.exchange/stream.x10.exchange/v1"
+TRADING_API_URL_DEV = "http://api.testnet.x10.exchange/api/v1"
+STREAM_API_URL_DEV = "wss://api.testnet.x10.exchange/stream.x10.exchange/v1"
 BTC_USD_MARKET = "BTC-USD"
 SOL_USD_MARKET = "SOL-USD"
 ADA_USD_MARKET = "ADA-USD"
