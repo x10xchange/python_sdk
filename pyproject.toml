@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "x10-python-trading"
-version = "0.1.2"
+version = "0.1.3"
 description = "Python client for X10 API"
 authors = ["X10 <tech@ex10.org>"]
 packages = [

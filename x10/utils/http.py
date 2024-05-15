@@ -122,7 +122,11 @@ async def send_post_request(
     async with aiohttp.ClientSession(timeout=CLIENT_TIMEOUT) as session:
         async with session.post(url, json=json, headers=headers) as response:
             response_text = await response.text()
-            return parse_response_to_model(response_text, model_class)
+            response_model = parse_response_to_model(response_text, model_class)
+            if (response_model.status != ResponseStatus.OK.value) or (response_model.error is not None):
+                LOGGER.error("Error response from POST %s: %s", url, response_model.error)
+                raise ValueError(f"Error response from POST {url}: {response_model.error}")
+            return response_model
 
 
 async def send_patch_request(

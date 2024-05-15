@@ -41,9 +41,11 @@ class TradingConfigModel(X10BaseModel):
     limit_price_floor: Decimal
     risk_factor_config: List[RiskFactorConfig]
 
+    @cached_property
     def price_precision(self) -> int:
         return abs(int(self.min_price_change.log10().to_integral_exact(ROUND_CEILING)))
 
+    @cached_property
     def quantity_precision(self) -> int:
         return abs(int(self.min_order_size_change.log10().to_integral_exact(ROUND_CEILING)))
 

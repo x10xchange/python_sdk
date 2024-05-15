@@ -9,6 +9,7 @@ from typing import Dict, Optional, Tuple
 
 from x10.config import ADA_USD_MARKET, STREAM_API_URL_DEV, TRADING_API_URL_DEV
 from x10.perpetual.accounts import StarkPerpetualAccount
+from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.markets import MarketModel
 from x10.perpetual.order_object import create_order_object
 from x10.perpetual.orders import OrderSide, PlacedOrderModel
@@ -103,7 +104,7 @@ async def place_order(
     price = Decimal("0.660") - Decimal("0.00" + str(i)) if should_buy else Decimal("0.6601") + Decimal("0.00" + str(i))
     order_side = OrderSide.BUY if should_buy else OrderSide.SELL
     market = markets_cache[ADA_USD_MARKET]
-    new_order = await create_order_object(stark_account, market, Decimal("100"), price, order_side)
+    new_order = create_order_object(stark_account, market, Decimal("100"), price, order_side)
     order_condtions[new_order.id] = asyncio.Condition()
     return (new_order.id, await trading_client.orders.place_order(order=new_order))
 
@@ -133,7 +134,7 @@ async def setup_and_run():
         private_key=PRIVATE_KEY,
         public_key=PUBLIC_KEY,
     )
-    trading_client = PerpetualTradingClient(api_url=TRADING_API_URL_DEV, api_key=API_KEY)
+    trading_client = PerpetualTradingClient.create(TESTNET_CONFIG, stark_account)
     markets_cache = await build_markets_cache(trading_client)
     stream_future = asyncio.create_task(order_stream())
 
