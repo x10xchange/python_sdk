@@ -34,6 +34,28 @@ class OrderStatus(Enum):
     REJECTED = "REJECTED"
 
 
+class OrderStatusReason(Enum):
+    NONE = "NONE"
+    UNKNOWN = "UNKNOWN"
+    UNKNOWN_MARKET = "UNKNOWN_MARKET"
+    DISABLED_MARKET = "DISABLED_MARKET"
+    NOT_ENOUGH_FUNDS = "NOT_ENOUGH_FUNDS"
+    NO_LIQUIDITY = "NO_LIQUIDITY"
+    INVALID_FEE = "INVALID_FEE"
+    INVALID_QTY = "INVALID_QTY"
+    INVALID_PRICE = "INVALID_PRICE"
+    INVALID_VALUE = "INVALID_VALUE"
+    UNKNOWN_ACCOUNT = "UNKNOWN_ACCOUNT"
+    SELF_TRADE_PROTECTION = "SELF_TRADE_PROTECTION"
+    POST_ONLY_FAILED = "POST_ONLY_FAILED"
+    REDUCE_ONLY_FAILED = "REDUCE_ONLY_FAILED"
+    INVALID_EXPIRE_TIME = "INVALID_EXPIRE_TIME"
+    POSITION_TPSL_CONFLICT = "POSITION_TPSL_CONFLICT"
+    INVALID_LEVERAGE = "INVALID_LEVERAGE"
+    PREV_ORDER_NOT_FOUND = "PREV_ORDER_NOT_FOUND"
+    PREV_ORDER_TRIGGERED = "PREV_ORDER_TRIGGERED"
+
+
 class SignatureModel(X10BaseModel):
     r: HexValue
     s: HexValue
@@ -89,6 +111,7 @@ class OpenOrderModel(X10BaseModel):
     type: OrderType
     side: OrderSide
     status: OrderStatus
+    status_reason: Optional[OrderStatusReason] = None
     price: Decimal
     average_price: Optional[Decimal] = None
     qty: Decimal

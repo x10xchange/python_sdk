@@ -168,8 +168,8 @@ TODO
 
 Make sure you have [poetry](https://python-poetry.org/) installed.
 
-- Clone the repository: `git@github.com:x10xchange/python-trading.git`
-- Navigate to the project directory: `cd python-trading`
+- Clone the repository: `git@github.com:x10xchange/python_sdk.git`
+- Navigate to the project directory: `cd python_sdk`
 - Create a virtual environment: `poetry shell`
 - Install dependencies: `poetry install`
 - Update `examples/placed_order_example.py` with your credentials
