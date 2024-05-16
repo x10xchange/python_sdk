@@ -35,6 +35,8 @@ class AccountModule(BaseModule):
         self,
         market_names: Optional[List[str]] = None,
         position_side: Optional[PositionSide] = None,
+        cursor: Optional[int] = None,
+        limit: Optional[int] = None,
     ) -> WrappedApiResponse[List[PositionHistoryModel]]:
         """
         https://x101.docs.apiary.io/#reference/0/account/get-positions-history
@@ -42,7 +44,7 @@ class AccountModule(BaseModule):
 
         url = self._get_url(
             "/user/positions/history",
-            query={"market": market_names, "side": position_side},
+            query={"market": market_names, "side": position_side, "cursor": cursor, "limit": limit},
         )
         return await send_get_request(url, List[PositionHistoryModel], api_key=self._get_api_key())
 
@@ -67,6 +69,8 @@ class AccountModule(BaseModule):
         market_names: Optional[List[str]] = None,
         order_type: Optional[OrderType] = None,
         order_side: Optional[OrderSide] = None,
+        cursor: Optional[int] = None,
+        limit: Optional[int] = None,
     ) -> WrappedApiResponse[List[OpenOrderModel]]:
         """
         https://x101.docs.apiary.io/#reference/0/account/get-orders-history
@@ -74,7 +78,7 @@ class AccountModule(BaseModule):
 
         url = self._get_url(
             "/user/orders/history",
-            query={"market": market_names, "type": order_type, "side": order_side},
+            query={"market": market_names, "type": order_type, "side": order_side, "cursor": cursor, "limit": limit},
         )
         return await send_get_request(url, List[OpenOrderModel], api_key=self._get_api_key())
 
