@@ -67,7 +67,9 @@ await trading_client.orders.cancel_order(order_id=placed_order.id)
 print(placed_order)
 ```
 
-for more information see [placing an order example](examples/placed_order_example_simple.py)
+for more information see [placing an order example](examples/placed_order_example_simple.py).
+
+There is also a skeleton implementation of a [blocking client](examples/simple_client_example.py).
 
 ## Modules
 
