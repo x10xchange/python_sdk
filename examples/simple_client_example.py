@@ -32,7 +32,7 @@ async def setup_and_run():
 
     print(placed_order)
 
-    await client.cancel_order(placed_order.external_id)
+    await client.cancel_order(placed_order.id)
 
 
 if __name__ == "__main__":
