@@ -108,11 +108,52 @@ Fetches the current positions of the user's account. It can filter the positions
     logger.info("Positions: %s", positions.to_pretty_json())
 ```
 
+returns a list of
+```python
+class PositionModel(X10BaseModel):
+    id: int
+    account_id: int
+    market: str
+    side: PositionSide
+    leverage: Decimal
+    size: Decimal
+    value: Decimal
+    open_price: Decimal
+    mark_price: Decimal
+    liquidation_price: Optional[Decimal] = None
+    unrealised_pnl: Decimal
+    realised_pnl: Decimal
+    tp_price: Optional[Decimal] = None
+    sl_price: Optional[Decimal] = None
+    adl: Optional[int] = None
+    created_at: int
+    updated_at: int
+```
+
 #### `get_positions_history`
 Fetches the historical positions of the user's account. It can filter the positions based on market names and position side.
 
 ```python
-pass
+    logger = logging.getLogger("demo_logger")
+    positions = await trading_client.account.get_positions_history()
+    logger.info("Positions: %s", positions.to_pretty_json())
+```
+
+returns a list of 
+```python
+class PositionHistoryModel(X10BaseModel):
+    id: int
+    account_id: int
+    market: str
+    side: PositionSide
+    leverage: Decimal
+    size: Decimal
+    open_price: Decimal
+    exit_type: Optional[ExitType]
+    exit_price: Optional[Decimal]
+    realised_pnl: Decimal
+    created_time: int
+    closed_time: Optional[int]
 ```
 
 #### `get_open_orders`
@@ -122,19 +163,50 @@ Fetches the open orders of the user's account. It can filter the orders based on
     open_orders = await trading_client.account.get_open_orders()
     await trading_client.orders.mass_cancel(order_ids=[order.id for order in open_orders.data])
 ```
+returns a list of
+```python 
+class OpenOrderModel(X10BaseModel):
+    id: int
+    account_id: int
+    external_id: str
+    market: str
+    type: OrderType
+    side: OrderSide
+    status: OrderStatus
+    status_reason: Optional[OrderStatusReason] = None
+    price: Decimal
+    average_price: Optional[Decimal] = None
+    qty: Decimal
+    filled_qty: Optional[Decimal] = None
+    reduce_only: bool
+    post_only: bool
+    created_time: int
+    expiry_time: Optional[int] = None
+```
 
 #### `get_orders_history`
-Fetches the historical orders of the user's account. It can filter the orders based on market names, order type, and order side.
+Fetches the historical orders of the user's account. It can filter the orders based on market names, order type, and order side
 
 ```python
-pass
+    market_names: Optional[List[str]] = None, #parameter to filter by market
+    order_type: Optional[OrderType] = None, #parameter to filter by order type (IOC, GTT etc)
+    order_side: Optional[OrderSide] = None, #parameter to filter by side (BUY/SELL)
+    cursor: Optional[int] = None, #pagination cursor
+    limit: Optional[int] = None, #limit the number of returned orders per page
 ```
+
+```python
+    open_orders = await trading_client.account.get_orders_history(
+        market_names=["BTC-USD", "SOL-USD"],
+        order_side=OrderSide.BUY
+    )
+```
+returns a list of `OpenOrderModel`
 
 #### `get_trades`
 Fetches the trades of the user's account. It can filter the trades based on market names, trade side, and trade type.
 
 ```python
-pass
 ```
 
 #### `get_fees`
@@ -150,6 +222,13 @@ Fetches the leverage for the specified markets.
 ```python
    leverage = await trading_client.account.get_leverage(market_names=list("BTC-USD"))
    print(leverage)
+```
+
+returns a list of
+```python
+class AccountLeverage(X10BaseModel):
+    market: str
+    leverage: Decimal
 ```
 
 #### `update_leverage`
