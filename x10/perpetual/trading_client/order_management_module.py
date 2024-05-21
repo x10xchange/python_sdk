@@ -12,7 +12,7 @@ LOGGER = get_logger(__name__)
 class _MassCancelRequestModel(X10BaseModel):
     order_ids: Optional[list[int]]
     external_order_ids: Optional[list[str]]
-    market_ids: Optional[list[int]]
+    markets: Optional[list[str]]
     cancel_all: Optional[bool]
 
 
@@ -49,7 +49,7 @@ class OrderManagementModule(BaseModule):
         *,
         order_ids: Optional[list[int]] = None,
         external_order_ids: Optional[list[str]] = None,
-        market_ids: Optional[list[int]] = None,
+        markets: Optional[list[str]] = None,
         cancel_all: Optional[bool] = False,
     ):
         """
@@ -60,7 +60,7 @@ class OrderManagementModule(BaseModule):
         request_model = _MassCancelRequestModel(
             order_ids=order_ids,
             external_order_ids=external_order_ids,
-            market_ids=market_ids,
+            markets=markets,
             cancel_all=cancel_all,
         )
         return await send_post_request(
