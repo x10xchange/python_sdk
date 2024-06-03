@@ -100,54 +100,59 @@ def get_url(template: str, *, query: Optional[Dict[str, str | List[str]]] = None
 
 
 async def send_get_request(
-    url: str, model_class: Type[ApiResponseType], *, api_key: Optional[str] = None
+    session: aiohttp.ClientSession,
+    url: str,
+    model_class: Type[ApiResponseType],
+    *,
+    api_key: Optional[str] = None,
 ) -> WrappedApiResponse[ApiResponseType]:
     LOGGER.debug("Sending GET %s", url)
-
     headers = __get_headers(api_key=api_key)
-
-    async with aiohttp.ClientSession(timeout=CLIENT_TIMEOUT) as session:
-        async with session.get(url, headers=headers) as response:
-            response_text = await response.text()
-            return parse_response_to_model(response_text, model_class)
+    async with session.get(url, headers=headers) as response:
+        response_text = await response.text()
+        return parse_response_to_model(response_text, model_class)
 
 
 async def send_post_request(
-    url: str, model_class: Type[ApiResponseType], *, json: Any = None, api_key: Optional[str] = None
+    session: aiohttp.ClientSession,
+    url: str,
+    model_class: Type[ApiResponseType],
+    *,
+    json: Any = None,
+    api_key: Optional[str] = None,
 ) -> WrappedApiResponse[ApiResponseType]:
     headers = __get_headers(api_key=api_key)
 
     LOGGER.debug("Sending POST %s, headers=%s, data=%s", url, headers, {})
-
-    async with aiohttp.ClientSession(timeout=CLIENT_TIMEOUT) as session:
-        async with session.post(url, json=json, headers=headers) as response:
-            response_text = await response.text()
-            response_model = parse_response_to_model(response_text, model_class)
-            if (response_model.status != ResponseStatus.OK.value) or (response_model.error is not None):
-                LOGGER.error("Error response from POST %s: %s", url, response_model.error)
-                raise ValueError(f"Error response from POST {url}: {response_model.error}")
-            return response_model
+    async with session.post(url, json=json, headers=headers) as response:
+        response_text = await response.text()
+        response_model = parse_response_to_model(response_text, model_class)
+        if (response_model.status != ResponseStatus.OK.value) or (response_model.error is not None):
+            LOGGER.error("Error response from POST %s: %s", url, response_model.error)
+            raise ValueError(f"Error response from POST {url}: {response_model.error}")
+        return response_model
 
 
 async def send_patch_request(
-    url: str, model_class: Type[ApiResponseType], *, json: Any = None, api_key: Optional[str] = None
+    session: aiohttp.ClientSession,
+    url: str,
+    model_class: Type[ApiResponseType],
+    *,
+    json: Any = None,
+    api_key: Optional[str] = None,
 ) -> WrappedApiResponse[ApiResponseType]:
     headers = __get_headers(api_key=api_key)
-
     LOGGER.debug("Sending PATCH %s, headers=%s, data=%s", url, headers, json)
-
-    async with aiohttp.ClientSession(timeout=CLIENT_TIMEOUT) as session:
-        async with session.patch(url, json=json, headers=headers) as response:
-            response_text = await response.text()
-
-            if response_text == "":
-                LOGGER.error("Empty HTTP %s response from PATCH %s", response.status, url)
-                response_text = '{"status": "OK"}'
-
-            return parse_response_to_model(response_text, model_class)
+    async with session.patch(url, json=json, headers=headers) as response:
+        response_text = await response.text()
+        if response_text == "":
+            LOGGER.error("Empty HTTP %s response from PATCH %s", response.status, url)
+            response_text = '{"status": "OK"}'
+        return parse_response_to_model(response_text, model_class)
 
 
 async def send_delete_request(
+    session: aiohttp.ClientSession,
     url: str,
     model_class: Type[ApiResponseType],
     *,
@@ -156,13 +161,10 @@ async def send_delete_request(
     retry=False,
 ):
     headers = __get_headers(api_key=api_key)
-
     LOGGER.debug("Sending DELETE %s, headers=%s", url, headers)
-
-    async with aiohttp.ClientSession(timeout=CLIENT_TIMEOUT) as session:
-        async with session.delete(url, headers=headers) as response:
-            response_text = await response.text()
-            return parse_response_to_model(response_text, model_class)
+    async with session.delete(url, headers=headers) as response:
+        response_text = await response.text()
+        return parse_response_to_model(response_text, model_class)
 
 
 def __get_headers(*, api_key: Optional[str] = None):

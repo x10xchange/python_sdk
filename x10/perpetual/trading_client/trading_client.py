@@ -13,6 +13,7 @@ from x10.perpetual.trading_client.markets_information_module import (
 )
 from x10.perpetual.trading_client.order_management_module import OrderManagementModule
 from x10.utils.date import utc_now
+from x10.utils.http import WrappedApiResponse
 from x10.utils.log import get_logger
 
 LOGGER = get_logger(__name__)
@@ -42,7 +43,7 @@ class PerpetualTradingClient:
         post_only: bool = False,
         previous_order_id=None,
         expire_time=utc_now() + timedelta(hours=8),
-    ) -> PlacedOrderModel:
+    ) -> WrappedApiResponse[PlacedOrderModel]:
         if not self.__account:
             raise ValueError("Account not set")
 
