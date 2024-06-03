@@ -29,6 +29,7 @@ class OrderManagementModule(BaseModule):
 
         url = self._get_url("/user/order")
         response = await send_post_request(
+            await self.get_session(),
             url,
             PlacedOrderModel,
             json=order.to_api_request_json(),
@@ -42,7 +43,9 @@ class OrderManagementModule(BaseModule):
         """
 
         url = self._get_url("/user/order/<order_id>", order_id=order_id)
-        return await send_delete_request(url, EmptyModel, api_key=self._get_api_key(), idempotent=True, retry=True)
+        return await send_delete_request(
+            await self.get_session(), url, EmptyModel, api_key=self._get_api_key(), idempotent=True, retry=True
+        )
 
     async def mass_cancel(
         self,
@@ -64,6 +67,7 @@ class OrderManagementModule(BaseModule):
             cancel_all=cancel_all,
         )
         return await send_post_request(
+            await self.get_session(),
             url,
             EmptyModel,
             json=request_model.to_api_request_json(exclude_none=True),

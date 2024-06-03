@@ -19,7 +19,7 @@ class AccountModule(BaseModule):
         """
 
         url = self._get_url("/user/balance")
-        return await send_get_request(url, BalanceModel, api_key=self._get_api_key())
+        return await send_get_request(await self.get_session(), url, BalanceModel, api_key=self._get_api_key())
 
     async def get_positions(
         self, *, market_names: Optional[List[str]] = None, position_side: Optional[PositionSide] = None
@@ -29,7 +29,7 @@ class AccountModule(BaseModule):
         """
 
         url = self._get_url("/user/positions", query={"market": market_names, "side": position_side})
-        return await send_get_request(url, List[PositionModel], api_key=self._get_api_key())
+        return await send_get_request(await self.get_session(), url, List[PositionModel], api_key=self._get_api_key())
 
     async def get_positions_history(
         self,
@@ -46,7 +46,9 @@ class AccountModule(BaseModule):
             "/user/positions/history",
             query={"market": market_names, "side": position_side, "cursor": cursor, "limit": limit},
         )
-        return await send_get_request(url, List[PositionHistoryModel], api_key=self._get_api_key())
+        return await send_get_request(
+            await self.get_session(), url, List[PositionHistoryModel], api_key=self._get_api_key()
+        )
 
     async def get_open_orders(
         self,
@@ -62,7 +64,7 @@ class AccountModule(BaseModule):
             "/user/orders",
             query={"market": market_names, "type": order_type, "side": order_side},
         )
-        return await send_get_request(url, List[OpenOrderModel], api_key=self._get_api_key())
+        return await send_get_request(await self.get_session(), url, List[OpenOrderModel], api_key=self._get_api_key())
 
     async def get_orders_history(
         self,
@@ -80,7 +82,7 @@ class AccountModule(BaseModule):
             "/user/orders/history",
             query={"market": market_names, "type": order_type, "side": order_side, "cursor": cursor, "limit": limit},
         )
-        return await send_get_request(url, List[OpenOrderModel], api_key=self._get_api_key())
+        return await send_get_request(await self.get_session(), url, List[OpenOrderModel], api_key=self._get_api_key())
 
     async def get_trades(
         self,
@@ -97,7 +99,9 @@ class AccountModule(BaseModule):
             query={"market": market_names, "side": trade_side, "type": trade_type},
         )
 
-        return await send_get_request(url, List[AccountTradeModel], api_key=self._get_api_key())
+        return await send_get_request(
+            await self.get_session(), url, List[AccountTradeModel], api_key=self._get_api_key()
+        )
 
     async def get_fees(self, *, market_names: List[str]) -> WrappedApiResponse[List[TradingFeeModel]]:
         """
@@ -105,7 +109,7 @@ class AccountModule(BaseModule):
         """
 
         url = self._get_url("/user/fees", query={"market": market_names})
-        return await send_get_request(url, List[TradingFeeModel], api_key=self._get_api_key())
+        return await send_get_request(await self.get_session(), url, List[TradingFeeModel], api_key=self._get_api_key())
 
     async def get_leverage(self, market_names: List[str]) -> WrappedApiResponse[List[AccountLeverage]]:
         """
@@ -113,7 +117,7 @@ class AccountModule(BaseModule):
         """
 
         url = self._get_url("/user/leverage", query={"market": market_names})
-        return await send_get_request(url, List[AccountLeverage], api_key=self._get_api_key())
+        return await send_get_request(await self.get_session(), url, List[AccountLeverage], api_key=self._get_api_key())
 
     async def update_leverage(self, market_name: str, leverage: Decimal) -> WrappedApiResponse[EmptyModel]:
         """
@@ -123,6 +127,7 @@ class AccountModule(BaseModule):
         url = self._get_url("/user/leverage")
         request_model = AccountLeverage(market=market_name, leverage=leverage)
         return await send_patch_request(
+            await self.get_session(),
             url,
             EmptyModel,
             json=request_model.to_api_request_json(),

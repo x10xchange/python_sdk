@@ -36,14 +36,26 @@ async def setup_and_run():
         api_key=API_KEY,
     )
     trading_client = PerpetualTradingClient.create(TESTNET_CONFIG, stark_account)
+    positions = await trading_client.account.get_positions()
+    for position in positions.data:
+        print(
+            f"market: {position.market} \
+            side: {position.side} \
+            size: {position.size} \
+            mark_price: ${position.mark_price} \
+            leverage: {position.leverage}"
+        )
+        print(f"consumed im: ${round((position.size * position.mark_price) / position.leverage, 2)}")
+
     placed_order = await trading_client.place_order(
         market_name="BTC-USD",
         amount_of_synthetic=Decimal("1"),
-        price=Decimal("63000.1"),
+        price=Decimal("69000.0"),
         side=OrderSide.SELL,
+        post_only=True,
     )
 
-    await trading_client.orders.cancel_order(order_id=placed_order.id)
+    await trading_client.orders.cancel_order(order_id=placed_order.data.id)
     print(placed_order)
     await clean_it(trading_client)
 
