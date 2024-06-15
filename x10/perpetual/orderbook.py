@@ -65,8 +65,8 @@ class OrderBook:
                         del self._bid_prices[bid.price]
                 else:
                     self._bid_prices[bid.price] = OrderBookEntry(
-                        price=decimal.Decimal(bid.price),
-                        amount=decimal.Decimal(bid.qty),
+                        price=bid.price,
+                        amount=bid.qty,
                     )
             now_best_bid = self.best_bid()
             if now_best_bid and current_best_bid != now_best_bid:
@@ -84,8 +84,8 @@ class OrderBook:
                         del self._ask_prices[ask.price]
                 else:
                     self._ask_prices[ask.price] = OrderBookEntry(
-                        price=decimal.Decimal(ask.price),
-                        amount=decimal.Decimal(ask.qty),
+                        price=ask.price,
+                        amount=ask.qty,
                     )
             if current_best_ask != self.best_ask():
                 if self.best_ask_change_callback:
@@ -94,13 +94,13 @@ class OrderBook:
     def init_orderbook(self, data: OrderbookUpdateModel):
         for bid in data.bid:
             self._bid_prices[bid.price] = OrderBookEntry(
-                price=decimal.Decimal(bid.price),
-                amount=decimal.Decimal(bid.qty),
+                price=bid.price,
+                amount=bid.qty,
             )
         for ask in data.ask:
             self._ask_prices[ask.price] = OrderBookEntry(
-                price=decimal.Decimal(ask.price),
-                amount=decimal.Decimal(ask.qty),
+                price=ask.price,
+                amount=ask.qty,
             )
 
     async def start_orderbook(self) -> asyncio.Task:
