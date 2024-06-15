@@ -1,13 +1,13 @@
 import asyncio
 import dataclasses
 from decimal import Decimal
-from typing import Dict, Tuple, Union
+from typing import Dict, Union
 
 from x10.perpetual.accounts import AccountStreamDataModel, StarkPerpetualAccount
 from x10.perpetual.configuration import EndpointConfig
 from x10.perpetual.markets import MarketModel
 from x10.perpetual.order_object import create_order_object
-from x10.perpetual.orders import OpenOrderModel, OrderSide, OrderStatus, PerpetualOrderModel
+from x10.perpetual.orders import OpenOrderModel, OrderSide, PerpetualOrderModel
 from x10.perpetual.stream_client.perpetual_stream_connection import (
     PerpetualStreamConnection,
 )
@@ -29,16 +29,10 @@ class BlockingTradingClient:
     def __init__(self, endpoint_config: EndpointConfig, account: StarkPerpetualAccount):
         self.__endpoint_config = endpoint_config
         self.__account = account
-        self.__market_module = MarketsInformationModule(
-            endpoint_config.api_base_url, account.api_key
-        )
-        self.__orders_module = OrderManagementModule(
-            endpoint_config.api_base_url, account.api_key
-        )
+        self.__market_module = MarketsInformationModule(endpoint_config.api_base_url, account.api_key)
+        self.__orders_module = OrderManagementModule(endpoint_config.api_base_url, account.api_key)
         self.__markets: Union[None, Dict[str, MarketModel]] = None
-        self.__stream_client: PerpetualStreamClient = PerpetualStreamClient(
-            api_url=endpoint_config.stream_url
-        )
+        self.__stream_client: PerpetualStreamClient = PerpetualStreamClient(api_url=endpoint_config.stream_url)
         self.__account_stream: Union[
             None,
             PerpetualStreamConnection[WrappedStreamResponse[AccountStreamDataModel]],
@@ -84,11 +78,7 @@ class BlockingTradingClient:
         if not self.__account_stream:
             await self.__stream_lock.acquire()
             if not self.__account_stream:
-                self.__account_stream = (
-                    await self.__stream_client.subscribe_to_account_updates(
-                        self.__account.api_key
-                    )
-                )
+                self.__account_stream = await self.__stream_client.subscribe_to_account_updates(self.__account.api_key)
                 self.__orders_task = asyncio.create_task(self.___order_stream())
             self.__stream_lock.release()
 
@@ -121,6 +111,3 @@ class BlockingTradingClient:
             if not open_model:
                 raise ValueError("No Fill or Placement received for order")
             return open_model
-
-    async def cancel_order(self, order_id: int):
-        await self.__orders_module.cancel_order(order_id)

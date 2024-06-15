@@ -5,6 +5,7 @@ import logging.handlers
 import os
 from asyncio import run
 from decimal import Decimal
+
 from dotenv import load_dotenv
 
 from x10.perpetual.accounts import StarkPerpetualAccount
@@ -14,14 +15,14 @@ from x10.perpetual.orders import OrderSide
 from x10.perpetual.simple_client.simple_trading_client import BlockingTradingClient
 from x10.perpetual.trading_client import PerpetualTradingClient
 
-NUM_PRICE_LEVELS = 0
+NUM_PRICE_LEVELS = 1
 
 load_dotenv()
 
 API_KEY = os.getenv("X10_API_KEY")
 PUBLIC_KEY = os.getenv("X10_PUBLIC_KEY")
 PRIVATE_KEY = os.getenv("X10_PRIVATE_KEY")
-VAULT_ID = int(os.getenv("X10_VAULT_ID"))
+VAULT_ID = int(os.environ["X10_VAULT_ID"])
 
 
 async def clean_it(trading_client: PerpetualTradingClient):
@@ -31,9 +32,7 @@ async def clean_it(trading_client: PerpetualTradingClient):
     balance = await trading_client.account.get_balance()
     logger.info("Balance: %s", balance.to_pretty_json())
     open_orders = await trading_client.account.get_open_orders()
-    await trading_client.orders.mass_cancel(
-        order_ids=[order.id for order in open_orders.data]
-    )
+    await trading_client.orders.mass_cancel(order_ids=[order.id for order in open_orders.data])
 
 
 async def setup_and_run():
@@ -59,9 +58,7 @@ async def setup_and_run():
             mark_price: ${position.mark_price} \
             leverage: {position.leverage}"
         )
-        print(
-            f"consumed im: ${round((position.size * position.mark_price) / position.leverage, 2)}"
-        )
+        print(f"consumed im: ${round((position.size * position.mark_price) / position.leverage, 2)}")
 
     await clean_it(trading_client)
 
@@ -84,10 +81,7 @@ async def setup_and_run():
     await orderbook.start_orderbook()
 
     def order_loop(idx: int, side: OrderSide) -> asyncio.Task:
-
-        offset = (Decimal("-1") if side == OrderSide.BUY else Decimal("1")) * Decimal(
-            idx + 1
-        )
+        offset = (Decimal("-1") if side == OrderSide.BUY else Decimal("1")) * Decimal(idx + 1)
 
         async def inner():
             while True:
@@ -105,9 +99,7 @@ async def setup_and_run():
                         post_only=True,
                     )
                     print(f"baseline: {baseline_price.price}, order: {order_price}, id: {placed_order.id}")
-                    await blocking_client.cancel_order(
-                        order_id=placed_order.id
-                    )
+                    await blocking_client.cancel_order(order_id=placed_order.id)
                     await asyncio.sleep(0)
                 else:
                     await asyncio.sleep(1)
@@ -121,6 +113,7 @@ async def setup_and_run():
         print(await task)
     for task in buy_tasks:
         print(await task)
+
 
 if __name__ == "__main__":
     run(main=setup_and_run())

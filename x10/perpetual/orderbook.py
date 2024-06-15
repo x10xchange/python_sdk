@@ -1,13 +1,14 @@
-import decimal
-from typing import Callable
-from x10.perpetual.configuration import TESTNET_CONFIG, EndpointConfig
-from x10.perpetual.orderbooks import OrderbookQuantityModel, OrderbookUpdateModel
-from x10.perpetual.stream_client.stream_client import PerpetualStreamClient
-from x10.utils.http import StreamDataType
-from sortedcontainers import SortedDict
-
 import asyncio
 import dataclasses
+import decimal
+from typing import Callable
+
+from sortedcontainers import SortedDict  # type: ignore[import-untyped]
+
+from x10.perpetual.configuration import EndpointConfig
+from x10.perpetual.orderbooks import OrderbookUpdateModel
+from x10.perpetual.stream_client.stream_client import PerpetualStreamClient
+from x10.utils.http import StreamDataType
 
 
 @dataclasses.dataclass
@@ -54,42 +55,39 @@ class OrderBook:
         self.best_bid_change_callback = best_bid_change_callback
 
     def update_orderbook(self, data: OrderbookUpdateModel):
-            current_best_bid = self.best_bid()
-            for bid in data.bid:
-                if bid.price in self._bid_prices:
-                    existing_entry: OrderBookEntry = self._bid_prices.get(
-                        bid.price
-                    )
-                    existing_entry.amount = existing_entry.amount + bid.qty
-                    if existing_entry.amount == 0:
-                        del self._bid_prices[bid.price]
-                else:
-                    self._bid_prices[bid.price] = OrderBookEntry(
-                        price=bid.price,
-                        amount=bid.qty,
-                    )
-            now_best_bid = self.best_bid()
-            if now_best_bid and current_best_bid != now_best_bid:
-                if self.best_bid_change_callback:
-                    self.best_bid_change_callback(now_best_bid)
+        best_bid_before_update = self.best_bid()
+        for bid in data.bid:
+            if bid.price in self._bid_prices:
+                existing_bid_entry: OrderBookEntry = self._bid_prices.get(bid.price)
+                existing_bid_entry.amount = existing_bid_entry.amount + bid.qty
+                if existing_bid_entry.amount == 0:
+                    del self._bid_prices[bid.price]
+            else:
+                self._bid_prices[bid.price] = OrderBookEntry(
+                    price=bid.price,
+                    amount=bid.qty,
+                )
+        now_best_bid = self.best_bid()
+        if now_best_bid and best_bid_before_update != now_best_bid:
+            if self.best_bid_change_callback:
+                self.best_bid_change_callback(now_best_bid)
 
-            current_best_ask = self.best_ask()
-            for ask in data.ask:
-                if ask.price in self._ask_prices:
-                    existing_entry: OrderBookEntry = self._ask_prices.get(
-                        ask.price
-                    )
-                    existing_entry.amount = existing_entry.amount + ask.qty
-                    if existing_entry.amount == 0:
-                        del self._ask_prices[ask.price]
-                else:
-                    self._ask_prices[ask.price] = OrderBookEntry(
-                        price=ask.price,
-                        amount=ask.qty,
-                    )
-            if current_best_ask != self.best_ask():
-                if self.best_ask_change_callback:
-                    self.best_ask_change_callback(self.best_ask())
+        best_ask_before_update = self.best_ask()
+        for ask in data.ask:
+            if ask.price in self._ask_prices:
+                existing_ask_entry: OrderBookEntry = self._ask_prices.get(ask.price)
+                existing_ask_entry.amount = existing_ask_entry.amount + ask.qty
+                if existing_ask_entry.amount == 0:
+                    del self._ask_prices[ask.price]
+            else:
+                self._ask_prices[ask.price] = OrderBookEntry(
+                    price=ask.price,
+                    amount=ask.qty,
+                )
+        now_best_ask = self.best_ask()
+        if now_best_ask and best_ask_before_update != now_best_ask:
+            if self.best_ask_change_callback:
+                self.best_ask_change_callback(now_best_ask)
 
     def init_orderbook(self, data: OrderbookUpdateModel):
         for bid in data.bid:
@@ -105,16 +103,17 @@ class OrderBook:
 
     async def start_orderbook(self) -> asyncio.Task:
         loop = asyncio.get_running_loop()
+
         async def inner():
-            async with self.__stream_client.subscribe_to_orderbooks(
-                self.__market_name
-            ) as stream:
+            async with self.__stream_client.subscribe_to_orderbooks(self.__market_name) as stream:
                 async for event in stream:
                     if event.type == StreamDataType.SNAPSHOT.value:
                         self.init_orderbook(event.data)
                     elif event.type == StreamDataType.DELTA.value:
                         self.update_orderbook(event.data)
+
         self.__task = loop.create_task(inner())
+        return self.__task
 
     def stop_orderbook(self):
         if self.__task:
