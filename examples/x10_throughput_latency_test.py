@@ -24,12 +24,14 @@ PLACE = "PLACE"
 CANCEL = "CANCEL"
 NANOS_IN_SECOND = 1000 * 1000 * 1000
 
+
 @dataclasses.dataclass(frozen=True)
 class TimedOperation:
     name: str
     start_nanos: int
     end_nanos: int
     operation_ms: float
+
 
 @dataclasses.dataclass(frozen=True)
 class TimeSeriesChunk:
@@ -54,9 +56,9 @@ async def setup_and_run(base: str = "BTC", queue: Optional[Queue] = None):
     market_name = f"{base}-USD"
     print("Running for market: ", market_name)
     load_dotenv(f"./env/{base}.env")
-    API_KEY = os.getenv("X10_API_KEY")
-    PUBLIC_KEY = os.getenv("X10_PUBLIC_KEY")
-    PRIVATE_KEY = os.getenv("X10_PRIVATE_KEY")
+    API_KEY = os.environ["X10_API_KEY"]
+    PUBLIC_KEY = os.environ["X10_PUBLIC_KEY"]
+    PRIVATE_KEY = os.environ["X10_PRIVATE_KEY"]
     VAULT_ID = int(os.environ["X10_VAULT_ID"])
 
     stark_account = StarkPerpetualAccount(
@@ -180,14 +182,15 @@ if __name__ == "__main__":
     places: List[TimedOperation] = []
     place_chunks: List[TimeSeriesChunk] = []
 
-    q = Queue()
+    q: Queue[TimedOperation] = Queue()
     subprocesses = map(lambda market: Process(target=entry_point, args=[market, q]), markets)
 
     for p in subprocesses:
         p.start()
 
-    import threading
     import csv
+    import threading
+
     cancel_file = open("cancel.csv", "w")
     place_file = open("place.csv", "w")
     cancels_csv = csv.DictWriter(cancel_file, fieldnames=list(TimeSeriesChunk.__annotations__.keys()))
@@ -195,9 +198,9 @@ if __name__ == "__main__":
 
     poison_pill = None
 
-    def handle_operation(new_operation: TimedOperation, 
-                         list: List[TimedOperation],
-                         chunks: List[TimeSeriesChunk]) -> TimeSeriesChunk | None:
+    def handle_operation(
+        new_operation: TimedOperation, list: List[TimedOperation], chunks: List[TimeSeriesChunk]
+    ) -> TimeSeriesChunk | None:
         list.append(new_operation)
         newest = new_operation.end_nanos
         oldest = list[0].start_nanos
@@ -207,15 +210,13 @@ if __name__ == "__main__":
             latency_std_dev = round((sum((x - mean_latency) ** 2 for x in latencies) / len(latencies)) ** 0.5, 1)
             throughput_per_second = round(len(list) / ((newest - oldest) / NANOS_IN_SECOND), 1)
             chunk = TimeSeriesChunk(
-                    start_ns=oldest,
-                    end_ns=newest,
-                    mean_operation_latency_ms=mean_latency,
-                    std_dev_operation_latency_ms=latency_std_dev,
-                    throughput=throughput_per_second,
-                )
-            chunks.append(
-                chunk
+                start_ns=oldest,
+                end_ns=newest,
+                mean_operation_latency_ms=mean_latency,
+                std_dev_operation_latency_ms=latency_std_dev,
+                throughput=throughput_per_second,
             )
+            chunks.append(chunk)
             list.clear()
             return chunk
         return None
@@ -240,8 +241,6 @@ if __name__ == "__main__":
         cancel_file.close()
         place_file.close()
         print("Exiting queue reader")
-
-
 
     queue_reader = threading.Thread(target=read_queue)
     queue_reader.start()

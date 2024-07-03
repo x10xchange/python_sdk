@@ -2,7 +2,7 @@ import asyncio
 import dataclasses
 import time
 from decimal import Decimal
-from typing import Awaitable, Dict, Union
+from typing import Awaitable, Dict, Union, cast
 
 from x10.perpetual.accounts import AccountStreamDataModel, StarkPerpetualAccount
 from x10.perpetual.configuration import EndpointConfig
@@ -85,11 +85,11 @@ class BlockingTradingClient:
             PerpetualStreamConnection[WrappedStreamResponse[AccountStreamDataModel]],
         ] = None
         self.__order_waiters: Dict[str, OrderWaiter] = {}
-        self.__cancel_waiters: Dict[str, CancelWaiter] = {}
+        self.__cancel_waiters: Dict[int, CancelWaiter] = {}
         self.__orders_task: Union[None, asyncio.Task] = None
         self.__stream_lock = asyncio.Lock()
 
-    async def handle_cancel(self, order_id: str):
+    async def handle_cancel(self, order_id: int):
         if order_id not in self.__cancel_waiters:
             return
         cancel_waiter = self.__cancel_waiters.get(order_id)
@@ -129,7 +129,7 @@ class BlockingTradingClient:
                 await self.handle_order(order)
 
     async def cancel_order(self, order_id: int) -> TimedCancel:
-        awaitable = None
+        awaitable: Awaitable
         if order_id in self.__cancel_waiters:
             awaitable = condition_to_awaitable(self.__cancel_waiters[order_id].condition)
         else:
@@ -143,7 +143,7 @@ class BlockingTradingClient:
                 return_exceptions=False,
             )
 
-        cancel_waiter = self.__cancel_waiters.get(order_id)
+        cancel_waiter = self.__cancel_waiters[order_id]
         end_nanos = None
         if cancel_waiter.end_nanos:
             end_nanos = cancel_waiter.end_nanos
@@ -151,6 +151,7 @@ class BlockingTradingClient:
             await awaitable
             end_nanos = self.__cancel_waiters[order_id].end_nanos
         del self.__cancel_waiters[order_id]
+        end_nanos = cast(int, end_nanos)
         return TimedCancel(
             start_nanos=cancel_waiter.start_nanos,
             end_nanos=end_nanos,
