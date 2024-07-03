@@ -10,6 +10,10 @@ class RiskFactorConfig(X10BaseModel):
     upper_bound: Decimal
     risk_factor: Decimal
 
+    @cached_property
+    def max_leverage(self) -> Decimal:
+        return round(Decimal(1) / self.risk_factor, 2)
+
 
 class MarketStatsModel(X10BaseModel):
     daily_volume: Decimal
@@ -48,6 +52,14 @@ class TradingConfigModel(X10BaseModel):
     @cached_property
     def quantity_precision(self) -> int:
         return abs(int(self.min_order_size_change.log10().to_integral_exact(ROUND_CEILING)))
+
+    def max_leverage_for_position_value(self, position_value: Decimal) -> Decimal:
+        filtered = [x for x in self.risk_factor_config if x.upper_bound >= position_value]
+        return filtered[0].max_leverage if filtered else Decimal(0)
+
+    def max_position_value_for_leverage(self, leverage: Decimal) -> Decimal:
+        filtered = [x for x in self.risk_factor_config if x.max_leverage >= leverage]
+        return filtered[-1].upper_bound if filtered else Decimal(0)
 
 
 class L2ConfigModel(X10BaseModel):

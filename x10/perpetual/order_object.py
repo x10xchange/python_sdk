@@ -65,7 +65,7 @@ def __create_order_object(
     signer: Callable[[int], Tuple[int, int]],
     public_key: int,
     exact_only: bool = False,
-    expire_time: datetime = utc_now() + timedelta(hours=8),
+    expire_time: datetime = utc_now() + timedelta(hours=1),
     post_only: bool = False,
     previous_order_id=None,
 ) -> PerpetualOrderModel:
