@@ -13,6 +13,6 @@ TESTNET_CONFIG = EndpointConfig(
 )
 
 MAINNET_CONFIG = EndpointConfig(
-    api_base_url="http://api.x10.exchange/api/v1",
+    api_base_url="https://api.x10.exchange/api/v1",
     stream_url="wss://api.x10.exchange/stream.x10.exchange/v1",
 )
