@@ -10,3 +10,6 @@ lint:
 
 test:
 	tox
+
+bump-version-patch:
+	poetry version patch
