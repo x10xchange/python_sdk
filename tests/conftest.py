@@ -254,7 +254,7 @@ def create_account_update_trade_message():
         from x10.utils.http import WrappedStreamResponse
 
         return WrappedStreamResponse[AccountStreamDataModel](
-            type="TRADE1",
+            type="TRADE",
             data=AccountStreamDataModel(
                 trades=[
                     AccountTradeModel(

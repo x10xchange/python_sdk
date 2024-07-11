@@ -58,9 +58,9 @@ class StreamDataType(Enum):
     WITHDRAWAL = "WITHDRAWAL"
     UNKNOWN = "UNKNOWN"
 
-    # @classmethod
-    # def __get_pydantic_core_schema__(cls, _source_type: Any, _handler: GetCoreSchemaHandler) -> CoreSchema:
-    #     return core_schema.no_info_plain_validator_function(lambda v: v if v in cls._value2member_map_ else cls.UNKNOWN)
+    @classmethod
+    def __get_pydantic_core_schema__(cls, _source_type: Any, _handler: GetCoreSchemaHandler) -> CoreSchema:
+        return core_schema.no_info_plain_validator_function(lambda v: v if v in cls._value2member_map_ else cls.UNKNOWN)
 
 
 class WrappedStreamResponse(X10BaseModel, Generic[ApiResponseType]):

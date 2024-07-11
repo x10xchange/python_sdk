@@ -86,7 +86,7 @@ class PerpetualOrderModel(X10BaseModel):
     fee: Decimal
     expiry_epoch_millis: int
     nonce: Decimal
-    payed_fee: Optional[Decimal]
+    payed_fee: Optional[Decimal] = None
     take_profit_signature: Optional[str] = None
     stop_loss_signature: Optional[str] = None
     cancel_id: Optional[int] = None
