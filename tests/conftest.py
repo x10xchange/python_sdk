@@ -3,10 +3,6 @@ from typing import List
 
 import pytest
 
-API_KEY = "dummy_api_key"
-ACCOUNT_ID = 3000
-VAULT_ID = 10002
-
 
 @pytest.fixture
 def create_trading_account():
@@ -14,10 +10,10 @@ def create_trading_account():
         from x10.perpetual.accounts import StarkPerpetualAccount
 
         return StarkPerpetualAccount(
-            vault=VAULT_ID,
+            vault=10002,
             private_key="0x7a7ff6fd3cab02ccdcd4a572563f5976f8976899b03a39773795a3c486d4986",
             public_key="0x61c5e7e8339b7d56f197f54ea91b776776690e3232313de0f2ecbd0ef76f466",
-            api_key=API_KEY,
+            api_key="dummy_api_key",
         )
 
     return _create_trading_account
