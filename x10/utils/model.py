@@ -9,6 +9,7 @@ from typing_extensions import Annotated
 
 
 class X10BaseModel(BaseModel):
+    # FIXME: Ignore unknown enum values
     model_config = ConfigDict(frozen=True, extra="ignore", use_enum_values=True)
 
     # Read this to get more context why `alias_generator` can't be used:

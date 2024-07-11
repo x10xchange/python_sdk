@@ -5,6 +5,7 @@ from x10.perpetual.balances import BalanceModel
 from x10.perpetual.fees import TradingFeeModel
 from x10.perpetual.orders import OpenOrderModel
 from x10.perpetual.positions import PositionModel
+from x10.perpetual.trades import AccountTradeModel
 from x10.utils.model import X10BaseModel
 from x10.utils.starkex import sign
 from x10.utils.string import is_hex_string
@@ -49,6 +50,7 @@ class StarkPerpetualAccount:
 class AccountStreamDataModel(X10BaseModel):
     orders: Optional[List[OpenOrderModel]] = None
     positions: Optional[List[PositionModel]] = None
+    trades: Optional[List[AccountTradeModel]] = None
     balance: Optional[BalanceModel] = None
 
 
