@@ -4,6 +4,8 @@ from typing import Any, Dict, Generic, List, Optional, Sequence, Type, TypeVar, 
 
 import aiohttp
 from aiohttp import ClientTimeout
+from pydantic import GetCoreSchemaHandler
+from pydantic_core import CoreSchema, core_schema
 
 from x10.config import DEFAULT_REQUEST_TIMEOUT_SECONDS, USER_AGENT
 from x10.utils.log import get_logger
@@ -51,8 +53,14 @@ class StreamDataType(Enum):
     ORDER = "ORDER"
     POSITION = "POSITION"
     SNAPSHOT = "SNAPSHOT"
+    TRADE = "TRADE"
     TRANSFER = "TRANSFER"
     WITHDRAWAL = "WITHDRAWAL"
+    UNKNOWN = "UNKNOWN"
+
+    # @classmethod
+    # def __get_pydantic_core_schema__(cls, _source_type: Any, _handler: GetCoreSchemaHandler) -> CoreSchema:
+    #     return core_schema.no_info_plain_validator_function(lambda v: v if v in cls._value2member_map_ else cls.UNKNOWN)
 
 
 class WrappedStreamResponse(X10BaseModel, Generic[ApiResponseType]):
