@@ -15,7 +15,7 @@ from x10.utils.model import EmptyModel
 class AccountModule(BaseModule):
     async def get_balance(self) -> WrappedApiResponse[BalanceModel]:
         """
-        https://x101.docs.apiary.io/#reference/0/account/get-balance
+        https://x10xchange.github.io/x10-documentation/#get-balance
         """
 
         url = self._get_url("/user/balance")
@@ -25,7 +25,7 @@ class AccountModule(BaseModule):
         self, *, market_names: Optional[List[str]] = None, position_side: Optional[PositionSide] = None
     ) -> WrappedApiResponse[List[PositionModel]]:
         """
-        https://x101.docs.apiary.io/#reference/0/account/get-positions
+        https://x10xchange.github.io/x10-documentation/#get-positions
         """
 
         url = self._get_url("/user/positions", query={"market": market_names, "side": position_side})
@@ -39,7 +39,7 @@ class AccountModule(BaseModule):
         limit: Optional[int] = None,
     ) -> WrappedApiResponse[List[PositionHistoryModel]]:
         """
-        https://x101.docs.apiary.io/#reference/0/account/get-positions-history
+        https://x10xchange.github.io/x10-documentation/#get-positions-history
         """
 
         url = self._get_url(
@@ -57,7 +57,7 @@ class AccountModule(BaseModule):
         order_side: Optional[OrderSide] = None,
     ) -> WrappedApiResponse[List[OpenOrderModel]]:
         """
-        https://x101.docs.apiary.io/#reference/0/account/get-open-orders
+        https://x10xchange.github.io/x10-documentation/#get-open-orders
         """
 
         url = self._get_url(
@@ -75,7 +75,7 @@ class AccountModule(BaseModule):
         limit: Optional[int] = None,
     ) -> WrappedApiResponse[List[OpenOrderModel]]:
         """
-        https://x101.docs.apiary.io/#reference/0/account/get-orders-history
+        https://x10xchange.github.io/x10-documentation/#get-orders-history
         """
 
         url = self._get_url(
@@ -91,7 +91,7 @@ class AccountModule(BaseModule):
         trade_type: Optional[TradeType] = None,
     ) -> WrappedApiResponse[List[AccountTradeModel]]:
         """
-        https://x101.docs.apiary.io/#reference/0/account/get-trades
+        https://x10xchange.github.io/x10-documentation/#get-trades
         """
 
         url = self._get_url(
@@ -105,7 +105,7 @@ class AccountModule(BaseModule):
 
     async def get_fees(self, *, market_names: List[str]) -> WrappedApiResponse[List[TradingFeeModel]]:
         """
-        https://x101.docs.apiary.io/#reference/0/account/get-fees
+        https://x10xchange.github.io/x10-documentation/#get-fees
         """
 
         url = self._get_url("/user/fees", query={"market": market_names})
@@ -113,7 +113,7 @@ class AccountModule(BaseModule):
 
     async def get_leverage(self, market_names: List[str]) -> WrappedApiResponse[List[AccountLeverage]]:
         """
-        https://x101.docs.apiary.io/#reference/0/account/get-current-leverage
+        https://x10xchange.github.io/x10-documentation/#get-current-leverage
         """
 
         url = self._get_url("/user/leverage", query={"market": market_names})
@@ -121,7 +121,7 @@ class AccountModule(BaseModule):
 
     async def update_leverage(self, market_name: str, leverage: Decimal) -> WrappedApiResponse[EmptyModel]:
         """
-        https://x101.docs.apiary.io/#reference/0/account/update-leverage
+        https://x10xchange.github.io/x10-documentation/#update-leverage
         """
 
         url = self._get_url("/user/leverage")

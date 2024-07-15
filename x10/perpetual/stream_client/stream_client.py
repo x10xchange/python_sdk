@@ -25,7 +25,7 @@ class PerpetualStreamClient:
 
     def subscribe_to_orderbooks(self, market_name: Optional[str] = None):
         """
-        https://x101.docs.apiary.io/#reference/0/websocket-streams/orderbooks-stream
+        https://x10xchange.github.io/x10-documentation/#orderbooks-stream
         """
 
         url = self.__get_url("/orderbooks/<market?>", market=market_name)
@@ -33,7 +33,7 @@ class PerpetualStreamClient:
 
     def subscribe_to_public_trades(self, market_name: Optional[str] = None):
         """
-        https://x101.docs.apiary.io/#reference/0/websocket-streams/trades-stream
+        https://x10xchange.github.io/x10-documentation/#trades-stream
         """
 
         url = self.__get_url("/publicTrades/<market?>", market=market_name)
@@ -41,7 +41,7 @@ class PerpetualStreamClient:
 
     def subscribe_to_funding_rates(self, market_name: Optional[str] = None):
         """
-        https://x101.docs.apiary.io/#reference/0/websocket-streams/funding-rates-stream
+        https://x10xchange.github.io/x10-documentation/#funding-rates-stream
         """
 
         url = self.__get_url("/funding/<market?>", market=market_name)
@@ -49,7 +49,7 @@ class PerpetualStreamClient:
 
     def subscribe_to_account_updates(self, api_key: str):
         """
-        https://x101.docs.apiary.io/#reference/0/websocket-streams/account-updates-stream
+        https://x10xchange.github.io/x10-documentation/#account-updates-stream
         """
 
         url = self.__get_url("/account")
