@@ -23,7 +23,7 @@ class OrderManagementModule(BaseModule):
 
         :param order: Order object created by `create_order_object` method.
 
-        https://x101.docs.apiary.io/#reference/0/order-managment/create-order
+        https://x10xchange.github.io/x10-documentation/#create-order
         """
         LOGGER.debug("Placing an order: id=%s", order.id)
 
@@ -39,7 +39,7 @@ class OrderManagementModule(BaseModule):
 
     async def cancel_order(self, order_id: int):
         """
-        https://x101.docs.apiary.io/#reference/0/order-managment/cancel-order
+        https://x10xchange.github.io/x10-documentation/#cancel-order
         """
 
         url = self._get_url("/user/order/<order_id>", order_id=order_id)
@@ -56,7 +56,7 @@ class OrderManagementModule(BaseModule):
         cancel_all: Optional[bool] = False,
     ):
         """
-        https://x101.docs.apiary.io/#reference/0/order-managment/mass-cancel
+        https://x10xchange.github.io/x10-documentation/#mass-cancel
         """
 
         url = self._get_url("/user/order/massCancel")

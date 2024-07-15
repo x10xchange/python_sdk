@@ -1,8 +1,8 @@
 # X10
 
-Python client for [X10 API](https://x101.docs.apiary.io).
+Python client for [X10 API](https://x10xchange.github.io/x10-documentation/).
 
-Minimum Python version required to use this library is `3.9` (you can use [pyenv](https://github.com/pyenv/pyenv) to manage your Python versions easily).
+Minimum Python version required to use this library is `3.10` (you can use [pyenv](https://github.com/pyenv/pyenv) to manage your Python versions easily).
 
 ## Installation 
 
