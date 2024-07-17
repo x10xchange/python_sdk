@@ -19,7 +19,8 @@ from typing import Tuple
 
 import mpmath
 import sympy
-from sympy.core.numbers import igcdex
+
+from vendor.starkware.python.math_utils import igcdex
 
 # A type that represents a point (x,y) on an elliptic curve.
 ECPoint = Tuple[int, int]
@@ -30,7 +31,7 @@ def pi_as_string(digits: int) -> str:
     Returns pi as a string of decimal digits without the decimal point ("314...").
     """
     mpmath.mp.dps = digits  # Set number of digits.
-    return '3' + str(mpmath.mp.pi)[2:]
+    return "3" + str(mpmath.mp.pi)[2:]
 
 
 def is_quad_residue(n: int, p: int) -> bool:

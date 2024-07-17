@@ -15,26 +15,35 @@
 ###############################################################################
 
 import hashlib
+import itertools
 import json
 import math
 import os
-import random
+import secrets
 from typing import Optional, Tuple, Union
 
 from ecdsa.rfc6979 import generate_k
 
-from .math_utils import ECPoint, div_mod, ec_add, ec_double, ec_mult, is_quad_residue, sqrt_mod
+from vendor.starkware.crypto.signature.math_utils import (
+    ECPoint,
+    div_mod,
+    ec_add,
+    ec_double,
+    ec_mult,
+    is_quad_residue,
+    sqrt_mod,
+)
+from vendor.starkware.python.math_utils import div_ceil
 
-PEDERSEN_HASH_POINT_FILENAME = os.path.join(
-    os.path.dirname(__file__), 'pedersen_params.json')
+PEDERSEN_HASH_POINT_FILENAME = os.path.join(os.path.dirname(__file__), "pedersen_params.json")
 PEDERSEN_PARAMS = json.load(open(PEDERSEN_HASH_POINT_FILENAME))
 
-FIELD_PRIME = PEDERSEN_PARAMS['FIELD_PRIME']
-FIELD_GEN = PEDERSEN_PARAMS['FIELD_GEN']
-ALPHA = PEDERSEN_PARAMS['ALPHA']
-BETA = PEDERSEN_PARAMS['BETA']
-EC_ORDER = PEDERSEN_PARAMS['EC_ORDER']
-CONSTANT_POINTS = PEDERSEN_PARAMS['CONSTANT_POINTS']
+FIELD_PRIME = PEDERSEN_PARAMS["FIELD_PRIME"]
+FIELD_GEN = PEDERSEN_PARAMS["FIELD_GEN"]
+ALPHA = PEDERSEN_PARAMS["ALPHA"]
+BETA = PEDERSEN_PARAMS["BETA"]
+EC_ORDER = PEDERSEN_PARAMS["EC_ORDER"]
+CONSTANT_POINTS = PEDERSEN_PARAMS["CONSTANT_POINTS"]
 
 N_ELEMENT_BITS_ECDSA = math.floor(math.log(FIELD_PRIME, 2))
 assert N_ELEMENT_BITS_ECDSA == 251
@@ -49,10 +58,14 @@ SHIFT_POINT = CONSTANT_POINTS[0]
 MINUS_SHIFT_POINT = (SHIFT_POINT[0], FIELD_PRIME - SHIFT_POINT[1])
 EC_GEN = CONSTANT_POINTS[1]
 
-assert SHIFT_POINT == [0x49ee3eba8c1600700ee1b87eb599f16716b0b1022947733551fde4050ca6804,
-                       0x3ca0cfe4b3bc6ddf346d49d06ea0ed34e621062c0e056c1d0405d266e10268a]
-assert EC_GEN == [0x1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca,
-                  0x5668060aa49730b7be4801df46ec62de53ecd11abe43a32873000c36e8dc1f]
+assert SHIFT_POINT == [
+    0x49EE3EBA8C1600700EE1B87EB599F16716B0B1022947733551FDE4050CA6804,
+    0x3CA0CFE4B3BC6DDF346D49D06EA0ED34E621062C0E056C1D0405D266E10268A,
+]
+assert EC_GEN == [
+    0x1EF15C18599971B7BECED415A40F0C7DEACFD9B0D1819E03D723D8BC943CFCA,
+    0x5668060AA49730B7BE4801DF46EC62DE53ECD11ABE43A32873000C36E8DC1F,
+]
 
 
 #########
@@ -65,7 +78,7 @@ ECSignature = Tuple[int, int]
 
 class InvalidPublicKeyError(Exception):
     def __init__(self):
-        super().__init__('Given x coordinate does not represent any point on the elliptic curve.')
+        super().__init__("Given x coordinate does not represent any point on the elliptic curve.")
 
 
 def get_y_coordinate(stark_key_x_coordinate: int) -> int:
@@ -84,8 +97,8 @@ def get_y_coordinate(stark_key_x_coordinate: int) -> int:
 
 
 def get_random_private_key() -> int:
-    # NOTE: It is IMPORTANT to use a strong random function here.
-    return random.randint(1, EC_ORDER - 1)
+    # Returns a private key in the range [1, EC_ORDER).
+    return secrets.randbelow(EC_ORDER - 1) + 1
 
 
 def private_key_to_ec_point_on_stark_curve(priv_key: int) -> ECPoint:
@@ -108,20 +121,24 @@ def generate_k_rfc6979(msg_hash: int, priv_key: int, seed: Optional[int] = None)
         msg_hash *= 16
 
     if seed is None:
-        extra_entropy = b''
+        extra_entropy = b""
     else:
-        extra_entropy = seed.to_bytes(math.ceil(seed.bit_length() / 8), 'big')
+        extra_entropy = seed.to_bytes(math.ceil(seed.bit_length() / 8), "big")
 
-    return generate_k(EC_ORDER, priv_key, hashlib.sha256,
-                      msg_hash.to_bytes(math.ceil(msg_hash.bit_length() / 8), 'big'),
-                      extra_entropy=extra_entropy)
+    return generate_k(
+        EC_ORDER,
+        priv_key,
+        hashlib.sha256,
+        msg_hash.to_bytes(math.ceil(msg_hash.bit_length() / 8), "big"),
+        extra_entropy=extra_entropy,
+    )
 
 
 def sign(msg_hash: int, priv_key: int, seed: Optional[int] = None) -> ECSignature:
     # Note: msg_hash must be smaller than 2**N_ELEMENT_BITS_ECDSA.
     # Message whose hash is >= 2**N_ELEMENT_BITS_ECDSA cannot be signed.
     # This happens with a very small probability.
-    assert 0 <= msg_hash < 2**N_ELEMENT_BITS_ECDSA, 'Message not signable.'
+    assert 0 <= msg_hash < 2**N_ELEMENT_BITS_ECDSA, "Message not signable."
 
     # Choose a valid k. In our version of ECDSA not every k value is valid,
     # and there is a negligible probability a drawn k cannot be used for signing.
@@ -173,17 +190,41 @@ def mimic_ec_mult_air(m: int, point: ECPoint, shift_point: ECPoint) -> ECPoint:
     return partial_sum
 
 
+def is_point_on_curve(x: int, y: int) -> bool:
+    return pow(y, 2, FIELD_PRIME) == (pow(x, 3, FIELD_PRIME) + ALPHA * x + BETA) % FIELD_PRIME
+
+
+def is_valid_stark_private_key(private_key: int) -> bool:
+    """
+    Returns whether the given input is a valid STARK private key.
+    """
+    return 0 < private_key < EC_ORDER
+
+
+def is_valid_stark_key(stark_key: int) -> bool:
+    """
+    Returns whether the given input is a valid STARK key.
+    """
+    # Only the x coordinate of the point is given, get the y coordinate and make sure that the
+    # point is on the curve.
+    try:
+        get_y_coordinate(stark_key_x_coordinate=stark_key)
+    except InvalidPublicKeyError:
+        return False
+    return True
+
+
 def verify(msg_hash: int, r: int, s: int, public_key: Union[int, ECPoint]) -> bool:
     # Compute w = s^-1 (mod EC_ORDER).
-    assert 1 <= s < EC_ORDER, 's = %s' % s
+    assert 1 <= s < EC_ORDER, "s = %s" % s
     w = inv_mod_curve_size(s)
 
     # Preassumptions:
     # DIFF: in classic ECDSA, we assert 1 <= r, w <= EC_ORDER-1.
     # Since r, w < 2**N_ELEMENT_BITS_ECDSA < EC_ORDER, we only need to verify r, w != 0.
-    assert 1 <= r < 2**N_ELEMENT_BITS_ECDSA, 'r = %s' % r
-    assert 1 <= w < 2**N_ELEMENT_BITS_ECDSA, 'w = %s' % w
-    assert 0 <= msg_hash < 2**N_ELEMENT_BITS_ECDSA, 'msg_hash = %s' % msg_hash
+    assert 1 <= r < 2**N_ELEMENT_BITS_ECDSA, "r = %s" % r
+    assert 1 <= w < 2**N_ELEMENT_BITS_ECDSA, "w = %s" % w
+    assert 0 <= msg_hash < 2**N_ELEMENT_BITS_ECDSA, "msg_hash = %s" % msg_hash
 
     if isinstance(public_key, int):
         # Only the x coordinate of the point is given, check the two possibilities for the y
@@ -192,15 +233,12 @@ def verify(msg_hash: int, r: int, s: int, public_key: Union[int, ECPoint]) -> bo
             y = get_y_coordinate(public_key)
         except InvalidPublicKeyError:
             return False
-        assert pow(y, 2, FIELD_PRIME) == (
-            pow(public_key, 3, FIELD_PRIME) + ALPHA * public_key + BETA) % FIELD_PRIME
-        return verify(msg_hash, r, s, (public_key, y)) or \
-            verify(msg_hash, r, s, (public_key, (-y) % FIELD_PRIME))
-    else:
-        # The public key is provided as a point.
-        # Verify it is on the curve.
-        assert (public_key[1]**2 - (public_key[0]**3 + ALPHA *
-                                    public_key[0] + BETA)) % FIELD_PRIME == 0
+        return verify(msg_hash, r, s, (public_key, y)) or verify(
+            msg_hash, r, s, (public_key, (-y) % FIELD_PRIME)
+        )
+
+    # The public key is provided as a point.
+    assert is_point_on_curve(x=public_key[0], y=public_key[1])
 
     # Signature validation.
     # DIFF: original formula is:
@@ -222,9 +260,38 @@ def verify(msg_hash: int, r: int, s: int, public_key: Union[int, ECPoint]) -> bo
     return r == x
 
 
+def grind_key(key_seed: int, key_value_limit: int) -> int:  # type: ignore[return]
+    """
+    Given a cryptographically-secure seed and a limit, deterministically generates a pseudorandom
+    key in the range [0, limit).
+    This is a reference implementation, and cryptographic security is not guaranteed (for example,
+    it may be vulnerable to side-channel attacks); this function is not recommended for use with key
+    generation on mainnet.
+    """
+    # Simply taking a uniform value in [0, 2**256) and returning the result modulo key_value_limit
+    # is not necessarily uniform on [0, key_value_limit). We define max_allowed_value to be a
+    # multiple of the limit, so that a uniform sample of [0, max_allowed_value) mod key_value_limit
+    # is uniform on [0, key_value_limit).
+    max_allowed_value = 2**256 - (2**256 % key_value_limit)
+
+    def to_bytes_no_pad(x: int) -> bytes:
+        # To conform with the JS implementation, convert integer to bytes using minimal amount of
+        # bytes possible. We would like 0.to_bytes() to be b'\x00', so a minimal length of 1 is
+        # enforced.
+        return x.to_bytes(length=max(1, div_ceil(x.bit_length(), 8)), byteorder="big", signed=False)
+
+    # Increment the index (salt) until the hash value falls in the range [0, max_allowed_value).
+    for index in itertools.count():
+        hash_input = to_bytes_no_pad(key_seed) + to_bytes_no_pad(index)
+        key = int(hashlib.sha256(hash_input).hexdigest(), 16)
+        if key < max_allowed_value:
+            return key % key_value_limit
+
+
 #################
 # Pedersen hash #
 #################
+
 
 def pedersen_hash(*elements: int) -> int:
     return pedersen_hash_as_point(*elements)[0]
@@ -238,10 +305,12 @@ def pedersen_hash_as_point(*elements: int) -> ECPoint:
     point = SHIFT_POINT
     for i, x in enumerate(elements):
         assert 0 <= x < FIELD_PRIME
-        point_list = CONSTANT_POINTS[2 + i * N_ELEMENT_BITS_HASH:2 + (i + 1) * N_ELEMENT_BITS_HASH]
+        point_list = CONSTANT_POINTS[
+            2 + i * N_ELEMENT_BITS_HASH : 2 + (i + 1) * N_ELEMENT_BITS_HASH
+        ]
         assert len(point_list) == N_ELEMENT_BITS_HASH
         for pt in point_list:
-            assert point[0] != pt[0], 'Unhashable input.'
+            assert point[0] != pt[0], "Unhashable input."
             if x & 1:
                 point = ec_add(point, pt, FIELD_PRIME)
             x >>= 1
