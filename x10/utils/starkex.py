@@ -3,51 +3,67 @@ import random
 from datetime import datetime, timedelta
 from typing import Callable, Literal, Optional
 
-try:
-    from fast_stark_crypto import pedersen_hash as ph_fast
-
-    def pedersen_hash(first: int, second: int) -> int:
-        return ph_fast(first, second)
-
-except ImportError as e:
-    from vendor.starkware.crypto.signature import pedersen_hash as ph_slow
-
-    print("WARNING: COULD NOT IMPORT RUST CRYPTO - USING SLOW PYTHON PEDERSEN IMPL {}", e.msg)
-
-    def pedersen_hash(first: int, second: int) -> int:
-        return ph_slow(first, second)
-
-
-try:
-    from fast_stark_crypto import sign as __sign_fast
-    from vendor.starkware.crypto.signature import generate_k_rfc6979
-
-    def sign(private_key: int, msg_hash: int) -> tuple[int, int]:
-        return __sign_fast(
-            private_key=private_key, msg_hash=msg_hash, k=generate_k_rfc6979(msg_hash=msg_hash, priv_key=private_key)
-        )
-
-except ImportError as e:
-    from vendor.starkware.crypto.signature import sign as __sign_slow
-
-    print("WARNING: COULD NOT IMPORT RUST CRYPTO - USING SLOW PYTHON SIGN IMPL {}", e.msg)
-
-    def sign(private_key: int, msg_hash: int) -> tuple[int, int]:
-        return __sign_slow(priv_key=private_key, msg_hash=msg_hash)
-
-
 from x10.perpetual.amounts import ROUNDING_FEE_CONTEXT, StarkAmount, StarkOrderAmounts
+from x10.utils.log import get_logger
 
-LIMIT_ORDER_WITH_FEES = 3
-TRANSFER = 4
-CONDITIONAL_TRANSFER = 5
-WITHDRAWAL_TO_ADDRESS = 7
+EndianType = Literal["little", "big"]
 
-Endianness = Literal["big", "little"]
+LOGGER = get_logger(__name__)
+
+OP_LIMIT_ORDER_WITH_FEES = 3
+OP_TRANSFER = 4
+OP_CONDITIONAL_TRANSFER = 5
+OP_WITHDRAWAL_TO_ADDRESS = 7
 
 HOURS_IN_DAY = 24
 SETTLEMENT_BUFFER_HOURS = HOURS_IN_DAY * 7
 SECONDS_IN_HOUR = 60 * 60
+
+
+def import_pedersen_hash_func():
+    try:
+        from fast_stark_crypto import pedersen_hashx as ph_fast
+
+        def _pedersen_hash(first: int, second: int) -> int:
+            return ph_fast(first, second)
+
+    except ImportError as e:
+        from vendor.starkware.crypto.signature import pedersen_hash as ph_slow
+
+        LOGGER.warning("COULD NOT IMPORT RUST CRYPTO - USING SLOW PYTHON PEDERSEN IMPL: %s", e.msg)
+
+        def _pedersen_hash(first: int, second: int) -> int:
+            return ph_slow(first, second)
+
+    return _pedersen_hash
+
+
+def import_sign_func():
+    try:
+        from fast_stark_crypto import sign as __sign_fast
+
+        from vendor.starkware.crypto.signature import generate_k_rfc6979
+
+        def _sign(private_key: int, msg_hash: int) -> tuple[int, int]:
+            return __sign_fast(
+                private_key=private_key,
+                msg_hash=msg_hash,
+                k=generate_k_rfc6979(msg_hash=msg_hash, priv_key=private_key),
+            )
+
+    except ImportError as e:
+        from vendor.starkware.crypto.signature import sign as __sign_slow
+
+        LOGGER.warning("COULD NOT IMPORT RUST CRYPTO - USING SLOW PYTHON SIGN IMPL: %s", e.msg)
+
+        def _sign(private_key: int, msg_hash: int) -> tuple[int, int]:
+            return __sign_slow(priv_key=private_key, msg_hash=msg_hash)
+
+    return _sign
+
+
+pedersen_hash = import_pedersen_hash_func()
+sign = import_sign_func()
 
 
 def build_condition(fact_registry_address: str, fact: bytes) -> int:
@@ -127,7 +143,7 @@ def get_conditional_transfer_msg_without_bounds(
     packed_message0 = packed_message0 * 2**64 + src_fee_position_id
     packed_message0 = packed_message0 * 2**32 + nonce
     msg = hash_function(msg, packed_message0)
-    packed_message1 = CONDITIONAL_TRANSFER
+    packed_message1 = OP_CONDITIONAL_TRANSFER
     packed_message1 = packed_message1 * 2**64 + amount
     packed_message1 = packed_message1 * 2**64 + max_amount_fee
     packed_message1 = packed_message1 * 2**32 + expiration_timestamp
@@ -195,7 +211,7 @@ def get_transfer_msg_without_bounds(
     packed_message0 = packed_message0 * 2**64 + src_fee_position_id
     packed_message0 = packed_message0 * 2**32 + nonce
     msg = hash_function(msg, packed_message0)
-    packed_message1 = TRANSFER
+    packed_message1 = OP_TRANSFER
     packed_message1 = packed_message1 * 2**64 + amount
     packed_message1 = packed_message1 * 2**64 + max_amount_fee
     packed_message1 = packed_message1 * 2**32 + expiration_timestamp
@@ -241,7 +257,7 @@ def get_withdrawal_to_address_msg_without_bounds(
 ) -> int:
     eth_address_int = int(eth_address, 16)
 
-    packed_message = WITHDRAWAL_TO_ADDRESS
+    packed_message = OP_WITHDRAWAL_TO_ADDRESS
     packed_message = packed_message * 2**64 + position_id
     packed_message = packed_message * 2**32 + nonce
     packed_message = packed_message * 2**64 + amount
@@ -318,7 +334,7 @@ def get_limit_order_msg_without_bounds(
     packed_message0 = packed_message0 * 2**64 + max_amount_fee
     packed_message0 = packed_message0 * 2**32 + nonce
     msg = hash_function(msg, packed_message0)
-    packed_message1 = LIMIT_ORDER_WITH_FEES
+    packed_message1 = OP_LIMIT_ORDER_WITH_FEES
     packed_message1 = packed_message1 * 2**64 + position_id
     packed_message1 = packed_message1 * 2**64 + position_id
     packed_message1 = packed_message1 * 2**64 + position_id
@@ -373,19 +389,12 @@ def get_price_msg(
 
 def from_bytes(
     value: bytes,
-    byte_order: Optional[Endianness] = None,
-    signed: Optional[bool] = None,
+    byte_order: EndianType = "big",
+    signed: bool = False,
 ) -> int:
     """
     Converts the given bytes object (parsed according to the given byte order) to an integer.
-    Default byte order is 'big'.
     """
-    if byte_order is None:
-        byte_order = "big"
-
-    if signed is None:
-        signed = False
-
     return int.from_bytes(value, byteorder=byte_order, signed=signed)
 
 

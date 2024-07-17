@@ -12,6 +12,7 @@ dist/
 # Unit test / coverage reports
 .tox/
 .coverage
+.coverage.*
 
 # Visual Studio Code project settings
 .vscode
