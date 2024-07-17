@@ -24,7 +24,7 @@ from typing import Optional, Tuple, Union
 
 from ecdsa.rfc6979 import generate_k
 
-from starkware.crypto.signature.math_utils import (
+from vendor.starkware.crypto.signature.math_utils import (
     ECPoint,
     div_mod,
     ec_add,
@@ -33,7 +33,7 @@ from starkware.crypto.signature.math_utils import (
     is_quad_residue,
     sqrt_mod,
 )
-from starkware.python.math_utils import div_ceil
+from vendor.starkware.python.math_utils import div_ceil
 
 PEDERSEN_HASH_POINT_FILENAME = os.path.join(os.path.dirname(__file__), "pedersen_params.json")
 PEDERSEN_PARAMS = json.load(open(PEDERSEN_HASH_POINT_FILENAME))

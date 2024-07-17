@@ -3,7 +3,7 @@ import random
 
 import pytest
 
-from starkware.python.math_utils import (
+from vendor.starkware.python.math_utils import (
     div_ceil,
     div_mod,
     ec_add,

@@ -35,7 +35,7 @@ import yaml
 from typing_extensions import Literal, ParamSpec, Protocol
 
 # All functions with stubs are imported from this module.
-from starkware.python.utils_stub_module import *  # noqa
+from vendor.starkware.python.utils_stub_module import *  # noqa
 
 DIR = os.path.dirname(__file__)
 

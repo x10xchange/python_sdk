@@ -8,7 +8,7 @@ from itertools import count
 
 import pytest
 
-from starkware.python.utils import (
+from vendor.starkware.python.utils import (
     WriteOnceDict,
     aclosing_context_manager,
     all_subclasses,

@@ -4,7 +4,7 @@ import math
 import pytest
 from pytest import MonkeyPatch
 
-from starkware.python.test_utils import (
+from vendor.starkware.python.test_utils import (
     WithoutValidations,
     apply_and_stop,
     maybe_raises,
