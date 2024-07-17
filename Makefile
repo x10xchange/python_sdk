@@ -24,5 +24,5 @@ lint:
 test:
 	tox
 
-bump-version-patch:
+bump:
 	poetry version patch
