@@ -8,6 +8,7 @@ try:
 
     def pedersen_hash(first: int, second: int) -> int:
         return ph_fast(first, second)
+
 except ImportError as e:
     from vendor.starkware.crypto.signature.signature import pedersen_hash as ph_slow
 
@@ -19,12 +20,13 @@ except ImportError as e:
 
 try:
     from fast_stark_crypto import sign as __sign_fast
-    from starkware.crypto.signature.signature import generate_k_rfc6979
+    from vendor.starkware.crypto.signature.signature import generate_k_rfc6979
 
     def sign(private_key: int, msg_hash: int) -> tuple[int, int]:
         return __sign_fast(
             private_key=private_key, msg_hash=msg_hash, k=generate_k_rfc6979(msg_hash=msg_hash, priv_key=private_key)
         )
+
 except ImportError as e:
     from vendor.starkware.crypto.signature.signature import sign as __sign_slow
 
