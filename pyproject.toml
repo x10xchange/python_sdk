@@ -64,7 +64,7 @@ packages = ["examples", "tests", "x10"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = "starkware.*"
+module = "vendor.starkware.*"
 ignore_errors = true
 
 [tool.pydantic-mypy]
