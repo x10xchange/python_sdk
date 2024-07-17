@@ -20,6 +20,7 @@ except ImportError as e:
 
 try:
     from fast_stark_crypto import sign as __sign_fast
+
     from vendor.starkware.crypto.signature.signature import generate_k_rfc6979
 
     def sign(private_key: int, msg_hash: int) -> tuple[int, int]:

@@ -1,6 +1,7 @@
 from typing import Dict, List, Optional, Type
 
 from x10.perpetual.accounts import AccountStreamDataModel
+from x10.perpetual.candles import CandleInterval, CandleModel, CandleType
 from x10.perpetual.funding_rates import FundingRateModel
 from x10.perpetual.orderbooks import OrderbookUpdateModel
 from x10.perpetual.stream_client.perpetual_stream_connection import (
@@ -46,6 +47,21 @@ class PerpetualStreamClient:
 
         url = self.__get_url("/funding/<market?>", market=market_name)
         return self.__connect(url, WrappedStreamResponse[FundingRateModel])
+
+    def subscribe_to_candles(self, market_name: str, candle_type: CandleType, interval: CandleInterval):
+        """
+        https://x10xchange.github.io/x10-documentation/#candles-stream
+        """
+
+        url = self.__get_url(
+            "/candles/<market>/<candle_type>",
+            market=market_name,
+            candle_type=candle_type,
+            query={
+                "interval": interval,
+            },
+        )
+        return self.__connect(url, WrappedStreamResponse[List[CandleModel]])
 
     def subscribe_to_account_updates(self, api_key: str):
         """
