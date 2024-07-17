@@ -1,7 +1,7 @@
 import math
 import random
 from datetime import datetime, timedelta
-from typing import Callable, Literal, Optional
+from typing import Callable, Literal
 
 from x10.perpetual.amounts import ROUNDING_FEE_CONTEXT, StarkAmount, StarkOrderAmounts
 from x10.utils.log import get_logger
