@@ -6,7 +6,7 @@ from typing import Callable, Literal
 from x10.perpetual.amounts import ROUNDING_FEE_CONTEXT, StarkAmount, StarkOrderAmounts
 from x10.utils.log import get_logger
 
-EndianType = Literal["little", "big"]
+Endianness = Literal["little", "big"]
 
 LOGGER = get_logger(__name__)
 
@@ -389,7 +389,7 @@ def get_price_msg(
 
 def from_bytes(
     value: bytes,
-    byte_order: EndianType = "big",
+    byte_order: Endianness = "big",
     signed: bool = False,
 ) -> int:
     """
