@@ -10,7 +10,6 @@ jobs:
   code-checks:
     if: github.event.pull_request.draft == false
     timeout-minutes: 10
-#    runs-on: [ self-hosted, linux ]
     runs-on: ubuntu-latest
 
     steps:
@@ -22,8 +21,8 @@ jobs:
 
       - name: Setup poetry
         run: |
-          pip install --upgrade pip==23.3.2
-          python -m pip install poetry==1.7.1
+          pip install --upgrade pip==24.1.2
+          pip install poetry==1.8.3
           poetry config virtualenvs.create false
 
       - name: Update apt cache
@@ -35,8 +34,8 @@ jobs:
       - name: Install deps
         run: poetry install --no-root
 
-      - name: Lint
+      - name: Run linter
         run: make lint
 
-      - name: Unit Test
+      - name: Run unit-tests
         run: make test

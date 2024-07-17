@@ -1,4 +1,4 @@
-from starkware.python.expression_string import ExpressionString
+from vendor.starkware.python.expression_string import ExpressionString
 
 
 def test_expression_string():

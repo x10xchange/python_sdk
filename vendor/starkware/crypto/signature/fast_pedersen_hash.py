@@ -1,7 +1,7 @@
 from fastecdsa.curve import Curve
 from fastecdsa.point import Point
 
-from starkware.crypto.signature.signature import (
+from vendor.starkware.crypto.signature.signature import (
     ALPHA,
     BETA,
     CONSTANT_POINTS,
@@ -10,7 +10,7 @@ from starkware.crypto.signature.signature import (
     N_ELEMENT_BITS_HASH,
     SHIFT_POINT,
 )
-from starkware.python.utils import from_bytes, to_bytes
+from vendor.starkware.python.utils import from_bytes, to_bytes
 
 curve = Curve("Curve0", FIELD_PRIME, ALPHA, BETA, EC_ORDER, *SHIFT_POINT)
 

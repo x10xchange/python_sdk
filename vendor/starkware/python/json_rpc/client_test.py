@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from starkware.python.json_rpc.client import JsonRpcEncoder
+from vendor.starkware.python.json_rpc.client import JsonRpcEncoder
 
 
 def test_json_rpc_encoder():
