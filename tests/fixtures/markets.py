@@ -190,4 +190,6 @@ def create_btc_usd_market(json_data: str):
 
     result = WrappedApiResponse[List[MarketModel]].model_validate_json(json_data)
 
+    assert result.data
+
     return result.data[0]
