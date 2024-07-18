@@ -121,7 +121,7 @@ async def test_account_update_stream_with_unexpected_type(create_account_update_
 
 
 @pytest.mark.asyncio
-async def test_account_update_stream_with_unexpected_type(create_account_update_unknown_message):
+async def test_candle_stream():
     from tests.fixtures.candles import create_candle_stream_message
     from x10.perpetual.stream_client import PerpetualStreamClient
 
