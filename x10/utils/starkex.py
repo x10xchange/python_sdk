@@ -1,7 +1,7 @@
 import math
 import random
 from datetime import datetime, timedelta
-from typing import Callable, Literal, Optional
+from typing import Callable
 
 try:
     from fast_stark_crypto import pedersen_hash as ph_fast
@@ -20,6 +20,7 @@ except ImportError as e:
 
 try:
     from fast_stark_crypto import sign as __sign_fast
+
     from vendor.starkware.crypto.signature.signature import generate_k_rfc6979
 
     def sign(private_key: int, msg_hash: int) -> tuple[int, int]:
@@ -43,23 +44,9 @@ TRANSFER = 4
 CONDITIONAL_TRANSFER = 5
 WITHDRAWAL_TO_ADDRESS = 7
 
-Endianness = Literal["big", "little"]
-
 HOURS_IN_DAY = 24
 SETTLEMENT_BUFFER_HOURS = HOURS_IN_DAY * 7
 SECONDS_IN_HOUR = 60 * 60
-
-
-def build_condition(fact_registry_address: str, fact: bytes) -> int:
-    # FIXME: Missing dep
-    from web3 import Web3  # type: ignore
-
-    """
-    Creates a condition from a fact registry address and a fact.
-    """
-    condition_keccak = Web3.solidityKeccak(["address", "bytes32"], [fact_registry_address, fact])
-    # Reduced to 250 LSB to be a field element.
-    return from_bytes(condition_keccak) & (2**250 - 1)
 
 
 def get_conditional_transfer_msg(
@@ -369,24 +356,6 @@ def get_price_msg(
     second_number = (price << 32) + timestamp
 
     return hash_function(first_number, second_number)
-
-
-def from_bytes(
-    value: bytes,
-    byte_order: Optional[Endianness] = None,
-    signed: Optional[bool] = None,
-) -> int:
-    """
-    Converts the given bytes object (parsed according to the given byte order) to an integer.
-    Default byte order is 'big'.
-    """
-    if byte_order is None:
-        byte_order = "big"
-
-    if signed is None:
-        signed = False
-
-    return int.from_bytes(value, byteorder=byte_order, signed=signed)
 
 
 def hash_order(

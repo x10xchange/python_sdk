@@ -5,7 +5,7 @@ from hamcrest import assert_that, equal_to, raises
 from x10.utils.http import get_url
 
 
-class _TestEnum(Enum):
+class _QueryParamEnum(Enum):
     KEY_1 = "VALUE_1"
     KEY_2 = "VALUE_2"
 
@@ -13,12 +13,24 @@ class _TestEnum(Enum):
 def test_generate_valid_url_from_template():
     assert_that(
         get_url(
-            "/foo/bar", query={"q1": "v1", "q2": ["v2", "v3"], "q3": None, "q4": 0, "q5": False, "q6": _TestEnum.KEY_1}
+            "/info/candles",
+            query={
+                "param1": "value1",
+                "param2": ["value2_1", "value2_2"],
+                "param3": None,
+                "param4": 0,
+                "param5": False,
+                "param6": _QueryParamEnum.KEY_1,
+            },
         ),
-        equal_to("/foo/bar?q1=v1&q2=v2&q2=v3&q4=0&q5=False&q6=VALUE_1"),
+        equal_to("/info/candles?param1=value1&param2=value2_1&param2=value2_2&param4=0&param5=False&param6=VALUE_1"),
     )
-    assert_that(get_url("/foo/<bar>", bar="bar-path"), equal_to("/foo/bar-path"))
-    assert_that(lambda: get_url("/foo/<bar>"), raises(KeyError))
-    assert_that(get_url("/foo/<bar?>"), equal_to("/foo"))
-    assert_that(get_url("/foo/<bar?>", bar="bar-path"), equal_to("/foo/bar-path"))
-    assert_that(get_url("/foo/<bar?>", bar=None), equal_to("/foo"))
+    assert_that(get_url("/info/candles/<market>", market="BTC-USD"), equal_to("/info/candles/BTC-USD"))
+    assert_that(
+        get_url("/info/candles/<market>/<candle_type>", market="BTC-USD", candle_type="trades"),
+        equal_to("/info/candles/BTC-USD/trades"),
+    )
+    assert_that(lambda: get_url("/info/candles/<market>"), raises(KeyError))
+    assert_that(get_url("/info/candles/<market?>"), equal_to("/info/candles"))
+    assert_that(get_url("/info/candles/<market?>", market="BTC-USD"), equal_to("/info/candles/BTC-USD"))
+    assert_that(get_url("/info/candles/<market?>", market=None), equal_to("/info/candles"))
