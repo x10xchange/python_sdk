@@ -118,3 +118,39 @@ async def test_account_update_stream_with_unexpected_type(create_account_update_
                 }
             ),
         )
+
+
+@pytest.mark.asyncio
+async def test_candle_stream():
+    from tests.fixtures.candles import create_candle_stream_message
+    from x10.perpetual.stream_client import PerpetualStreamClient
+
+    message_model = create_candle_stream_message()
+
+    async with websockets.serve(serve_message(message_model.model_dump_json()), "127.0.0.1", 0) as server:
+        stream_client = PerpetualStreamClient(api_url=get_url_from_server(server))
+        stream = await stream_client.subscribe_to_candles("ETH-USD", "trades", "PT1M")
+        msg = await stream.recv()
+        await stream.close()
+
+        assert_that(
+            msg.to_api_request_json(),
+            equal_to(
+                {
+                    "type": None,
+                    "data": [
+                        {
+                            "o": "3458.64",
+                            "l": "3399.07",
+                            "h": "3476.89",
+                            "c": "3414.85",
+                            "v": "3.938",
+                            "T": 1721106000000,
+                        }
+                    ],
+                    "error": None,
+                    "ts": 1721283121979,
+                    "seq": 1,
+                }
+            ),
+        )

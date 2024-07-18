@@ -88,7 +88,7 @@ def get_url(template: str, *, query: Optional[Dict[str, str | List[str]]] = None
 
         return str(param_value) if param_value is not None else ""
 
-    template = re.sub(r"<(\??.+)>", replace_path_param, template)
+    template = re.sub(r"<(\??[^<>]+)>", replace_path_param, template)
     template = template.rstrip("/")
 
     if query:

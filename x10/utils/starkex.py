@@ -1,12 +1,10 @@
 import math
 import random
 from datetime import datetime, timedelta
-from typing import Callable, Literal
+from typing import Callable
 
 from x10.perpetual.amounts import ROUNDING_FEE_CONTEXT, StarkAmount, StarkOrderAmounts
 from x10.utils.log import get_logger
-
-Endianness = Literal["little", "big"]
 
 LOGGER = get_logger(__name__)
 
@@ -64,18 +62,6 @@ def import_sign_func():
 
 pedersen_hash = import_pedersen_hash_func()
 sign = import_sign_func()
-
-
-def build_condition(fact_registry_address: str, fact: bytes) -> int:
-    # FIXME: Missing dep
-    from web3 import Web3  # type: ignore
-
-    """
-    Creates a condition from a fact registry address and a fact.
-    """
-    condition_keccak = Web3.solidityKeccak(["address", "bytes32"], [fact_registry_address, fact])
-    # Reduced to 250 LSB to be a field element.
-    return from_bytes(condition_keccak) & (2**250 - 1)
 
 
 def get_conditional_transfer_msg(
@@ -385,17 +371,6 @@ def get_price_msg(
     second_number = (price << 32) + timestamp
 
     return hash_function(first_number, second_number)
-
-
-def from_bytes(
-    value: bytes,
-    byte_order: Endianness = "big",
-    signed: bool = False,
-) -> int:
-    """
-    Converts the given bytes object (parsed according to the given byte order) to an integer.
-    """
-    return int.from_bytes(value, byteorder=byte_order, signed=signed)
 
 
 def hash_order(
