@@ -34,6 +34,7 @@ def create_order_object(
     post_only: bool = False,
     previous_order_id=None,
     expire_time=utc_now() + timedelta(hours=8),
+    external_id=None,
 ) -> PerpetualOrderModel:
     """
     Creates an order object to be placed on the exchange using the `place_order` method.
@@ -52,6 +53,7 @@ def create_order_object(
         expire_time,
         post_only=post_only,
         previous_order_id=previous_order_id,
+        external_id=external_id,
     )
 
 
@@ -68,6 +70,7 @@ def __create_order_object(
     expire_time: datetime = utc_now() + timedelta(hours=1),
     post_only: bool = False,
     previous_order_id=None,
+    external_id=None,
 ) -> PerpetualOrderModel:
     if exact_only:
         raise NotImplementedError("`exact_only` option is not supported yet")
@@ -103,7 +106,7 @@ def __create_order_object(
     (order_signature_r, order_signature_s) = signer(order_hash)
 
     order = PerpetualOrderModel(
-        id=str(order_hash),
+        id=str(order_hash) if external_id is None else external_id,
         market=market.name,
         type=OrderType.LIMIT,
         side=side,
