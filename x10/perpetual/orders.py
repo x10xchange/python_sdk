@@ -23,20 +23,30 @@ class OrderType(Enum):
     MARKET = "MARKET"
 
 
+class OrderTpslType(Enum):
+    ORDER = "ORDER"
+    POSITION = "POSITION"
+
+
 class OrderStatus(Enum):
+    # Technical status
     UNKNOWN = "UNKNOWN"
+
     NEW = "NEW"
-    UNTRIGGERED = "UNTRIGGERED"
     PARTIALLY_FILLED = "PARTIALLY_FILLED"
     FILLED = "FILLED"
+    UNTRIGGERED = "UNTRIGGERED"
     CANCELLED = "CANCELLED"
-    EXPIRED = "EXPIRED"
     REJECTED = "REJECTED"
+    EXPIRED = "EXPIRED"
+    TRIGGERED = "TRIGGERED"
 
 
 class OrderStatusReason(Enum):
-    NONE = "NONE"
+    # Technical status
     UNKNOWN = "UNKNOWN"
+
+    NONE = "NONE"
     UNKNOWN_MARKET = "UNKNOWN_MARKET"
     DISABLED_MARKET = "DISABLED_MARKET"
     NOT_ENOUGH_FUNDS = "NOT_ENOUGH_FUNDS"
@@ -56,6 +66,31 @@ class OrderStatusReason(Enum):
     PREV_ORDER_TRIGGERED = "PREV_ORDER_TRIGGERED"
 
 
+class OrderTriggerPriceType(Enum):
+    # Technical status
+    UNKNOWN = "UNKNOWN"
+
+    MARK = "MARK"
+    INDEX = "INDEX"
+    LAST = "LAST"
+
+
+class OrderTriggerDirection(Enum):
+    # Technical status
+    UNKNOWN = "UNKNOWN"
+
+    UP = "UP"
+    DOWN = "DOWN"
+
+
+class OrderPriceType(Enum):
+    # Technical status
+    UNKNOWN = "UNKNOWN"
+
+    MARKET = "MARKET"
+    LIMIT = "LIMIT"
+
+
 class SignatureModel(X10BaseModel):
     r: HexValue
     s: HexValue
@@ -73,6 +108,22 @@ class StarkDebuggingOrderAmountsModel(X10BaseModel):
     synthetic_amount: Decimal
 
 
+class CreateOrderConditionalTriggerModel(X10BaseModel):
+    trigger_price: Decimal
+    trigger_price_type: OrderTriggerPriceType
+    direction: OrderTriggerDirection
+    execution_price_type: OrderPriceType
+
+
+class CreateOrderTpslTriggerModel(X10BaseModel):
+    trigger_price: Decimal
+    trigger_price_type: OrderTriggerPriceType
+    price: Decimal
+    price_type: OrderPriceType
+    settlement: StarkSettlementModel
+    debugging_amounts: Optional[StarkDebuggingOrderAmountsModel] = None
+
+
 class PerpetualOrderModel(X10BaseModel):
     id: str
     market: str
@@ -80,22 +131,18 @@ class PerpetualOrderModel(X10BaseModel):
     side: OrderSide
     qty: Decimal
     price: Decimal
-    reduce_only: bool
-    post_only: bool
+    reduce_only: bool = False
+    post_only: bool = False
     time_in_force: TimeInForce
-    fee: Decimal
     expiry_epoch_millis: int
+    fee: Decimal
     nonce: Decimal
-    payed_fee: Optional[Decimal] = None
-    take_profit_signature: Optional[str] = None
-    stop_loss_signature: Optional[str] = None
-    cancel_id: Optional[int] = None
-    trigger_price: Optional[Decimal] = None
-    take_profit_price: Optional[Decimal] = None
-    take_profit_limit_price: Optional[Decimal] = None
-    stop_loss_price: Optional[Decimal] = None
-    stop_loss_limit_price: Optional[Decimal] = None
+    cancel_id: Optional[str] = None
     settlement: Optional[StarkSettlementModel] = None
+    trigger: Optional[CreateOrderConditionalTriggerModel] = None
+    tp_sl_type: Optional[OrderTpslType] = None
+    take_profit: Optional[CreateOrderTpslTriggerModel] = None
+    stop_loss: Optional[CreateOrderTpslTriggerModel] = None
     debugging_amounts: Optional[StarkDebuggingOrderAmountsModel] = None
 
 
@@ -119,5 +166,6 @@ class OpenOrderModel(X10BaseModel):
     filled_qty: Optional[Decimal] = None
     reduce_only: bool
     post_only: bool
+    payed_fee: Optional[Decimal] = None
     created_time: int
     expiry_time: Optional[int] = None

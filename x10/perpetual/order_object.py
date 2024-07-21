@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Callable, Tuple
+from typing import Callable, Optional, Tuple
 
 from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.amounts import (
@@ -32,9 +32,9 @@ def create_order_object(
     price: Decimal,
     side: OrderSide,
     post_only: bool = False,
-    previous_order_id=None,
+    previous_order_id: Optional[str] = None,
     expire_time=utc_now() + timedelta(hours=8),
-    external_id=None,
+    order_external_id: Optional[str] = None,
 ) -> PerpetualOrderModel:
     """
     Creates an order object to be placed on the exchange using the `place_order` method.
@@ -52,8 +52,8 @@ def create_order_object(
         False,
         expire_time,
         post_only=post_only,
-        previous_order_id=previous_order_id,
-        external_id=external_id,
+        previous_order_external_id=previous_order_id,
+        order_external_id=order_external_id,
     )
 
 
@@ -69,8 +69,8 @@ def __create_order_object(
     exact_only: bool = False,
     expire_time: datetime = utc_now() + timedelta(hours=1),
     post_only: bool = False,
-    previous_order_id=None,
-    external_id=None,
+    previous_order_external_id: Optional[str] = None,
+    order_external_id: Optional[str] = None,
 ) -> PerpetualOrderModel:
     if exact_only:
         raise NotImplementedError("`exact_only` option is not supported yet")
@@ -83,7 +83,7 @@ def __create_order_object(
     synthetic_amount_human = HumanReadableAmount(synthetic_amount, market.synthetic_asset)
 
     fee = HumanReadableAmount(
-        fees.taker_fee * collateral_amount_human.value,
+        fees.taker_fee_rate * collateral_amount_human.value,
         market.collateral_asset,
     )
 
@@ -91,8 +91,13 @@ def __create_order_object(
         collateral_amount_internal=collateral_amount_human,
         synthetic_amount_internal=synthetic_amount_human,
         fee_amount_internal=fee,
-        fee_rate=fees.taker_fee,
+        fee_rate=fees.taker_fee_rate,
         rounding_context=rounding_context,
+    )
+    debugging_amounts = StarkDebuggingOrderAmountsModel(
+        collateral_amount=Decimal(amounts.collateral_amount_internal.to_stark_amount(amounts.rounding_context).value),
+        fee_amount=Decimal(amounts.fee_amount_internal.to_stark_amount(ROUNDING_FEE_CONTEXT).value),
+        synthetic_amount=Decimal(amounts.synthetic_amount_internal.to_stark_amount(amounts.rounding_context).value),
     )
 
     order_hash = hash_order(
@@ -104,40 +109,27 @@ def __create_order_object(
     )
 
     (order_signature_r, order_signature_s) = signer(order_hash)
+    settlement = StarkSettlementModel(
+        signature=SignatureModel(r=order_signature_r, s=order_signature_s),
+        stark_key=public_key,
+        collateral_position=Decimal(collateral_position_id),
+    )
 
     order = PerpetualOrderModel(
-        id=str(order_hash) if external_id is None else external_id,
+        id=order_external_id or str(order_hash),
         market=market.name,
         type=OrderType.LIMIT,
         side=side,
         qty=synthetic_amount_human.value,
         price=price,
-        reduce_only=False,
         post_only=post_only,
         time_in_force=TimeInForce.GTT,
-        fee=amounts.fee_rate,
         expiry_epoch_millis=to_epoch_millis(expire_time),
-        settlement=StarkSettlementModel(
-            signature=SignatureModel(r=order_signature_r, s=order_signature_s),
-            stark_key=public_key,
-            collateral_position=Decimal(collateral_position_id),
-        ),
+        fee=amounts.fee_rate,
         nonce=Decimal(nonce),
-        take_profit_signature=None,
-        stop_loss_signature=None,
-        cancel_id=previous_order_id,
-        trigger_price=None,
-        take_profit_price=None,
-        take_profit_limit_price=None,
-        stop_loss_price=None,
-        stop_loss_limit_price=None,
-        debugging_amounts=StarkDebuggingOrderAmountsModel(
-            collateral_amount=Decimal(
-                amounts.collateral_amount_internal.to_stark_amount(amounts.rounding_context).value
-            ),
-            fee_amount=Decimal(amounts.fee_amount_internal.to_stark_amount(ROUNDING_FEE_CONTEXT).value),
-            synthetic_amount=Decimal(amounts.synthetic_amount_internal.to_stark_amount(amounts.rounding_context).value),
-        ),
+        cancel_id=previous_order_external_id,
+        settlement=settlement,
+        debugging_amounts=debugging_amounts,
     )
 
     return order

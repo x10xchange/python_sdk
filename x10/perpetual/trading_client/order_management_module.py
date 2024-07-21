@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from x10.perpetual.orders import PerpetualOrderModel, PlacedOrderModel
 from x10.perpetual.trading_client.base_module import BaseModule
@@ -10,9 +10,9 @@ LOGGER = get_logger(__name__)
 
 
 class _MassCancelRequestModel(X10BaseModel):
-    order_ids: Optional[list[int]]
-    external_order_ids: Optional[list[str]]
-    markets: Optional[list[str]]
+    order_ids: Optional[List[int]]
+    external_order_ids: Optional[List[str]]
+    markets: Optional[List[str]]
     cancel_all: Optional[bool]
 
 
@@ -43,16 +43,22 @@ class OrderManagementModule(BaseModule):
         """
 
         url = self._get_url("/user/order/<order_id>", order_id=order_id)
-        return await send_delete_request(
-            await self.get_session(), url, EmptyModel, api_key=self._get_api_key(), idempotent=True, retry=True
-        )
+        return await send_delete_request(await self.get_session(), url, EmptyModel, api_key=self._get_api_key())
+
+    async def cancel_order_by_external_id(self, order_external_id: str):
+        """
+        https://x10xchange.github.io/x10-documentation/#cancel-order
+        """
+
+        url = self._get_url("/user/order", query={"externalId": order_external_id})
+        return await send_delete_request(await self.get_session(), url, EmptyModel, api_key=self._get_api_key())
 
     async def mass_cancel(
         self,
         *,
-        order_ids: Optional[list[int]] = None,
-        external_order_ids: Optional[list[str]] = None,
-        markets: Optional[list[str]] = None,
+        order_ids: Optional[List[int]] = None,
+        external_order_ids: Optional[List[str]] = None,
+        markets: Optional[List[str]] = None,
         cancel_all: Optional[bool] = False,
     ):
         """
