@@ -115,8 +115,9 @@ def __create_order_object(
         collateral_position=Decimal(collateral_position_id),
     )
 
+    order_id = str(order_hash) if order_external_id is None else order_external_id
     order = PerpetualOrderModel(
-        id=order_external_id or str(order_hash),
+        id=order_id,
         market=market.name,
         type=OrderType.LIMIT,
         side=side,
