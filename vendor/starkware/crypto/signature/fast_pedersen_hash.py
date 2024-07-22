@@ -1,7 +1,7 @@
 from fastecdsa.curve import Curve
 from fastecdsa.point import Point
 
-from vendor.starkware.crypto.signature.signature import (
+from vendor.starkware.crypto.signature import (
     ALPHA,
     BETA,
     CONSTANT_POINTS,
