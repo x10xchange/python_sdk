@@ -58,10 +58,10 @@ class MarketsInformationModule(BaseModule):
 
         url = self._get_url(
             "/info/<market>/funding",
+            market=market_name,
             query={
                 "startTime": to_epoch_millis(start_time),
                 "endTime": to_epoch_millis(end_time),
             },
-            market=market_name,
         )
         return await send_get_request(await self.get_session(), url, List[FundingRateModel])

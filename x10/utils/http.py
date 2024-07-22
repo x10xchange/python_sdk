@@ -47,6 +47,9 @@ class WrappedApiResponse(X10BaseModel, Generic[ApiResponseType]):
 
 
 class StreamDataType(Enum):
+    # Technical status
+    UNKNOWN = "UNKNOWN"
+
     BALANCE = "BALANCE"
     DELTA = "DELTA"
     DEPOSIT = "DEPOSIT"
@@ -56,7 +59,6 @@ class StreamDataType(Enum):
     TRADE = "TRADE"
     TRANSFER = "TRANSFER"
     WITHDRAWAL = "WITHDRAWAL"
-    UNKNOWN = "UNKNOWN"
 
     @classmethod
     def __get_pydantic_core_schema__(cls, _source_type: Any, _handler: GetCoreSchemaHandler) -> CoreSchema:
@@ -165,8 +167,6 @@ async def send_delete_request(
     model_class: Type[ApiResponseType],
     *,
     api_key: Optional[str] = None,
-    idempotent: bool = False,
-    retry=False,
 ):
     headers = __get_headers(api_key=api_key)
     LOGGER.debug("Sending DELETE %s, headers=%s", url, headers)
