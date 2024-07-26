@@ -57,3 +57,13 @@ class AccountStreamDataModel(X10BaseModel):
 class AccountLeverage(X10BaseModel):
     market: str
     leverage: Decimal
+
+
+class AccountModel(X10BaseModel):
+    account_id: int
+    description: str
+    account_index: int
+    status: str
+    l2_key: str
+    l2_vault: str
+    api_keys: List[str]
