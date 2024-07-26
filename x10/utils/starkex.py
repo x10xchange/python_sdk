@@ -20,7 +20,7 @@ SECONDS_IN_HOUR = 60 * 60
 
 def import_pedersen_hash_func():
     try:
-        from fast_stark_crypto import pedersen_hashx as ph_fast
+        from fast_stark_crypto import pedersen_hash as ph_fast
 
         def _pedersen_hash(first: int, second: int) -> int:
             return ph_fast(first, second)
