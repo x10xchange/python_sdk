@@ -8,11 +8,11 @@ from x10.perpetual.markets import MarketModel
 from x10.perpetual.order_object import create_order_object
 from x10.perpetual.orders import OrderSide, PlacedOrderModel
 from x10.perpetual.trading_client.account_module import AccountModule
-from x10.perpetual.trading_client.user_module import UserModule
 from x10.perpetual.trading_client.markets_information_module import (
     MarketsInformationModule,
 )
 from x10.perpetual.trading_client.order_management_module import OrderManagementModule
+from x10.perpetual.trading_client.user_module import UserModule
 from x10.utils.date import utc_now
 from x10.utils.http import WrappedApiResponse
 from x10.utils.log import get_logger
@@ -69,6 +69,12 @@ class PerpetualTradingClient:
         )
 
         return await self.__order_management_module.place_order(order)
+
+    async def close(self):
+        await self.__markets_info_module.close_session()
+        await self.__user_module.close_session()
+        await self.__account_module.close_session()
+        await self.__order_management_module.close_session()
 
     def __init__(self, api_url: str, stark_account: StarkPerpetualAccount | None = None):
         api_key = stark_account.api_key if stark_account else None

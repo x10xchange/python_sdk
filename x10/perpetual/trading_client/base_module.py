@@ -30,9 +30,10 @@ class BaseModule:
         if self.__session is None:
             created_session = aiohttp.ClientSession(timeout=CLIENT_TIMEOUT)
             self.__session = created_session
+
         return self.__session
 
-    async def close(self):
+    async def close_session(self):
         if self.__session:
             await self.__session.close()
             self.__session = None
