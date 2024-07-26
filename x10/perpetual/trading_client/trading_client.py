@@ -79,7 +79,7 @@ class PerpetualTradingClient:
     def __init__(self, api_url: str, stark_account: StarkPerpetualAccount | None = None):
         api_key = stark_account.api_key if stark_account else None
         self.__markets_info_module = MarketsInformationModule(api_url, api_key)
-        self.__client_module = UserModule(api_url, api_key)
+        self.__user_module = UserModule(api_url, api_key)
         self.__account_module = AccountModule(api_url, api_key)
         self.__order_management_module = OrderManagementModule(api_url, api_key)
         self.__markets = None
