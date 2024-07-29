@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from x10.perpetual.orders import SignatureModel
+from x10.perpetual.orders import SettlementSignatureModel
 from x10.utils.model import HexValue, X10BaseModel
 
 
@@ -13,7 +13,7 @@ class StarkTransferSettlement(X10BaseModel):
     receiver_public_key: HexValue
     sender_position_id: int
     sender_public_key: HexValue
-    signature: SignatureModel
+    signature: SettlementSignatureModel
 
 
 class PerpetualTransferModel(X10BaseModel):

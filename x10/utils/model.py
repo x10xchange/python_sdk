@@ -50,12 +50,16 @@ class X10BaseModel(BaseModel):
         return self.model_dump(mode="json", by_alias=True, exclude_none=exclude_none)
 
 
-class EmptyModel(X10BaseModel):
-    pass
-
-
 HexValue = Annotated[
     int,
     PlainSerializer(lambda x: hex(x), return_type=str, when_used="json"),
     BeforeValidator(lambda x: int(x, 16) if not isinstance(x, int) else x),
 ]
+
+class EmptyModel(X10BaseModel):
+    pass
+
+
+class SettlementSignatureModel(X10BaseModel):
+    r: HexValue
+    s: HexValue
