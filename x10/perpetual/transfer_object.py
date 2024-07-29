@@ -43,9 +43,9 @@ def create_transfer_object(
     stark_amount = (amount * market.collateral_asset.settlement_resolution).to_integral_exact()
 
     transfer_hash = get_transfer_msg(
-        int(market.l2_config.collateral_id, 16),  # asset_id
+        int(market.l2_config.collateral_id, base=16),  # asset_id
         ASSET_ID_FEE,  # asset_id_fee
-        int(to_account.l2_key, 16),  # receiver_public_key
+        int(to_account.l2_key, base=16),  # receiver_public_key
         int(from_account.l2_vault),  # sender_position_id
         int(to_account.l2_vault),  # receiver_position_id
         int(from_account.l2_vault),  # src_fee_position_id
