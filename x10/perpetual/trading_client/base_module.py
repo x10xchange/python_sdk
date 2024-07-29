@@ -44,3 +44,8 @@ class BaseModule:
             self.__session = created_session
 
         return self.__session
+
+    async def close_session(self):
+        if self.__session:
+            await self.__session.close()
+            self.__session = None
