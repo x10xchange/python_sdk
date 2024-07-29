@@ -76,8 +76,8 @@ class BlockingTradingClient:
     def __init__(self, endpoint_config: EndpointConfig, account: StarkPerpetualAccount):
         self.__endpoint_config = endpoint_config
         self.__account = account
-        self.__market_module = MarketsInformationModule(endpoint_config.api_base_url, account.api_key)
-        self.__orders_module = OrderManagementModule(endpoint_config.api_base_url, account.api_key)
+        self.__market_module = MarketsInformationModule(endpoint_config.api_base_url, api_key=account.api_key)
+        self.__orders_module = OrderManagementModule(endpoint_config.api_base_url, api_key=account.api_key)
         self.__markets: Union[None, Dict[str, MarketModel]] = None
         self.__stream_client: PerpetualStreamClient = PerpetualStreamClient(api_url=endpoint_config.stream_url)
         self.__account_stream: Union[

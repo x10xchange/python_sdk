@@ -1,13 +1,15 @@
 from decimal import Decimal
 from typing import List, Optional
 
-from x10.perpetual.accounts import AccountLeverage
+from x10.perpetual.accounts import AccountLeverage, AccountModel
 from x10.perpetual.balances import BalanceModel
 from x10.perpetual.fees import TradingFeeModel
+from x10.perpetual.markets import MarketModel
 from x10.perpetual.orders import OpenOrderModel, OrderSide, OrderType
 from x10.perpetual.positions import PositionHistoryModel, PositionModel, PositionSide
 from x10.perpetual.trades import AccountTradeModel, TradeType
 from x10.perpetual.trading_client.base_module import BaseModule
+from x10.perpetual.transfer_object import create_transfer_object
 from x10.utils.http import WrappedApiResponse, send_get_request, send_patch_request
 from x10.utils.model import EmptyModel
 
@@ -132,4 +134,28 @@ class AccountModule(BaseModule):
             EmptyModel,
             json=request_model.to_api_request_json(),
             api_key=self._get_api_key(),
+        )
+
+    async def __transfer(
+        self,
+        from_account: int,
+        to_account: int,
+        amount: Decimal,
+        transferred_asset: str,
+        accounts: List[AccountModel],
+        market: MarketModel,
+    ) -> WrappedApiResponse[EmptyModel]:
+        url = self._get_url("/user/transfer")
+        request_model = create_transfer_object(
+            from_account,
+            to_account,
+            amount,
+            transferred_asset,
+            stark_account=self._get_stark_account(),
+            accounts=accounts,
+            market=market,
+        )
+
+        return await send_patch_request(
+            await self.get_session(), url, EmptyModel, json=request_model, api_key=self._get_api_key()
         )

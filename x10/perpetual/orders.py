@@ -2,7 +2,7 @@ from decimal import Decimal
 from enum import Enum
 from typing import Optional
 
-from x10.utils.model import HexValue, X10BaseModel
+from x10.utils.model import HexValue, SettlementSignatureModel, X10BaseModel
 
 
 class TimeInForce(Enum):
@@ -91,13 +91,8 @@ class OrderPriceType(Enum):
     LIMIT = "LIMIT"
 
 
-class SignatureModel(X10BaseModel):
-    r: HexValue
-    s: HexValue
-
-
 class StarkSettlementModel(X10BaseModel):
-    signature: SignatureModel
+    signature: SettlementSignatureModel
     stark_key: HexValue
     collateral_position: Decimal
 
