@@ -12,7 +12,7 @@ FROZEN_NONCE = 1473459052
 
 @freeze_time("2024-01-05 01:08:56.860694")
 @pytest.mark.asyncio
-async def test_create_sell_order(mocker: MockerFixture, create_trading_account, create_btc_usd_market):
+async def test_create_transfer(mocker: MockerFixture, create_trading_account, create_btc_usd_market):
     mocker.patch("x10.utils.starkex.generate_nonce", return_value=FROZEN_NONCE)
 
     from x10.perpetual.transfer_object import create_transfer_object
@@ -59,7 +59,7 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
                 "transferredAsset": "USD",
                 "settlement": {
                     "amount": 1100000,
-                    "assetId": "0x35596841893e0d17079c27b2d72db1694f26a1932a7429144b439ba0807d29c",
+                    "assetId": "0x31857064564ed0ff978e687456963cba09c2c6985d8f9300a1de4962fafa054",
                     "expirationTimestamp": 473786,
                     "nonce": 1473459052,
                     "receiverPositionId": 10002,
@@ -67,8 +67,8 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
                     "senderPositionId": 10001,
                     "senderPublicKey": "0x6970ac7180192cb58070d639064408610d0fbfd3b16c6b2c6219b9d91aa456f",
                     "signature": {
-                        "r": "0x4489ef6bb45e918fea9e46c7519c2dc2d662264e7aeae492f38bb0de31cf5c3",
-                        "s": "0x1d597229c7675f1436bc6840332308cd177b5c1c1cd7f591f5bb71f6cc308bf",
+                        "r": "0x1603de2462480569344dddb57fa5c4c9d960d3d163aedc157c628792419eca4",
+                        "s": "0x6cd0c3f58f63eeb7a2f21bb8d4a2903e933a52c1fb3c1f38cd019a9e32b26",
                     },
                 },
             }

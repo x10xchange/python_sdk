@@ -21,6 +21,7 @@ class BaseModule:
         self.__api_url = api_url
         self.__api_key = api_key
         self.__stark_account = stark_account
+        self.__session = None
 
     def _get_url(self, path: str, *, query: Optional[Dict] = None, **path_params) -> str:
         return get_url(f"{self.__api_url}{path}", query=query, **path_params)
@@ -41,4 +42,5 @@ class BaseModule:
         if self.__session is None:
             created_session = aiohttp.ClientSession(timeout=CLIENT_TIMEOUT)
             self.__session = created_session
+
         return self.__session

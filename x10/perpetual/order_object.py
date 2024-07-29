@@ -16,7 +16,7 @@ from x10.perpetual.orders import (
     OrderSide,
     OrderType,
     PerpetualOrderModel,
-    SignatureModel,
+    SettlementSignatureModel,
     StarkDebuggingOrderAmountsModel,
     StarkSettlementModel,
     TimeInForce,
@@ -110,7 +110,7 @@ def __create_order_object(
 
     (order_signature_r, order_signature_s) = signer(order_hash)
     settlement = StarkSettlementModel(
-        signature=SignatureModel(r=order_signature_r, s=order_signature_s),
+        signature=SettlementSignatureModel(r=order_signature_r, s=order_signature_s),
         stark_key=public_key,
         collateral_position=Decimal(collateral_position_id),
     )

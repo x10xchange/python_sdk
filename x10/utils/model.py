@@ -56,6 +56,7 @@ HexValue = Annotated[
     BeforeValidator(lambda x: int(x, 16) if not isinstance(x, int) else x),
 ]
 
+
 class EmptyModel(X10BaseModel):
     pass
 

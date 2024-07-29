@@ -173,18 +173,15 @@ def get_btc_usd_market_json_data():
                 },
                 "l2Config": {
                     "type": "STARKX",
-                    "collateralId": "0x35596841893e0d17079c27b2d72db1694f26a1932a7429144b439ba0807d29c",
-                    "syntheticId": "0x534f4c2d3300000000000000000000",
-                    "syntheticResolution": 1000,
+                    "collateralId": "0x31857064564ed0ff978e687456963cba09c2c6985d8f9300a1de4962fafa054",
+                    "syntheticId": "0x4254432d3600000000000000000000",
+                    "syntheticResolution": 1000000,
                     "collateralResolution": 1000000
                 }
             }
         ]
     }
     """
-
-
-# FIXME ^
 
 
 def create_btc_usd_market(json_data: str):
