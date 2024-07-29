@@ -1,7 +1,6 @@
 from decimal import Decimal
 
 import pytest
-from fixtures.account import create_accounts
 from freezegun import freeze_time
 from hamcrest import assert_that, equal_to
 from pytest_mock import MockerFixture
@@ -11,7 +10,7 @@ FROZEN_NONCE = 1473459052
 
 @freeze_time("2024-01-05 01:08:56.860694")
 @pytest.mark.asyncio
-async def test_create_transfer(mocker: MockerFixture, create_trading_account, create_btc_usd_market):
+async def test_create_transfer(mocker: MockerFixture, create_trading_account, create_accounts, create_btc_usd_market):
     mocker.patch("x10.utils.starkex.generate_nonce", return_value=FROZEN_NONCE)
 
     from x10.perpetual.transfer_object import create_transfer_object

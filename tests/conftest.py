@@ -2,6 +2,13 @@ import pytest
 
 
 @pytest.fixture
+def create_accounts():
+    from tests.fixtures.account import create_accounts as _create_accounts
+
+    return _create_accounts
+
+
+@pytest.fixture
 def create_trading_account():
     from tests.fixtures.account import create_trading_account as _create_trading_account
 

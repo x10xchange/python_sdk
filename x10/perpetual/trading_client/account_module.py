@@ -10,7 +10,6 @@ from x10.perpetual.positions import PositionHistoryModel, PositionModel, Positio
 from x10.perpetual.trades import AccountTradeModel, TradeType
 from x10.perpetual.trading_client.base_module import BaseModule
 from x10.perpetual.transfer_object import create_transfer_object
-from x10.perpetual.transfers import PerpetualTransferModel
 from x10.utils.http import WrappedApiResponse, send_get_request, send_patch_request
 from x10.utils.model import EmptyModel
 

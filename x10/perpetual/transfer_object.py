@@ -57,8 +57,8 @@ def create_transfer_object(
     (order_signature_r, order_signature_s) = stark_account.sign(transfer_hash)
 
     settlement = StarkTransferSettlement(
-        amount=stark_amount,
-        asset_id=market.l2_config.collateral_id,
+        amount=int(stark_amount),
+        asset_id=int(market.l2_config.collateral_id, base=16),
         expiration_timestamp=expiration_timestamp,
         nonce=generate_nonce(),
         receiver_position_id=int(to_account.l2_vault),
