@@ -12,7 +12,6 @@ from x10.perpetual.trading_client.markets_information_module import (
     MarketsInformationModule,
 )
 from x10.perpetual.trading_client.order_management_module import OrderManagementModule
-from x10.perpetual.trading_client.user_module import UserModule
 from x10.utils.date import utc_now
 from x10.utils.http import WrappedApiResponse
 from x10.utils.log import get_logger
@@ -26,7 +25,6 @@ class PerpetualTradingClient:
     """
 
     __markets_info_module: MarketsInformationModule
-    __user_module: UserModule
     __account_module: AccountModule
     __order_management_module: OrderManagementModule
     __markets: Dict[str, MarketModel] | None
@@ -79,7 +77,6 @@ class PerpetualTradingClient:
     def __init__(self, api_url: str, stark_account: StarkPerpetualAccount | None = None):
         api_key = stark_account.api_key if stark_account else None
         self.__markets_info_module = MarketsInformationModule(api_url, api_key)
-        self.__user_module = UserModule(api_url, api_key)
         self.__account_module = AccountModule(api_url, api_key)
         self.__order_management_module = OrderManagementModule(api_url, api_key)
         self.__markets = None
@@ -89,10 +86,6 @@ class PerpetualTradingClient:
     @property
     def markets_info(self):
         return self.__markets_info_module
-
-    @property
-    def user(self):
-        return self.__user_module
 
     @property
     def account(self):
