@@ -137,7 +137,7 @@ class AccountModule(BaseModule):
             api_key=self._get_api_key(),
         )
 
-    async def transfer(
+    async def __transfer(
         self,
         from_account: int,
         to_account: int,
@@ -146,10 +146,6 @@ class AccountModule(BaseModule):
         accounts: List[AccountModel],
         market: MarketModel,
     ) -> WrappedApiResponse[EmptyModel]:
-        """
-        https://x10xchange.github.io/x10-documentation/#TODO
-        """
-
         url = self._get_url("/user/transfer")
         request_model = create_transfer_object(
             from_account,
