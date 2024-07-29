@@ -1,11 +1,10 @@
 from decimal import Decimal
 
 import pytest
+from fixtures.account import create_accounts
 from freezegun import freeze_time
 from hamcrest import assert_that, equal_to
 from pytest_mock import MockerFixture
-
-from x10.perpetual.accounts import AccountModel
 
 FROZEN_NONCE = 1473459052
 
@@ -19,26 +18,7 @@ async def test_create_transfer(mocker: MockerFixture, create_trading_account, cr
 
     trading_account = create_trading_account()
     btc_usd_market = create_btc_usd_market()
-    accounts = [
-        AccountModel(
-            status="ACTIVE",
-            l2_key="0x6970ac7180192cb58070d639064408610d0fbfd3b16c6b2c6219b9d91aa456f",
-            l2_vault="10001",
-            account_index=0,
-            account_id=1001,
-            description="Main Account",
-            api_keys=[],
-        ),
-        AccountModel(
-            status="ACTIVE",
-            l2_key="0x6970ac7180192cb58070d639064408610d0fbfd3b16c6b2c6219b9d91aa456f",
-            l2_vault="10002",
-            account_index=0,
-            account_id=1002,
-            description="Main Account",
-            api_keys=[],
-        ),
-    ]
+    accounts = create_accounts(2)
     transfer_obj = create_transfer_object(
         accounts[0].account_id,
         accounts[1].account_id,
@@ -63,12 +43,12 @@ async def test_create_transfer(mocker: MockerFixture, create_trading_account, cr
                     "expirationTimestamp": 473786,
                     "nonce": 1473459052,
                     "receiverPositionId": 10002,
-                    "receiverPublicKey": "0x6970ac7180192cb58070d639064408610d0fbfd3b16c6b2c6219b9d91aa456f",
+                    "receiverPublicKey": "0x3895139a98a6168dc8b0db251bcd0e6dcf97fd1e96f7a87d9bd3f341753a844",
                     "senderPositionId": 10001,
                     "senderPublicKey": "0x6970ac7180192cb58070d639064408610d0fbfd3b16c6b2c6219b9d91aa456f",
                     "signature": {
-                        "r": "0x1603de2462480569344dddb57fa5c4c9d960d3d163aedc157c628792419eca4",
-                        "s": "0x6cd0c3f58f63eeb7a2f21bb8d4a2903e933a52c1fb3c1f38cd019a9e32b26",
+                        "r": "0x199d37ea69c2b4604430ca2588843827995d01a85537a90244659268d9995ba",
+                        "s": "0x4c65838c77e31bb6d464a1d9cc5d560cd091ddb75cb7d64963b4e28db2c381",
                     },
                 },
             }

@@ -1,5 +1,32 @@
 from decimal import Decimal
 
+from x10.perpetual.accounts import AccountModel
+
+
+def create_accounts(limit: int = 1):
+    accounts = [
+        AccountModel(
+            status="ACTIVE",
+            l2_key="0x6970ac7180192cb58070d639064408610d0fbfd3b16c6b2c6219b9d91aa456f",
+            l2_vault="10001",
+            account_index=0,
+            account_id=1001,
+            description="Account 1",
+            api_keys=[],
+        ),
+        AccountModel(
+            status="ACTIVE",
+            l2_key="0x3895139a98a6168dc8b0db251bcd0e6dcf97fd1e96f7a87d9bd3f341753a844",
+            l2_vault="10002",
+            account_index=1,
+            account_id=1002,
+            description="Account 2",
+            api_keys=[],
+        ),
+    ]
+
+    return accounts[:limit]
+
 
 def create_trading_account():
     from x10.perpetual.accounts import StarkPerpetualAccount
