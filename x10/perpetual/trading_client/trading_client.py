@@ -24,11 +24,12 @@ class PerpetualTradingClient:
     X10 Perpetual Trading Client for the X10 REST API v1.
     """
 
+    __markets: Dict[str, MarketModel] | None
+    __stark_account: StarkPerpetualAccount
+
     __markets_info_module: MarketsInformationModule
     __account_module: AccountModule
     __order_management_module: OrderManagementModule
-    __markets: Dict[str, MarketModel] | None
-    __account: StarkPerpetualAccount
 
     @classmethod
     def create(cls, endpoint_config: EndpointConfig, trading_account: StarkPerpetualAccount):
@@ -44,8 +45,8 @@ class PerpetualTradingClient:
         previous_order_id=None,
         expire_time=utc_now() + timedelta(hours=8),
     ) -> WrappedApiResponse[PlacedOrderModel]:
-        if not self.__account:
-            raise ValueError("Account not set")
+        if not self.__stark_account:
+            raise ValueError("Stark account is not set")
 
         if not self.__markets:
             markets = await self.__markets_info_module.get_markets()
@@ -56,7 +57,7 @@ class PerpetualTradingClient:
             raise ValueError(f"Market {market_name} not found")
 
         order = create_order_object(
-            self.__account,
+            self.__stark_account,
             market,
             amount_of_synthetic,
             price,
@@ -70,12 +71,15 @@ class PerpetualTradingClient:
 
     def __init__(self, api_url: str, stark_account: StarkPerpetualAccount | None = None):
         api_key = stark_account.api_key if stark_account else None
-        self.__markets_info_module = MarketsInformationModule(api_url, api_key)
-        self.__account_module = AccountModule(api_url, api_key)
-        self.__order_management_module = OrderManagementModule(api_url, api_key)
+
         self.__markets = None
+
         if stark_account:
-            self.__account = stark_account
+            self.__stark_account = stark_account
+
+        self.__markets_info_module = MarketsInformationModule(api_url, api_key=api_key)
+        self.__account_module = AccountModule(api_url, api_key=api_key, stark_account=stark_account)
+        self.__order_management_module = OrderManagementModule(api_url, api_key=api_key)
 
     @property
     def markets_info(self):

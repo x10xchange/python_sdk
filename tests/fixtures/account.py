@@ -6,8 +6,9 @@ def create_trading_account():
 
     return StarkPerpetualAccount(
         vault=10002,
-        private_key="0x7a7ff6fd3cab02ccdcd4a572563f5976f8976899b03a39773795a3c486d4986",
-        public_key="0x61c5e7e8339b7d56f197f54ea91b776776690e3232313de0f2ecbd0ef76f466",
+        # FIXME
+        private_key="0x659127796b268530385f753efee81112c628b2bf266e025d3b52d16204c5504",
+        public_key="0x0",
         api_key="dummy_api_key",
     )
 
