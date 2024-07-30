@@ -71,7 +71,6 @@ class PerpetualTradingClient:
 
     async def close(self):
         await self.__markets_info_module.close_session()
-        await self.__user_module.close_session()
         await self.__account_module.close_session()
         await self.__order_management_module.close_session()
 

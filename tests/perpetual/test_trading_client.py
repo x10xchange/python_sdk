@@ -4,6 +4,7 @@ import pytest
 from aiohttp import web
 from hamcrest import assert_that, equal_to, has_length
 
+from x10.perpetual.assets import AssetOperationModel
 from x10.perpetual.markets import MarketModel
 from x10.utils.http import WrappedApiResponse
 
@@ -109,5 +110,59 @@ async def test_get_markets(aiohttp_server, create_btc_usd_market):
                     "syntheticResolution": 1000000,
                 },
             }
+        ),
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_asset_operations(aiohttp_server, create_asset_operations, create_trading_account):
+    from x10.perpetual.trading_client import PerpetualTradingClient
+
+    expected_operations = create_asset_operations()
+    expected_response = WrappedApiResponse[List[AssetOperationModel]].model_validate(
+        {"status": "OK", "data": [op.model_dump() for op in expected_operations]}
+    )
+
+    app = web.Application()
+    app.router.add_get("/user/assetOperations", serve_data(expected_response.model_dump_json()))
+
+    server = await aiohttp_server(app)
+    url = f"http://{server.host}:{server.port}"
+
+    stark_account = create_trading_account()
+    trading_client = PerpetualTradingClient(api_url=url, stark_account=stark_account)
+    operations = await trading_client.account.get_asset_operations()
+
+    assert_that(operations.status, equal_to("OK"))
+    assert_that(operations.data, has_length(2))
+    assert_that(
+        [op.to_api_request_json() for op in operations.data],
+        equal_to(
+            [
+                {
+                    "id": "1816814506626514944",
+                    "type": "TRANSFER",
+                    "status": "COMPLETED",
+                    "amount": "-100.0000000000000000",
+                    "fee": "0",
+                    "asset": 1,
+                    "time": 1721997307818,
+                    "accountId": 3004,
+                    "counterpartyAccountId": 7349,
+                    "transactionHash": None,
+                },
+                {
+                    "id": "1813548171448147968",
+                    "type": "CLAIM",
+                    "status": "COMPLETED",
+                    "amount": "100000.0000000000000000",
+                    "fee": "0",
+                    "asset": 1,
+                    "time": 1721218552833,
+                    "accountId": 3004,
+                    "counterpartyAccountId": None,
+                    "transactionHash": None,
+                },
+            ]
         ),
     )
