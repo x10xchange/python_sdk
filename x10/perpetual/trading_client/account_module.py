@@ -2,6 +2,11 @@ from decimal import Decimal
 from typing import List, Optional
 
 from x10.perpetual.accounts import AccountLeverage, AccountModel
+from x10.perpetual.assets import (
+    AssetOperationModel,
+    AssetOperationStatus,
+    AssetOperationType,
+)
 from x10.perpetual.balances import BalanceModel
 from x10.perpetual.fees import TradingFeeModel
 from x10.perpetual.markets import MarketModel
@@ -158,4 +163,28 @@ class AccountModule(BaseModule):
 
         return await send_patch_request(
             await self.get_session(), url, EmptyModel, json=request_model, api_key=self._get_api_key()
+        )
+
+    async def get_asset_operations(
+        self,
+        operations_type: Optional[List[AssetOperationType]] = None,
+        operations_status: Optional[List[AssetOperationStatus]] = None,
+        start_time: Optional[int] = None,
+        end_time: Optional[int] = None,
+        cursor: Optional[int] = None,
+        limit: Optional[int] = None,
+    ) -> WrappedApiResponse[List[AssetOperationModel]]:
+        url = self._get_url(
+            "/user/assetOperations",
+            query={
+                "type": operations_type,
+                "status": operations_status,
+                "startTime": start_time,
+                "endTime": end_time,
+                "cursor": cursor,
+                "limit": limit,
+            },
+        )
+        return await send_get_request(
+            await self.get_session(), url, List[AssetOperationModel], api_key=self._get_api_key()
         )

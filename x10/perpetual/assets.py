@@ -1,5 +1,9 @@
 from dataclasses import dataclass
 from decimal import Context, Decimal
+from enum import Enum
+from typing import Optional
+
+from x10.utils.model import HexValue, X10BaseModel
 
 
 @dataclass
@@ -31,3 +35,37 @@ class Asset:
         if not self.is_collateral:
             raise ValueError("Only collateral assets have an L1 representation")
         return int(internal * Decimal(self.l1_resolution))
+
+
+class AssetOperationType(str, Enum):
+    CLAIM = "CLAIM"
+    DEPOSIT = "DEPOSIT"
+    FAST_WITHDRAWAL = "FAST_WITHDRAWAL"
+    SLOW_WITHDRAWAL = "SLOW_WITHDRAWAL"
+    TRANSFER = "TRANSFER"
+
+
+class AssetOperationStatus(Enum):
+    # Technical status
+    UNKNOWN = "UNKNOWN"
+
+    CREATED = "CREATED"
+    IN_PROGRESS = "IN_PROGRESS"
+    REJECTED = "REJECTED"
+    READY_FOR_CLAIM = "READY_FOR_CLAIM"
+    COMPLETED = "COMPLETED"
+
+
+class AssetOperationModel(X10BaseModel):
+    id: str
+    type: AssetOperationType
+    status: AssetOperationStatus
+    amount: Decimal
+    fee: Decimal
+    asset: int
+    time: int
+    account_id: int
+
+    # When operation type is `TRANSFER`
+    counterparty_account_id: Optional[int] = None
+    transaction_hash: Optional[HexValue] = None

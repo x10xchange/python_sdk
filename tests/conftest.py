@@ -3,14 +3,16 @@ import pytest
 
 @pytest.fixture
 def create_accounts():
-    from tests.fixtures.account import create_accounts as _create_accounts
+    from tests.fixtures.accounts import create_accounts as _create_accounts
 
     return _create_accounts
 
 
 @pytest.fixture
 def create_trading_account():
-    from tests.fixtures.account import create_trading_account as _create_trading_account
+    from tests.fixtures.accounts import (
+        create_trading_account as _create_trading_account,
+    )
 
     return _create_trading_account
 
@@ -40,7 +42,7 @@ def create_orderbook_message():
 
 @pytest.fixture
 def create_account_update_trade_message():
-    from tests.fixtures.account import (
+    from tests.fixtures.accounts import (
         create_account_update_trade_message as _create_account_update_trade_message,
     )
 
@@ -49,8 +51,17 @@ def create_account_update_trade_message():
 
 @pytest.fixture
 def create_account_update_unknown_message():
-    from tests.fixtures.account import (
+    from tests.fixtures.accounts import (
         create_account_update_unknown_message as _create_account_update_unknown_message,
     )
 
     return _create_account_update_unknown_message
+
+
+@pytest.fixture
+def create_asset_operations():
+    from tests.fixtures.assets import (
+        create_asset_operations as _create_asset_operations,
+    )
+
+    return _create_asset_operations
