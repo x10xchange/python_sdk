@@ -178,21 +178,19 @@ class AccountModule(BaseModule):
 
     async def withdrawal_slow_request(
         self,
-        account_id: int,
+        account: AccountModel,
         amount: Decimal,
         asset: str,
         eth_address: str,
-        accounts: List[AccountModel],
         market: MarketModel,
     ) -> WrappedApiResponse[int]:
         url = self._get_url("/user/withdrawal")
         request_model = create_withdrawal_object(
-            account_id=account_id,
+            account=account,
             amount=amount,
             asset=asset,
             eth_address=eth_address,
             stark_account=self._get_stark_account(),
-            accounts=accounts,
             market=market,
         )
 
