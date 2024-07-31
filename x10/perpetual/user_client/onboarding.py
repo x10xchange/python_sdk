@@ -32,7 +32,7 @@ class AccountRegistration:
     action: str
 
     def __post_init__(self):
-        self.time_string = self.time.strftime("%Y-%m-%dT%H:%M:%SZ")
+        self.time_string = self.time.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     def to_signable_message(
         self, signing_domain: str = "x10.exchange"

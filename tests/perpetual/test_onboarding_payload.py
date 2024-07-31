@@ -18,7 +18,15 @@ def test_onboarding_object_generation():
 
     payload = get_onboarding_payload(
         l1_account,
-        time=datetime.datetime(year=2024, month=7, day=30, hour=16, minute=1, second=2),
+        time=datetime.datetime(
+            year=2024,
+            month=7,
+            day=30,
+            hour=16,
+            minute=1,
+            second=2,
+            tzinfo=datetime.timezone.utc,
+        ),
     ).to_json()
 
     assert (
