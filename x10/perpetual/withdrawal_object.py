@@ -42,11 +42,12 @@ def create_withdrawal_object(
     expiration_timestamp = calc_expiration_timestamp()
     stark_amount = (amount * market.collateral_asset.settlement_resolution).to_integral_exact()
 
+    nonce = generate_nonce()
     withdrawal_hash = get_withdrawal_to_address_msg(
         asset_id_collateral=int(market.l2_config.collateral_id, base=16),
         position_id=int(account.l2_vault),
         eth_address=eth_address,
-        nonce=generate_nonce(),
+        nonce=nonce,
         expiration_timestamp=expiration_timestamp,
         amount=int(stark_amount),
     )
@@ -57,7 +58,7 @@ def create_withdrawal_object(
         collateral_asset_id=int(market.l2_config.collateral_id, base=16),
         eth_address=int(eth_address, base=16),
         expiration_timestamp=expiration_timestamp,
-        nonce=generate_nonce(),
+        nonce=nonce,
         position_id=int(account.l2_vault),
         public_key=int(account.l2_key, base=16),
         signature=SettlementSignatureModel(
@@ -67,6 +68,7 @@ def create_withdrawal_object(
     )
 
     return PerpetualWithdrawalModel(
+        type="SLOW_SELF",
         account_id=account_id,
         amount=amount,
         asset=asset,

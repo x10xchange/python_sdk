@@ -15,7 +15,13 @@ from x10.perpetual.positions import PositionHistoryModel, PositionModel, Positio
 from x10.perpetual.trades import AccountTradeModel, TradeType
 from x10.perpetual.trading_client.base_module import BaseModule
 from x10.perpetual.transfer_object import create_transfer_object
-from x10.utils.http import WrappedApiResponse, send_get_request, send_patch_request
+from x10.perpetual.withdrawal_object import create_withdrawal_object
+from x10.utils.http import (
+    WrappedApiResponse,
+    send_get_request,
+    send_patch_request,
+    send_post_request,
+)
 from x10.utils.model import EmptyModel
 
 
@@ -141,10 +147,10 @@ class AccountModule(BaseModule):
             api_key=self._get_api_key(),
         )
 
-    async def __transfer(
+    async def transfer(
         self,
-        from_account: int,
-        to_account: int,
+        from_account_id: int,
+        to_account_id: int,
         amount: Decimal,
         transferred_asset: str,
         accounts: List[AccountModel],
@@ -152,8 +158,8 @@ class AccountModule(BaseModule):
     ) -> WrappedApiResponse[EmptyModel]:
         url = self._get_url("/user/transfer")
         request_model = create_transfer_object(
-            from_account,
-            to_account,
+            from_account_id,
+            to_account_id,
             amount,
             transferred_asset,
             stark_account=self._get_stark_account(),
@@ -161,9 +167,44 @@ class AccountModule(BaseModule):
             market=market,
         )
 
-        return await send_patch_request(
-            await self.get_session(), url, EmptyModel, json=request_model, api_key=self._get_api_key()
+        return await send_post_request(
+            await self.get_session(),
+            url,
+            EmptyModel,
+            json=request_model.to_api_request_json(),
+            api_key=self._get_api_key(),
         )
+
+    async def withdrawal_slow_request(
+        self,
+        account_id: int,
+        amount: Decimal,
+        asset: str,
+        eth_address: str,
+        accounts: List[AccountModel],
+        market: MarketModel,
+    ) -> WrappedApiResponse[EmptyModel]:
+        url = self._get_url("/user/withdrawal")
+        request_model = create_withdrawal_object(
+            account_id=account_id,
+            amount=amount,
+            asset=asset,
+            eth_address=eth_address,
+            stark_account=self._get_stark_account(),
+            accounts=accounts,
+            market=market,
+        )
+
+        return await send_post_request(
+            await self.get_session(),
+            url,
+            EmptyModel,
+            json=request_model.to_api_request_json(),
+            api_key=self._get_api_key(),
+        )
+
+    async def __withdrawal_slow_reclaim(self):
+        pass
 
     async def get_asset_operations(
         self,
