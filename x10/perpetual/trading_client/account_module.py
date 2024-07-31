@@ -204,7 +204,7 @@ class AccountModule(BaseModule):
             api_key=self._get_api_key(),
         )
 
-    def withdrawal_slow_reclaim(self, contract_address: str, eth_address: str, market: MarketModel):
+    def __withdrawal_slow_reclaim(self, contract_address: str, eth_address: str, market: MarketModel):
         return call_stark_perpetual_withdraw(
             contract_address,
             eth_address,
