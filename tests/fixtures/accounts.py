@@ -3,8 +3,8 @@ from decimal import Decimal
 from x10.perpetual.accounts import AccountModel
 
 
-def create_accounts(limit: int = 1):
-    accounts = [
+def create_accounts():
+    return [
         AccountModel(
             status="ACTIVE",
             l2_key="0x6970ac7180192cb58070d639064408610d0fbfd3b16c6b2c6219b9d91aa456f",
@@ -24,8 +24,6 @@ def create_accounts(limit: int = 1):
             api_keys=[],
         ),
     ]
-
-    return accounts[:limit]
 
 
 def create_trading_account():

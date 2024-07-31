@@ -43,18 +43,18 @@ def create_transfer_object(
     stark_amount = (amount * market.collateral_asset.settlement_resolution).to_integral_exact()
 
     transfer_hash = get_transfer_msg(
-        int(market.l2_config.collateral_id, base=16),  # asset_id
-        ASSET_ID_FEE,  # asset_id_fee
-        int(to_account.l2_key, base=16),  # receiver_public_key
-        int(from_account.l2_vault),  # sender_position_id
-        int(to_account.l2_vault),  # receiver_position_id
-        int(from_account.l2_vault),  # src_fee_position_id
-        generate_nonce(),  # nonce
-        int(stark_amount),  # amount
-        MAX_AMOUNT_FEE,  # max_amount_fee
-        expiration_timestamp,  # expiration_timestamp
+        asset_id=int(market.l2_config.collateral_id, base=16),
+        asset_id_fee=ASSET_ID_FEE,
+        receiver_public_key=int(to_account.l2_key, base=16),
+        sender_position_id=int(from_account.l2_vault),
+        receiver_position_id=int(to_account.l2_vault),
+        src_fee_position_id=int(from_account.l2_vault),
+        nonce=generate_nonce(),
+        amount=int(stark_amount),
+        max_amount_fee=MAX_AMOUNT_FEE,
+        expiration_timestamp=expiration_timestamp,
     )
-    (order_signature_r, order_signature_s) = stark_account.sign(transfer_hash)
+    (transfer_signature_r, transfer_signature_s) = stark_account.sign(transfer_hash)
 
     settlement = StarkTransferSettlement(
         amount=int(stark_amount),
@@ -65,7 +65,7 @@ def create_transfer_object(
         receiver_public_key=to_account.l2_key,
         sender_position_id=int(from_account.l2_vault),
         sender_public_key=from_account.l2_key,
-        signature=SettlementSignatureModel(r=order_signature_r, s=order_signature_s),
+        signature=SettlementSignatureModel(r=transfer_signature_r, s=transfer_signature_s),
     )
 
     return PerpetualTransferModel(

@@ -17,7 +17,7 @@ async def test_create_transfer(mocker: MockerFixture, create_trading_account, cr
 
     trading_account = create_trading_account()
     btc_usd_market = create_btc_usd_market()
-    accounts = create_accounts(2)
+    accounts = create_accounts()
     transfer_obj = create_transfer_object(
         accounts[0].account_id,
         accounts[1].account_id,
