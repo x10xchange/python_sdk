@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from eth_account.messages import SignableMessage, encode_typed_data
 from eth_account.signers.local import LocalAccount
@@ -31,7 +31,7 @@ class AccountRegistration:
     action: str
 
     def __post_init__(self):
-        self.time_string = self.time.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+        self.time_string = self.time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     def to_signable_message(self, signing_domain: str = "x10.exchange") -> SignableMessage:
         domain = {"name": signing_domain}
@@ -151,7 +151,7 @@ def get_l2_keys_from_l1_account(account: LocalAccount, account_index: int) -> St
     return StarkKeyPair(private=private, public=public)
 
 
-def get_onboarding_payload(account: LocalAccount, time: datetime = datetime.now(UTC)) -> OnboardingPayLoad:
+def get_onboarding_payload(account: LocalAccount, time: datetime = datetime.now(timezone.utc)) -> OnboardingPayLoad:
     key_pair = get_l2_keys_from_l1_account(account, 0)
     registration_payload = get_registration_struct_to_sign(account_index=0, address=account.address, timestamp=time)
     l1_signature = account.sign_message(registration_payload.to_signable_message()).signature.hex()
