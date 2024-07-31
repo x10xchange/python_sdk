@@ -148,7 +148,7 @@ class AccountModule(BaseModule):
             api_key=self._get_api_key(),
         )
 
-    async def __transfer(
+    async def transfer(
         self,
         from_account_id: int,
         to_account_id: int,
