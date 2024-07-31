@@ -91,6 +91,10 @@ class PerpetualTradingClient:
         self.__order_management_module = OrderManagementModule(api_url, api_key=api_key)
 
     @property
+    def user(self):
+        return self.__user_module
+
+    @property
     def markets_info(self):
         return self.__markets_info_module
 
