@@ -33,19 +33,19 @@ async def test_create_withdrawal(mocker: MockerFixture, create_trading_account, 
         equal_to(
             {
                 "accountId": 1001,
-                "amount": "1100000",
+                "amount": "1.1",
                 "asset": "USD",
                 "settlement": {
                     "amount": 1100000,
-                    "collateralAssetId": "0x31857064564ed0ff978e687456963cba09c2c6985d8f9300a1de4962fafa054",
+                    "collateralAssetId": "0x35596841893e0d17079c27b2d72db1694f26a1932a7429144b439ba0807d29c",
                     "ethAddress": "0x6c5a62e584d0289def8fe3c9c8194a07246a2c52",
                     "expirationTimestamp": 473786,
                     "nonce": 1473459052,
                     "positionId": 10001,
                     "publicKey": "0x6970ac7180192cb58070d639064408610d0fbfd3b16c6b2c6219b9d91aa456f",
                     "signature": {
-                        "r": "0x50f64858e6a5dc102e66a9a4a3f26a831dd8134914ddc783b962dadefaf10e4",
-                        "s": "0x439465e93fefd9f0473ce35d21cf1f31f3c30dad51fe9efc190b09702ed75c",
+                        "r": "0x79757f327a6c90ceb1893d49c5760aa17c5086dd589ce41f3e46c8ee98549ea",
+                        "s": "0x4feff642335379079339c24e241efb1a0105caaa84d33d36993ddbad5139c7b",
                     },
                 },
             }

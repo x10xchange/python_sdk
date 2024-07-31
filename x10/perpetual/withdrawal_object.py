@@ -10,7 +10,7 @@ from x10.perpetual.withdrawals import (
     StarkWithdrawalSettlement,
 )
 from x10.utils.date import utc_now
-from x10.utils.model import HexValue, SettlementSignatureModel
+from x10.utils.model import SettlementSignatureModel
 from x10.utils.starkex import generate_nonce, get_withdrawal_to_address_msg
 
 SECONDS_IN_HOUR = 60 * 60
@@ -21,7 +21,7 @@ def find_account_by_id(accounts: List[AccountModel], account_id: int):
 
 
 def calc_expiration_timestamp():
-    expire_time = utc_now() + timedelta(days=7)
+    expire_time = utc_now() + timedelta(days=15)
     expire_time_with_buffer = expire_time + timedelta(days=7)
     expire_time_with_buffer_as_hours = math.ceil(expire_time_with_buffer.timestamp() / SECONDS_IN_HOUR)
 
@@ -32,7 +32,7 @@ def create_withdrawal_object(
     account_id: int,
     amount: Decimal,
     asset: str,
-    eth_address: HexValue,
+    eth_address: str,
     stark_account: StarkPerpetualAccount,
     accounts: List[AccountModel],
     market: MarketModel,
@@ -45,7 +45,7 @@ def create_withdrawal_object(
     withdrawal_hash = get_withdrawal_to_address_msg(
         asset_id_collateral=int(market.l2_config.collateral_id, base=16),
         position_id=int(account.l2_vault),
-        eth_address=str(eth_address),
+        eth_address=eth_address,
         nonce=generate_nonce(),
         expiration_timestamp=expiration_timestamp,
         amount=int(stark_amount),
@@ -55,7 +55,7 @@ def create_withdrawal_object(
     settlement = StarkWithdrawalSettlement(
         amount=int(stark_amount),
         collateral_asset_id=int(market.l2_config.collateral_id, base=16),
-        eth_address=eth_address,
+        eth_address=int(eth_address, base=16),
         expiration_timestamp=expiration_timestamp,
         nonce=generate_nonce(),
         position_id=int(account.l2_vault),
@@ -68,7 +68,7 @@ def create_withdrawal_object(
 
     return PerpetualWithdrawalModel(
         account_id=account_id,
-        amount=stark_amount,
+        amount=amount,
         asset=asset,
         settlement=settlement,
     )
