@@ -12,6 +12,7 @@ from x10.perpetual.trading_client.markets_information_module import (
     MarketsInformationModule,
 )
 from x10.perpetual.trading_client.order_management_module import OrderManagementModule
+from x10.perpetual.trading_client.user_module import UserModule
 from x10.utils.date import utc_now
 from x10.utils.http import WrappedApiResponse
 from x10.utils.log import get_logger
@@ -27,6 +28,7 @@ class PerpetualTradingClient:
     __markets: Dict[str, MarketModel] | None
     __stark_account: StarkPerpetualAccount
 
+    __user_module: UserModule
     __markets_info_module: MarketsInformationModule
     __account_module: AccountModule
     __order_management_module: OrderManagementModule
@@ -71,6 +73,7 @@ class PerpetualTradingClient:
 
     async def close(self):
         await self.__markets_info_module.close_session()
+        await self.__user_module.close_session()
         await self.__account_module.close_session()
         await self.__order_management_module.close_session()
 
@@ -82,6 +85,7 @@ class PerpetualTradingClient:
         if stark_account:
             self.__stark_account = stark_account
 
+        self.__user_module = UserModule(api_url, api_key=api_key)
         self.__markets_info_module = MarketsInformationModule(api_url, api_key=api_key)
         self.__account_module = AccountModule(api_url, api_key=api_key, stark_account=stark_account)
         self.__order_management_module = OrderManagementModule(api_url, api_key=api_key)
