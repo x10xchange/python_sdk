@@ -1,8 +1,7 @@
 import re
 from dataclasses import dataclass
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
-from eth_account import Account
 from eth_account.messages import SignableMessage, encode_typed_data
 from eth_account.signers.local import LocalAccount
 
@@ -34,9 +33,7 @@ class AccountRegistration:
     def __post_init__(self):
         self.time_string = self.time.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    def to_signable_message(
-        self, signing_domain: str = "x10.exchange"
-    ) -> SignableMessage:
+    def to_signable_message(self, signing_domain: str = "x10.exchange") -> SignableMessage:
         domain = {"name": signing_domain}
 
         message = {
@@ -99,9 +96,7 @@ class OnboardingPayLoad:
         }
 
 
-def get_registration_struct_to_sign(
-    account_index: int, address: str, timestamp: datetime
-) -> AccountRegistration:
+def get_registration_struct_to_sign(account_index: int, address: str, timestamp: datetime) -> AccountRegistration:
     return AccountRegistration(
         account_index=account_index,
         wallet=address,
@@ -111,9 +106,7 @@ def get_registration_struct_to_sign(
     )
 
 
-def get_key_derivation_struct_to_sign(
-    account_index: int, address: str, signing_domain: str
-) -> SignableMessage:
+def get_key_derivation_struct_to_sign(account_index: int, address: str, signing_domain: str) -> SignableMessage:
     primary_type = "AccountCreation"
     domain = {"name": signing_domain}
     message = {
@@ -146,9 +139,7 @@ def get_private_key_from_eth_signature(eth_signature: str) -> int:
     return stark_sign.grind_key(int(r, 16), stark_sign.EC_ORDER)
 
 
-def get_l2_keys_from_l1_account(
-    account: LocalAccount, account_index: int
-) -> StarkKeyPair:
+def get_l2_keys_from_l1_account(account: LocalAccount, account_index: int) -> StarkKeyPair:
     struct = get_key_derivation_struct_to_sign(
         account_index=account_index,
         address=account.address,
@@ -160,16 +151,10 @@ def get_l2_keys_from_l1_account(
     return StarkKeyPair(private=private, public=public)
 
 
-def get_onboarding_payload(
-    account: LocalAccount, time: datetime = datetime.now(UTC)
-) -> OnboardingPayLoad:
+def get_onboarding_payload(account: LocalAccount, time: datetime = datetime.now(UTC)) -> OnboardingPayLoad:
     key_pair = get_l2_keys_from_l1_account(account, 0)
-    registration_payload = get_registration_struct_to_sign(
-        account_index=0, address=account.address, timestamp=time
-    )
-    l1_signature = account.sign_message(
-        registration_payload.to_signable_message()
-    ).signature.hex()
+    registration_payload = get_registration_struct_to_sign(account_index=0, address=account.address, timestamp=time)
+    l1_signature = account.sign_message(registration_payload.to_signable_message()).signature.hex()
     l2_message = stark_sign.pedersen_hash(int(account.address, 16), key_pair.public)
     l2_r, l2_s = stark_sign.sign(msg_hash=l2_message, priv_key=key_pair.private)
     onboarding_payload = OnboardingPayLoad(
