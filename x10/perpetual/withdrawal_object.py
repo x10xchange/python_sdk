@@ -1,7 +1,6 @@
 import math
 from datetime import timedelta
 from decimal import Decimal
-from typing import List
 
 from x10.perpetual.accounts import AccountModel, StarkPerpetualAccount
 from x10.perpetual.markets import MarketModel
