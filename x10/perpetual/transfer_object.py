@@ -42,6 +42,7 @@ def create_transfer_object(
     expiration_timestamp = calc_expiration_timestamp()
     stark_amount = (amount * market.collateral_asset.settlement_resolution).to_integral_exact()
 
+    nonce = generate_nonce()
     transfer_hash = get_transfer_msg(
         asset_id=int(market.l2_config.collateral_id, base=16),
         asset_id_fee=ASSET_ID_FEE,
@@ -49,7 +50,7 @@ def create_transfer_object(
         sender_position_id=int(from_account.l2_vault),
         receiver_position_id=int(to_account.l2_vault),
         src_fee_position_id=int(from_account.l2_vault),
-        nonce=generate_nonce(),
+        nonce=nonce,
         amount=int(stark_amount),
         max_amount_fee=MAX_AMOUNT_FEE,
         expiration_timestamp=expiration_timestamp,
@@ -60,7 +61,7 @@ def create_transfer_object(
         amount=int(stark_amount),
         asset_id=int(market.l2_config.collateral_id, base=16),
         expiration_timestamp=expiration_timestamp,
-        nonce=generate_nonce(),
+        nonce=nonce,
         receiver_position_id=int(to_account.l2_vault),
         receiver_public_key=to_account.l2_key,
         sender_position_id=int(from_account.l2_vault),
