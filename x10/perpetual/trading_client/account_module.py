@@ -8,6 +8,7 @@ from x10.perpetual.assets import (
     AssetOperationType,
 )
 from x10.perpetual.balances import BalanceModel
+from x10.perpetual.contract import call_stark_perpetual_withdraw
 from x10.perpetual.fees import TradingFeeModel
 from x10.perpetual.markets import MarketModel
 from x10.perpetual.orders import OpenOrderModel, OrderSide, OrderType
@@ -147,7 +148,7 @@ class AccountModule(BaseModule):
             api_key=self._get_api_key(),
         )
 
-    async def transfer(
+    async def __transfer(
         self,
         from_account_id: int,
         to_account_id: int,
@@ -183,7 +184,7 @@ class AccountModule(BaseModule):
         eth_address: str,
         accounts: List[AccountModel],
         market: MarketModel,
-    ) -> WrappedApiResponse[EmptyModel]:
+    ) -> WrappedApiResponse[int]:
         url = self._get_url("/user/withdrawal")
         request_model = create_withdrawal_object(
             account_id=account_id,
@@ -198,13 +199,18 @@ class AccountModule(BaseModule):
         return await send_post_request(
             await self.get_session(),
             url,
-            EmptyModel,
+            int,
             json=request_model.to_api_request_json(),
             api_key=self._get_api_key(),
         )
 
-    async def __withdrawal_slow_reclaim(self):
-        pass
+    def withdrawal_slow_reclaim(self, contract_address: str, eth_address: str, market: MarketModel):
+        return call_stark_perpetual_withdraw(
+            contract_address,
+            eth_address,
+            market,
+            self._get_endpoint_config(),
+        )
 
     async def get_asset_operations(
         self,

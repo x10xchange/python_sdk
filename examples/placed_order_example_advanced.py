@@ -7,7 +7,7 @@ from collections.abc import Awaitable
 from decimal import Decimal
 from typing import Dict, Optional, Tuple
 
-from x10.config import ADA_USD_MARKET, STREAM_API_URL_DEV, TRADING_API_URL_DEV
+from x10.config import ADA_USD_MARKET
 from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.markets import MarketModel
@@ -43,7 +43,7 @@ async def build_markets_cache(trading_client: PerpetualTradingClient):
 
 
 async def order_stream():
-    stream_client = PerpetualStreamClient(api_url=STREAM_API_URL_DEV)
+    stream_client = PerpetualStreamClient(api_url=TESTNET_CONFIG.stream_url)
     global stream
     stream = await stream_client.subscribe_to_account_updates(API_KEY)
 
@@ -106,35 +106,34 @@ async def place_order(
     market = markets_cache[ADA_USD_MARKET]
     new_order = create_order_object(stark_account, market, Decimal("100"), price, order_side)
     order_condtions[new_order.id] = asyncio.Condition()
-    return (new_order.id, await trading_client.orders.place_order(order=new_order))
+    return new_order.id, await trading_client.orders.place_order(order=new_order)
 
 
-async def clean_it():
+async def clean_it(stark_account):
     logger = logging.getLogger("placed_order_example")
-    trading_client = PerpetualTradingClient(api_url=TRADING_API_URL_DEV, api_key=API_KEY)
+    trading_client = PerpetualTradingClient(TESTNET_CONFIG, stark_account)
     positions = await trading_client.account.get_positions()
     logger.info("Positions: %s", positions.to_pretty_json())
     balance = await trading_client.account.get_balance()
     logger.info("Balance: %s", balance.to_pretty_json())
     open_orders = await trading_client.account.get_open_orders(market_names=[ADA_USD_MARKET])
 
-    def __cancel_order(id: int) -> Awaitable[WrappedApiResponse[EmptyModel]]:
-        return trading_client.orders.cancel_order(order_id=id)
+    def __cancel_order(order_id: int) -> Awaitable[WrappedApiResponse[EmptyModel]]:
+        return trading_client.orders.cancel_order(order_id=order_id)
 
     cancel_futures = list(map(__cancel_order, [order.id for order in open_orders.data]))
     await asyncio.gather(*cancel_futures)
 
 
 async def setup_and_run():
-    await clean_it()
     print("Press enter to start load test")
     input()
-    stark_account = StarkPerpetualAccount(
-        vault=VAULT_ID,
-        private_key=PRIVATE_KEY,
-        public_key=PUBLIC_KEY,
-    )
-    trading_client = PerpetualTradingClient.create(TESTNET_CONFIG, stark_account)
+
+    stark_account = StarkPerpetualAccount(vault=VAULT_ID, private_key=PRIVATE_KEY, public_key=PUBLIC_KEY, api_key="")
+
+    await clean_it(stark_account)
+
+    trading_client = PerpetualTradingClient(TESTNET_CONFIG, stark_account)
     markets_cache = await build_markets_cache(trading_client)
     stream_future = asyncio.create_task(order_stream())
 
@@ -156,7 +155,7 @@ async def setup_and_run():
     if stream:
         await stream.close()
     await stream_future
-    await clean_it()
+    await clean_it(stark_account)
 
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@ from x10.utils.model import X10BaseModel
 LOGGER = get_logger(__name__)
 CLIENT_TIMEOUT = ClientTimeout(total=DEFAULT_REQUEST_TIMEOUT_SECONDS)
 
-ApiResponseType = TypeVar("ApiResponseType", bound=Union[X10BaseModel, Sequence[X10BaseModel]])
+ApiResponseType = TypeVar("ApiResponseType", bound=Union[int, X10BaseModel, Sequence[X10BaseModel]])
 
 
 class RequestHeader(Enum):
