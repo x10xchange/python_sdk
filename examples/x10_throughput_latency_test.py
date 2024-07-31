@@ -12,7 +12,7 @@ from typing import List, Optional
 from dotenv import load_dotenv
 
 from x10.perpetual.accounts import StarkPerpetualAccount
-from x10.perpetual.configuration import TESTNET_CONFIG, EndpointConfig
+from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.orderbook import OrderBook
 from x10.perpetual.orders import OrderSide
 from x10.perpetual.simple_client.simple_trading_client import BlockingTradingClient
@@ -67,12 +67,9 @@ async def setup_and_run(base: str = "BTC", queue: Optional[Queue] = None):
         public_key=PUBLIC_KEY,
         api_key=API_KEY,
     )
-    trading_client = PerpetualTradingClient.create(
-        endpoint_config=EndpointConfig(
-            api_base_url=TESTNET_CONFIG.api_base_url,
-            stream_url=TESTNET_CONFIG.stream_url,
-        ),
-        trading_account=stark_account,
+    trading_client = PerpetualTradingClient(
+        endpoint_config=TESTNET_CONFIG,
+        stark_account=stark_account,
     )
 
     positions = await trading_client.account.get_positions()
@@ -89,10 +86,7 @@ async def setup_and_run(base: str = "BTC", queue: Optional[Queue] = None):
     await clean_it(trading_client)
 
     blocking_client = BlockingTradingClient(
-        endpoint_config=EndpointConfig(
-            api_base_url=TESTNET_CONFIG.api_base_url,
-            stream_url=TESTNET_CONFIG.stream_url,
-        ),
+        endpoint_config=TESTNET_CONFIG,
         account=stark_account,
     )
 
@@ -100,10 +94,7 @@ async def setup_and_run(base: str = "BTC", queue: Optional[Queue] = None):
     market = markets[market_name]
 
     orderbook = await OrderBook.create(
-        endpoint_config=EndpointConfig(
-            api_base_url=TESTNET_CONFIG.api_base_url,
-            stream_url=TESTNET_CONFIG.stream_url,
-        ),
+        endpoint_config=TESTNET_CONFIG,
         market_name=market_name,
     )
 

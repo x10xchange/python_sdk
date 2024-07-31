@@ -8,6 +8,7 @@ from x10.perpetual.assets import (
     AssetOperationType,
 )
 from x10.perpetual.balances import BalanceModel
+from x10.perpetual.contract import call_stark_perpetual_withdraw
 from x10.perpetual.fees import TradingFeeModel
 from x10.perpetual.markets import MarketModel
 from x10.perpetual.orders import OpenOrderModel, OrderSide, OrderType
@@ -15,6 +16,7 @@ from x10.perpetual.positions import PositionHistoryModel, PositionModel, Positio
 from x10.perpetual.trades import AccountTradeModel, TradeType
 from x10.perpetual.trading_client.base_module import BaseModule
 from x10.perpetual.transfer_object import create_transfer_object
+from x10.perpetual.withdrawal_object import create_withdrawal_object
 from x10.utils.http import (
     WrappedApiResponse,
     send_get_request,
@@ -148,8 +150,8 @@ class AccountModule(BaseModule):
 
     async def transfer(
         self,
-        from_account: int,
-        to_account: int,
+        from_account_id: int,
+        to_account_id: int,
         amount: Decimal,
         transferred_asset: str,
         accounts: List[AccountModel],
@@ -157,8 +159,8 @@ class AccountModule(BaseModule):
     ) -> WrappedApiResponse[EmptyModel]:
         url = self._get_url("/user/transfer")
         request_model = create_transfer_object(
-            from_account,
-            to_account,
+            from_account_id,
+            to_account_id,
             amount,
             transferred_asset,
             stark_account=self._get_stark_account(),
@@ -172,6 +174,40 @@ class AccountModule(BaseModule):
             EmptyModel,
             json=request_model.to_api_request_json(),
             api_key=self._get_api_key(),
+        )
+
+    async def withdrawal_slow_request(
+        self,
+        account: AccountModel,
+        amount: Decimal,
+        asset: str,
+        eth_address: str,
+        market: MarketModel,
+    ) -> WrappedApiResponse[int]:
+        url = self._get_url("/user/withdrawal")
+        request_model = create_withdrawal_object(
+            account=account,
+            amount=amount,
+            asset=asset,
+            eth_address=eth_address,
+            stark_account=self._get_stark_account(),
+            market=market,
+        )
+
+        return await send_post_request(
+            await self.get_session(),
+            url,
+            int,
+            json=request_model.to_api_request_json(),
+            api_key=self._get_api_key(),
+        )
+
+    def __withdrawal_slow_reclaim(self, contract_address: str, eth_address: str, market: MarketModel):
+        return call_stark_perpetual_withdraw(
+            contract_address,
+            eth_address,
+            market,
+            self._get_endpoint_config(),
         )
 
     async def get_asset_operations(

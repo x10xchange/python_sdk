@@ -3,7 +3,7 @@ import logging
 import signal
 
 from examples.utils import init_logging
-from x10.config import STREAM_API_URL_DEV
+from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.stream_client import PerpetualStreamClient
 
 API_KEY = "<API_KEY>"
@@ -11,7 +11,7 @@ API_KEY = "<API_KEY>"
 
 async def iterator_example():
     logger = logging.getLogger("stream_example[iterator_example]")
-    stream_client = PerpetualStreamClient(api_url=STREAM_API_URL_DEV)
+    stream_client = PerpetualStreamClient(api_url=TESTNET_CONFIG.stream_url)
     stream = await stream_client.subscribe_to_account_updates(API_KEY)
 
     async for event in stream:
@@ -20,7 +20,7 @@ async def iterator_example():
 
 async def manual_example():
     logger = logging.getLogger("stream_example[manual_example]")
-    stream_client = PerpetualStreamClient(api_url=STREAM_API_URL_DEV)
+    stream_client = PerpetualStreamClient(api_url=TESTNET_CONFIG.stream_url)
     stream = await stream_client.subscribe_to_account_updates(API_KEY)
 
     event1 = await stream.recv()
@@ -36,7 +36,7 @@ async def manual_example():
 
 async def context_manager_example():
     logger = logging.getLogger("stream_example[context_manager_example]")
-    stream_client = PerpetualStreamClient(api_url=STREAM_API_URL_DEV)
+    stream_client = PerpetualStreamClient(api_url=TESTNET_CONFIG.stream_url)
 
     async with stream_client.subscribe_to_orderbooks("BTC-USD") as stream:
         msg1 = await stream.recv()
@@ -58,7 +58,7 @@ async def merge_streams_example():
 
     signal.signal(signal.SIGINT, sigint_handler)
 
-    stream_client = PerpetualStreamClient(api_url=STREAM_API_URL_DEV)
+    stream_client = PerpetualStreamClient(api_url=TESTNET_CONFIG.stream_url)
     queue = asyncio.Queue()
 
     async def run_producer_stream1():

@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Literal
 
 from x10.utils.model import HexValue, SettlementSignatureModel, X10BaseModel
 
@@ -15,6 +16,7 @@ class StarkWithdrawalSettlement(X10BaseModel):
 
 
 class PerpetualWithdrawalModel(X10BaseModel):
+    type: Literal["SLOW_SELF"]
     account_id: int
     amount: Decimal
     asset: str

@@ -14,7 +14,7 @@ from x10.utils.model import X10BaseModel
 LOGGER = get_logger(__name__)
 CLIENT_TIMEOUT = ClientTimeout(total=DEFAULT_REQUEST_TIMEOUT_SECONDS)
 
-ApiResponseType = TypeVar("ApiResponseType", bound=Union[X10BaseModel, Sequence[X10BaseModel]])
+ApiResponseType = TypeVar("ApiResponseType", bound=Union[int, X10BaseModel, Sequence[X10BaseModel]])
 
 
 class RequestHeader(Enum):
@@ -133,7 +133,7 @@ async def send_post_request(
 ) -> WrappedApiResponse[ApiResponseType]:
     headers = __get_headers(api_key=api_key)
 
-    LOGGER.debug("Sending POST %s, headers=%s, data=%s", url, headers, {})
+    LOGGER.debug("Sending POST %s, headers=%s", url, headers)
     async with session.post(url, json=json, headers=headers) as response:
         response_text = await response.text()
         response_model = parse_response_to_model(response_text, model_class)

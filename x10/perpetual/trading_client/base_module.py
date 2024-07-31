@@ -4,27 +4,35 @@ import aiohttp
 
 from x10.errors import X10Error
 from x10.perpetual.accounts import StarkPerpetualAccount
+from x10.perpetual.configuration import EndpointConfig
 from x10.utils.http import CLIENT_TIMEOUT, get_url
 
 
 class BaseModule:
-    __api_url: str
+    __endpoint_config: EndpointConfig
     __api_key: Optional[str]
     __stark_account: Optional[StarkPerpetualAccount]
     __session: Optional[aiohttp.ClientSession]
 
     def __init__(
-        self, api_url: str, *, api_key: Optional[str] = None, stark_account: Optional[StarkPerpetualAccount] = None
+        self,
+        endpoint_config: EndpointConfig,
+        *,
+        api_key: Optional[str] = None,
+        stark_account: Optional[StarkPerpetualAccount] = None,
     ):
         super().__init__()
 
-        self.__api_url = api_url
+        self.__endpoint_config = endpoint_config
         self.__api_key = api_key
         self.__stark_account = stark_account
         self.__session = None
 
     def _get_url(self, path: str, *, query: Optional[Dict] = None, **path_params) -> str:
-        return get_url(f"{self.__api_url}{path}", query=query, **path_params)
+        return get_url(f"{self.__endpoint_config.api_base_url}{path}", query=query, **path_params)
+
+    def _get_endpoint_config(self) -> EndpointConfig:
+        return self.__endpoint_config
 
     def _get_api_key(self):
         if not self.__api_key:

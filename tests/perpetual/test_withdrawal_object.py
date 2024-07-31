@@ -19,12 +19,11 @@ async def test_create_withdrawal(mocker: MockerFixture, create_trading_account, 
     btc_usd_market = create_btc_usd_market()
     accounts = create_accounts()
     withdrawal_obj = create_withdrawal_object(
-        accounts[0].account_id,
+        accounts[0],
         Decimal("1.1"),
         "USD",
         "0x6c5a62e584D0289def8Fe3c9C8194a07246a2C52",
         trading_account,
-        accounts,
         btc_usd_market,
     )
 
@@ -32,6 +31,7 @@ async def test_create_withdrawal(mocker: MockerFixture, create_trading_account, 
         withdrawal_obj.to_api_request_json(),
         equal_to(
             {
+                "type": "SLOW_SELF",
                 "accountId": 1001,
                 "amount": "1.1",
                 "asset": "USD",

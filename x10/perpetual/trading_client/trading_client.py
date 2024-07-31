@@ -8,6 +8,7 @@ from x10.perpetual.markets import MarketModel
 from x10.perpetual.order_object import create_order_object
 from x10.perpetual.orders import OrderSide, PlacedOrderModel
 from x10.perpetual.trading_client.account_module import AccountModule
+from x10.perpetual.trading_client.info_module import InfoModule
 from x10.perpetual.trading_client.markets_information_module import (
     MarketsInformationModule,
 )
@@ -27,13 +28,10 @@ class PerpetualTradingClient:
     __markets: Dict[str, MarketModel] | None
     __stark_account: StarkPerpetualAccount
 
+    __info_module: InfoModule
     __markets_info_module: MarketsInformationModule
     __account_module: AccountModule
     __order_management_module: OrderManagementModule
-
-    @classmethod
-    def create(cls, endpoint_config: EndpointConfig, trading_account: StarkPerpetualAccount):
-        return cls(endpoint_config.api_base_url, trading_account)
 
     async def place_order(
         self,
@@ -74,7 +72,7 @@ class PerpetualTradingClient:
         await self.__account_module.close_session()
         await self.__order_management_module.close_session()
 
-    def __init__(self, api_url: str, stark_account: StarkPerpetualAccount | None = None):
+    def __init__(self, endpoint_config: EndpointConfig, stark_account: StarkPerpetualAccount | None = None):
         api_key = stark_account.api_key if stark_account else None
 
         self.__markets = None
@@ -82,9 +80,14 @@ class PerpetualTradingClient:
         if stark_account:
             self.__stark_account = stark_account
 
-        self.__markets_info_module = MarketsInformationModule(api_url, api_key=api_key)
-        self.__account_module = AccountModule(api_url, api_key=api_key, stark_account=stark_account)
-        self.__order_management_module = OrderManagementModule(api_url, api_key=api_key)
+        self.__info_module = InfoModule(endpoint_config)
+        self.__markets_info_module = MarketsInformationModule(endpoint_config, api_key=api_key)
+        self.__account_module = AccountModule(endpoint_config, api_key=api_key, stark_account=stark_account)
+        self.__order_management_module = OrderManagementModule(endpoint_config, api_key=api_key)
+
+    @property
+    def info(self):
+        return self.__info_module
 
     @property
     def markets_info(self):
