@@ -32,6 +32,7 @@ async def test_create_withdrawal(mocker: MockerFixture, create_trading_account, 
         withdrawal_obj.to_api_request_json(),
         equal_to(
             {
+                "type": "SLOW_SELF",
                 "accountId": 1001,
                 "amount": "1.1",
                 "asset": "USD",
