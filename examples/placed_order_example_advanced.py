@@ -36,6 +36,9 @@ order_loop_finished = False
 stream: Optional[PerpetualStreamConnection] = None
 
 
+stark_account = StarkPerpetualAccount(vault=VAULT_ID, private_key=PRIVATE_KEY, public_key=PUBLIC_KEY, api_key=API_KEY)
+
+
 async def build_markets_cache(trading_client: PerpetualTradingClient):
     markets = await trading_client.markets_info.get_markets()
     assert markets.data is not None
@@ -74,7 +77,6 @@ async def order_stream():
 async def order_loop(
     i: int,
     trading_client: PerpetualTradingClient,
-    stark_account: StarkPerpetualAccount,
     markets_cache: dict[str, MarketModel],
 ):
     if not socket_connected:
@@ -82,7 +84,7 @@ async def order_loop(
             await socket_connect_condition.wait()
 
     for j in range(NUM_ORDERS_PER_PRICE_LEVEL):
-        (external_id, order_response) = await place_order(i, trading_client, stark_account, markets_cache)
+        (external_id, order_response) = await place_order(i, trading_client, markets_cache)
         print(f"placed order {external_id}")
         condition = order_condtions.get(external_id)
         if condition:
@@ -97,7 +99,6 @@ async def order_loop(
 async def place_order(
     i: int,
     trading_client: PerpetualTradingClient,
-    stark_account: StarkPerpetualAccount,
     markets_cache: dict[str, MarketModel],
 ) -> Tuple[str, WrappedApiResponse[PlacedOrderModel]]:
     should_buy = i % 2 == 0
@@ -109,7 +110,7 @@ async def place_order(
     return new_order.id, await trading_client.orders.place_order(order=new_order)
 
 
-async def clean_it(stark_account):
+async def clean_it():
     logger = logging.getLogger("placed_order_example")
     trading_client = PerpetualTradingClient(TESTNET_CONFIG, stark_account)
     positions = await trading_client.account.get_positions()
@@ -126,12 +127,9 @@ async def clean_it(stark_account):
 
 
 async def setup_and_run():
+    await clean_it()
     print("Press enter to start load test")
     input()
-
-    stark_account = StarkPerpetualAccount(vault=VAULT_ID, private_key=PRIVATE_KEY, public_key=PUBLIC_KEY, api_key="")
-
-    await clean_it(stark_account)
 
     trading_client = PerpetualTradingClient(TESTNET_CONFIG, stark_account)
     markets_cache = await build_markets_cache(trading_client)
@@ -143,7 +141,6 @@ async def setup_and_run():
                 i,
                 trading_client=trading_client,
                 markets_cache=markets_cache,
-                stark_account=stark_account,
             )
         )
 
@@ -155,7 +152,7 @@ async def setup_and_run():
     if stream:
         await stream.close()
     await stream_future
-    await clean_it(stark_account)
+    await clean_it()
 
 
 if __name__ == "__main__":
