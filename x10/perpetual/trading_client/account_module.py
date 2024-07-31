@@ -15,7 +15,12 @@ from x10.perpetual.positions import PositionHistoryModel, PositionModel, Positio
 from x10.perpetual.trades import AccountTradeModel, TradeType
 from x10.perpetual.trading_client.base_module import BaseModule
 from x10.perpetual.transfer_object import create_transfer_object
-from x10.utils.http import WrappedApiResponse, send_get_request, send_patch_request
+from x10.utils.http import (
+    WrappedApiResponse,
+    send_get_request,
+    send_patch_request,
+    send_post_request,
+)
 from x10.utils.model import EmptyModel
 
 
@@ -141,7 +146,7 @@ class AccountModule(BaseModule):
             api_key=self._get_api_key(),
         )
 
-    async def __transfer(
+    async def transfer(
         self,
         from_account: int,
         to_account: int,
@@ -161,8 +166,12 @@ class AccountModule(BaseModule):
             market=market,
         )
 
-        return await send_patch_request(
-            await self.get_session(), url, EmptyModel, json=request_model, api_key=self._get_api_key()
+        return await send_post_request(
+            await self.get_session(),
+            url,
+            EmptyModel,
+            json=request_model.to_api_request_json(),
+            api_key=self._get_api_key(),
         )
 
     async def get_asset_operations(
