@@ -145,6 +145,7 @@ class UserClient:
         response = await send_get_request(await self.get_session(), url, List[AccountModel], request_headers=headers)
         return response.data or []
 
+
 async def do_something():
     eth_account = Account.from_key("0x179edf14fb885920e1dbb4311a102aa972fcb2e8c3e6128a7718867d19ea3338")
     user_client = UserClient(endpoint_config=TESTNET_CONFIG, l1_private_key=eth_account.key.hex())
