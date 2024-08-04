@@ -1,6 +1,8 @@
 from decimal import Decimal
 from typing import Dict, List, Optional, Tuple
 
+from pydantic import AliasChoices, Field
+
 from x10.perpetual.balances import BalanceModel
 from x10.perpetual.fees import TradingFeeModel
 from x10.perpetual.orders import OpenOrderModel
@@ -60,10 +62,10 @@ class AccountLeverage(X10BaseModel):
 
 
 class AccountModel(X10BaseModel):
-    account_id: int
+    id: int = Field(validation_alias=AliasChoices("accountId", "id"), serialization_alias="id")
     description: str
     account_index: int
     status: str
     l2_key: str
     l2_vault: str
-    api_keys: List[str]
+    api_keys: Optional[List[str]] = None

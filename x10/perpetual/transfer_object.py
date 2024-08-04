@@ -16,7 +16,7 @@ MAX_AMOUNT_FEE = 0
 
 
 def find_account_by_id(accounts: List[AccountModel], account_id: int):
-    return next((account for account in accounts if account.account_id == account_id), None)
+    return next((account for account in accounts if account.id == account_id), None)
 
 
 def calc_expiration_timestamp():

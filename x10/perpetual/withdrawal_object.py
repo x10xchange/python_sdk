@@ -61,7 +61,7 @@ def create_withdrawal_object(
 
     return PerpetualWithdrawalModel(
         type="SLOW_SELF",
-        account_id=account.account_id,
+        account_id=account.id,
         amount=amount,
         asset=asset,
         settlement=settlement,

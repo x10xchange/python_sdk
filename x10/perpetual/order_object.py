@@ -35,6 +35,7 @@ def create_order_object(
     previous_order_id: Optional[str] = None,
     expire_time=utc_now() + timedelta(hours=8),
     order_external_id: Optional[str] = None,
+    time_in_force: TimeInForce = TimeInForce.GTT,
 ) -> PerpetualOrderModel:
     """
     Creates an order object to be placed on the exchange using the `place_order` method.
@@ -54,6 +55,7 @@ def create_order_object(
         post_only=post_only,
         previous_order_external_id=previous_order_id,
         order_external_id=order_external_id,
+        time_in_force=time_in_force,
     )
 
 
@@ -71,6 +73,7 @@ def __create_order_object(
     post_only: bool = False,
     previous_order_external_id: Optional[str] = None,
     order_external_id: Optional[str] = None,
+    time_in_force: TimeInForce = TimeInForce.GTT,
 ) -> PerpetualOrderModel:
     if exact_only:
         raise NotImplementedError("`exact_only` option is not supported yet")
@@ -124,7 +127,7 @@ def __create_order_object(
         qty=synthetic_amount_human.value,
         price=price,
         post_only=post_only,
-        time_in_force=TimeInForce.GTT,
+        time_in_force=time_in_force,
         expiry_epoch_millis=to_epoch_millis(expire_time),
         fee=amounts.fee_rate,
         nonce=Decimal(nonce),

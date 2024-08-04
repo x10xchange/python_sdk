@@ -6,6 +6,16 @@ from eth_account.messages import SignableMessage, encode_typed_data
 from eth_account.signers.local import LocalAccount
 
 from vendor.starkware.crypto import signature as stark_sign
+from x10.perpetual.accounts import AccountModel
+from x10.utils.model import X10BaseModel
+
+register_action = "REGISTER"
+sub_account_action = "CREATE_SUB_ACCOUNT"
+
+
+class OnboardedClientModel(X10BaseModel):
+    l1_address: str
+    default_account: AccountModel
 
 
 @dataclass
@@ -33,7 +43,7 @@ class AccountRegistration:
     def __post_init__(self):
         self.time_string = self.time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    def to_signable_message(self, signing_domain: str = "x10.exchange") -> SignableMessage:
+    def to_signable_message(self, signing_domain) -> SignableMessage:
         domain = {"name": signing_domain}
 
         message = {
@@ -75,6 +85,26 @@ class AccountRegistration:
 
 
 @dataclass
+class SubAccountOnboardingPayload:
+    l2_key: int
+    l2_r: int
+    l2_s: int
+    account_registration: AccountRegistration
+    description: str
+
+    def to_json(self):
+        return {
+            "l2Key": hex(self.l2_key),
+            "l2Signature": {
+                "r": hex(self.l2_r),
+                "s": hex(self.l2_s),
+            },
+            "accountCreation": self.account_registration.to_json(),
+            "description": self.description,
+        }
+
+
+@dataclass
 class OnboardingPayLoad:
     l1_signature: str
     l2_key: int
@@ -96,13 +126,15 @@ class OnboardingPayLoad:
         }
 
 
-def get_registration_struct_to_sign(account_index: int, address: str, timestamp: datetime) -> AccountRegistration:
+def get_registration_struct_to_sign(
+    account_index: int, address: str, timestamp: datetime, action: str
+) -> AccountRegistration:
     return AccountRegistration(
         account_index=account_index,
         wallet=address,
         tos_accepted=True,
         time=timestamp,
-        action="REGISTER",
+        action=action,
     )
 
 
@@ -139,11 +171,11 @@ def get_private_key_from_eth_signature(eth_signature: str) -> int:
     return stark_sign.grind_key(int(r, 16), stark_sign.EC_ORDER)
 
 
-def get_l2_keys_from_l1_account(account: LocalAccount, account_index: int) -> StarkKeyPair:
+def get_l2_keys_from_l1_account(account: LocalAccount, account_index: int, signing_domain: str) -> StarkKeyPair:
     struct = get_key_derivation_struct_to_sign(
         account_index=account_index,
         address=account.address,
-        signing_domain="x10.exchange",
+        signing_domain=signing_domain,
     )
     s = account.sign_message(struct)
     private = get_private_key_from_eth_signature(s.signature.hex())
@@ -151,10 +183,19 @@ def get_l2_keys_from_l1_account(account: LocalAccount, account_index: int) -> St
     return StarkKeyPair(private=private, public=public)
 
 
-def get_onboarding_payload(account: LocalAccount, time: datetime = datetime.now(timezone.utc)) -> OnboardingPayLoad:
-    key_pair = get_l2_keys_from_l1_account(account, 0)
-    registration_payload = get_registration_struct_to_sign(account_index=0, address=account.address, timestamp=time)
-    l1_signature = account.sign_message(registration_payload.to_signable_message()).signature.hex()
+def get_onboarding_payload(
+    account: LocalAccount,
+    signing_domain: str,
+    key_pair: StarkKeyPair,
+    time: datetime = datetime.now(timezone.utc),
+    referral_code: str | None = None,
+) -> OnboardingPayLoad:
+    registration_payload = get_registration_struct_to_sign(
+        account_index=0, address=account.address, timestamp=time, action=register_action
+    )
+    l1_signature = account.sign_message(
+        registration_payload.to_signable_message(signing_domain=signing_domain)
+    ).signature.hex()
     l2_message = stark_sign.pedersen_hash(int(account.address, 16), key_pair.public)
     l2_r, l2_s = stark_sign.sign(msg_hash=l2_message, priv_key=key_pair.private)
     onboarding_payload = OnboardingPayLoad(
@@ -163,5 +204,32 @@ def get_onboarding_payload(account: LocalAccount, time: datetime = datetime.now(
         l2_r=l2_r,
         l2_s=l2_s,
         account_registration=registration_payload,
+        referral_code=referral_code,
     )
     return onboarding_payload
+
+
+def get_sub_account_creation_payload(
+    account_index: int,
+    l1_address: str,
+    key_pair: StarkKeyPair,
+    description: str,
+    time: datetime = datetime.now(timezone.utc),
+):
+    registration_payload = get_registration_struct_to_sign(
+        account_index=account_index,
+        address=l1_address,
+        timestamp=time,
+        action=sub_account_action,
+    )
+
+    l2_message = stark_sign.pedersen_hash(int(l1_address, 16), key_pair.public)
+    l2_r, l2_s = stark_sign.sign(msg_hash=l2_message, priv_key=key_pair.private)
+
+    return SubAccountOnboardingPayload(
+        l2_key=key_pair.public,
+        l2_r=l2_r,
+        l2_s=l2_s,
+        account_registration=registration_payload,
+        description=description,
+    )
