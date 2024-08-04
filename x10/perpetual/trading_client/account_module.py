@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 from x10.perpetual.accounts import AccountLeverage, AccountModel
 from x10.perpetual.assets import (
@@ -202,12 +202,19 @@ class AccountModule(BaseModule):
             api_key=self._get_api_key(),
         )
 
-    def __withdrawal_slow_reclaim(self, contract_address: str, eth_address: str, market: MarketModel):
+    def withdrawal_slow_reclaim(
+        self,
+        contract_address: str,
+        eth_address: str,
+        market: MarketModel,
+        get_eth_private_key: Callable[[], str],
+    ):
         return call_stark_perpetual_withdraw(
             contract_address,
             eth_address,
             market,
             self._get_endpoint_config(),
+            get_eth_private_key,
         )
 
     async def get_asset_operations(
