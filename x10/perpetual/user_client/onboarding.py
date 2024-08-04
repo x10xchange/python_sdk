@@ -171,13 +171,13 @@ def get_private_key_from_eth_signature(eth_signature: str) -> int:
     return stark_sign.grind_key(int(r, 16), stark_sign.EC_ORDER)
 
 
-def get_l2_keys_from_l1_account(account: LocalAccount, account_index: int, signing_domain: str) -> StarkKeyPair:
+def get_l2_keys_from_l1_account(l1_account: LocalAccount, account_index: int, signing_domain: str) -> StarkKeyPair:
     struct = get_key_derivation_struct_to_sign(
         account_index=account_index,
-        address=account.address,
+        address=l1_account.address,
         signing_domain=signing_domain,
     )
-    s = account.sign_message(struct)
+    s = l1_account.sign_message(struct)
     private = get_private_key_from_eth_signature(s.signature.hex())
     public = stark_sign.private_to_stark_key(private)
     return StarkKeyPair(private=private, public=public)

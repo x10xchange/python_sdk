@@ -21,6 +21,10 @@ class RateLimitException(Exception):
     pass
 
 
+class NotAuthorizedException(Exception):
+    pass
+
+
 class RequestHeader(Enum):
     ACCEPT = "Accept"
     API_KEY = "X-Api-Key"
@@ -193,6 +197,10 @@ async def send_delete_request(
 def handle_known_errors(
     url, response_code_handler: Optional[Dict[int, Type[Exception]]], response: ClientResponse, response_text: str
 ):
+    if response.status == 401:
+        LOGGER.error("Unauthorized response from POST %s: %s", url, response_text)
+        raise NotAuthorizedException(f"Unauthorized response from POST {url}: {response_text}")
+
     if response.status == 429:
         LOGGER.error("Rate limited response from POST %s: %s", url, response_text)
         raise RateLimitException(f"Rate limited response from POST {url}: {response}")

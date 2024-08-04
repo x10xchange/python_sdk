@@ -69,3 +69,11 @@ class AccountModel(X10BaseModel):
     l2_key: str
     l2_vault: str
     api_keys: Optional[List[str]] = None
+
+
+class ApiKeyResponseModel(X10BaseModel):
+    key: str
+
+
+class ApiKeyRequestModel(X10BaseModel):
+    description: str

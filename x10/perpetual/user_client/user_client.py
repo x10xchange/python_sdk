@@ -8,7 +8,7 @@ from eth_account import Account
 from eth_account.messages import encode_defunct
 from eth_account.signers.local import LocalAccount
 
-from x10.perpetual.accounts import AccountModel
+from x10.perpetual.accounts import AccountModel, ApiKeyRequestModel, ApiKeyResponseModel
 from x10.perpetual.configuration import TESTNET_CONFIG, EndpointConfig
 from x10.perpetual.user_client.onboarding import (
     OnboardedClientModel,
@@ -26,6 +26,7 @@ from x10.utils.http import (  # WrappedApiResponse,; send_get_request,; send_pat
 
 L1_AUTH_SIGNATURE_HEADER = "L1_SIGNATURE"
 L1_MESSAGE_TIME_HEADER = "L1_MESSAGE_TIME"
+ACTIVE_ACCOUNT_HEADER = "X-X10-ACTIVE-ACCOUNT"
 
 
 class SubAccountExists(Exception):
@@ -33,7 +34,7 @@ class SubAccountExists(Exception):
 
 
 @dataclass
-class OnBoardingResult:
+class OnBoardedAccount:
     account: AccountModel
     l2_key_pair: StarkKeyPair
 
@@ -70,7 +71,7 @@ class UserClient:
     async def onboard(self, referral_code: Optional[str] = None):
         signing_account: LocalAccount = Account.from_key(self.__l1_private_key)
         key_pair = get_l2_keys_from_l1_account(
-            account=signing_account, account_index=0, signing_domain=self.__endpoint_config.signing_domain
+            l1_account=signing_account, account_index=0, signing_domain=self.__endpoint_config.signing_domain
         )
         payload = get_onboarding_payload(
             signing_account,
@@ -87,7 +88,7 @@ class UserClient:
         if onboarded_client is None:
             raise ValueError("No account data returned from onboarding")
 
-        return OnBoardingResult(account=onboarded_client.default_account, l2_key_pair=key_pair)
+        return OnBoardedAccount(account=onboarded_client.default_account, l2_key_pair=key_pair)
 
     async def onboard_subaccount(self, account_index: int, description: str | None = None):
         request_path = "/auth/onboard/subaccount"
@@ -101,7 +102,9 @@ class UserClient:
         signable_message = encode_defunct(l1_message)
         l1_signature = signing_account.sign_message(signable_message)
         key_pair = get_l2_keys_from_l1_account(
-            account=signing_account, account_index=account_index, signing_domain=self.__endpoint_config.signing_domain
+            l1_account=signing_account,
+            account_index=account_index,
+            signing_domain=self.__endpoint_config.signing_domain,
         )
         payload = get_sub_account_creation_payload(
             account_index=account_index,
@@ -127,9 +130,9 @@ class UserClient:
         if onboarded_account is None:
             raise ValueError("No account data returned from onboarding")
 
-        return OnBoardingResult(account=onboarded_account, l2_key_pair=key_pair)
+        return OnBoardedAccount(account=onboarded_account, l2_key_pair=key_pair)
 
-    async def get_accounts(self) -> List[AccountModel]:
+    async def get_accounts(self) -> List[OnBoardedAccount]:
         request_path = "/api/v1/user/accounts"
         signing_account: LocalAccount = Account.from_key(self.__l1_private_key)
         time = datetime.now(timezone.utc)
@@ -143,7 +146,49 @@ class UserClient:
         }
         url = self._get_url(self.__endpoint_config.onboarding_url, path=request_path)
         response = await send_get_request(await self.get_session(), url, List[AccountModel], request_headers=headers)
-        return response.data or []
+        accounts = response.data or []
+
+        return [
+            OnBoardedAccount(
+                account=account,
+                l2_key_pair=get_l2_keys_from_l1_account(
+                    l1_account=signing_account,
+                    account_index=account.account_index,
+                    signing_domain=self.__endpoint_config.signing_domain,
+                ),
+            )
+            for account in accounts
+        ]
+
+    async def create_account_api_key(self, account: AccountModel, description: str | None) -> str:
+        request_path = "/api/v1/user/account/api-key"
+        if description is None:
+            description = "trading api key for account {}".format(account.id)
+
+        signing_account: LocalAccount = Account.from_key(self.__l1_private_key)
+        time = datetime.now(timezone.utc)
+        auth_time_string = time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        l1_message = f"{request_path}@{auth_time_string}".encode(encoding="utf-8")
+        signable_message = encode_defunct(l1_message)
+        l1_signature = signing_account.sign_message(signable_message)
+        headers = {
+            L1_AUTH_SIGNATURE_HEADER: l1_signature.signature.hex(),
+            L1_MESSAGE_TIME_HEADER: auth_time_string,
+            ACTIVE_ACCOUNT_HEADER: str(account.id),
+        }
+        url = self._get_url(self.__endpoint_config.onboarding_url, path=request_path)
+        request = ApiKeyRequestModel(description=description)
+        response = await send_post_request(
+            await self.get_session(),
+            url,
+            ApiKeyResponseModel,
+            json=request.to_api_request_json(),
+            request_headers=headers,
+        )
+        response_data = response.data
+        if response_data is None:
+            raise ValueError("No API key data returned from onboarding")
+        return response_data.key
 
 
 async def do_something():
@@ -154,12 +199,9 @@ async def do_something():
     print(f"\tvault: {onboarded_user.account.l2_vault}")
     print(f"\tL2PublicKey: {onboarded_user.l2_key_pair.public_hex}")
     print(f"\tL2PrivateKey: {onboarded_user.l2_key_pair.private_hex}")
-    # sub_account = await user_client.onboard_subaccount(3)
-    # print(f"sub account onboarded, details:")
-    # print(f"\tvault: {sub_account.account.l2_vault}")
-    # print(f"\tL2PublicKey: {sub_account.l2_key_pair.public_hex}")
-    # print(f"\tL2PrivateKey: {sub_account.l2_key_pair.private_hex}")
     print("All accounts: {}".format(await user_client.get_accounts()))
+    api_key = await user_client.create_account_api_key(onboarded_user.account, "trading key test")
+    print(api_key)
 
 
 asyncio.run(do_something())

@@ -1229,29 +1229,6 @@
                 "internalType": "uint256",
                 "name": "vaultId",
                 "type": "uint256"
-            }
-        ],
-        "name": "deposit",
-        "outputs": [],
-        "stateMutability": "payable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "starkKey",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "assetType",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "vaultId",
-                "type": "uint256"
             },
             {
                 "internalType": "uint256",
