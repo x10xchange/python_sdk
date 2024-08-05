@@ -17,7 +17,7 @@ SECONDS_IN_HOUR = 60 * 60
 
 def calc_expiration_timestamp():
     expire_time = utc_now() + timedelta(days=15)
-    expire_time_with_buffer = expire_time + timedelta(days=7)
+    expire_time_with_buffer = expire_time + timedelta(days=14)
     expire_time_with_buffer_as_hours = math.ceil(expire_time_with_buffer.timestamp() / SECONDS_IN_HOUR)
 
     return expire_time_with_buffer_as_hours

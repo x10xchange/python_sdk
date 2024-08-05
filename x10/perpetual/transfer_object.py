@@ -21,7 +21,7 @@ def find_account_by_id(accounts: List[AccountModel], account_id: int):
 
 def calc_expiration_timestamp():
     expire_time = utc_now() + timedelta(days=7)
-    expire_time_with_buffer = expire_time + timedelta(days=7)
+    expire_time_with_buffer = expire_time + timedelta(days=14)
     expire_time_with_buffer_as_hours = math.ceil(expire_time_with_buffer.timestamp() / SECONDS_IN_HOUR)
 
     return expire_time_with_buffer_as_hours

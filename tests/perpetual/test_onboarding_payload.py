@@ -27,7 +27,7 @@ def test_onboarding_object_generation():
 
     assert (
         payload["l1Signature"]
-        == "4b093c2a0206dfa8bc2d09832947a4a567d80a4bfcec14c9874ac2aefcdcf60526c4973007696f26395e75af2383a89fbabe76c5a7a787b5a765f92a4067c58b1c"  # noqa: E501
+        == "0x4b093c2a0206dfa8bc2d09832947a4a567d80a4bfcec14c9874ac2aefcdcf60526c4973007696f26395e75af2383a89fbabe76c5a7a787b5a765f92a4067c58b1c"  # noqa: E501
     )
 
     assert payload["l2Key"] == known_l2_public_key
