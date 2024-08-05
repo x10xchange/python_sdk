@@ -34,7 +34,7 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
         order_obj.to_api_request_json(),
         equal_to(
             {
-                "id": "3280850248231586971858312197993273142004261856737545220604391622653484552257",
+                "id": "2656406151911156282898770907232061209407892373872976831396563134482995247110",
                 "market": "BTC-USD",
                 "type": "LIMIT",
                 "side": "SELL",
@@ -87,7 +87,7 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
         order_obj.to_api_request_json(),
         equal_to(
             {
-                "id": "3341877135169230217913846589832056830347340581639748919090243450434880694177",
+                "id": "1166889461421716582054747865777410838520755143669870072976787470981175645302",
                 "market": "BTC-USD",
                 "type": "LIMIT",
                 "side": "BUY",
