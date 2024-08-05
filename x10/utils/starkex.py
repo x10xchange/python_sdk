@@ -390,7 +390,7 @@ def hash_order(
     synthetic_asset = amount_synthetic.asset
     collateral_asset = amount_collateral.asset
 
-    expire_time_with_buffer = expiration_timestamp + timedelta(days=7)
+    expire_time_with_buffer = expiration_timestamp + timedelta(days=14)
     expire_time_with_buffer_as_hours = math.ceil(expire_time_with_buffer.timestamp() / SECONDS_IN_HOUR)
 
     return get_limit_order_msg(

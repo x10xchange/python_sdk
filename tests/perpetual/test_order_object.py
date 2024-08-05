@@ -27,7 +27,7 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
         amount_of_synthetic=Decimal("0.00100000"),
         price=Decimal("43445.11680000"),
         side=OrderSide.SELL,
-        expire_time=utc_now() + timedelta(days=7),
+        expire_time=utc_now() + timedelta(days=14),
     )
 
     assert_that(
@@ -80,7 +80,7 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
         amount_of_synthetic=Decimal("0.00100000"),
         price=Decimal("43445.11680000"),
         side=OrderSide.BUY,
-        expire_time=utc_now() + timedelta(days=7),
+        expire_time=utc_now() + timedelta(days=14),
     )
 
     assert_that(
@@ -133,7 +133,7 @@ async def test_cancel_previous_order(mocker: MockerFixture, create_trading_accou
         amount_of_synthetic=Decimal("0.00100000"),
         price=Decimal("43445.11680000"),
         side=OrderSide.BUY,
-        expire_time=utc_now() + timedelta(days=7),
+        expire_time=utc_now() + timedelta(days=14),
         previous_order_id="previous_custom_id",
     )
 
@@ -162,7 +162,7 @@ async def test_external_order_id(mocker: MockerFixture, create_trading_account, 
         amount_of_synthetic=Decimal("0.00100000"),
         price=Decimal("43445.11680000"),
         side=OrderSide.BUY,
-        expire_time=utc_now() + timedelta(days=7),
+        expire_time=utc_now() + timedelta(days=14),
         order_external_id="custom_id",
     )
 
