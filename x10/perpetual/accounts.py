@@ -19,9 +19,16 @@ class StarkPerpetualAccount:
     __public_key: int
     __trading_fee: Dict[str, TradingFeeModel]
 
-    def __init__(self, vault: int, private_key: str, public_key: str, api_key: str):
+    def __init__(self, vault: int | str, private_key: str, public_key: str, api_key: str):
         assert is_hex_string(private_key)
         assert is_hex_string(public_key)
+
+        if isinstance(vault, str):
+            vault = int(vault)
+        elif isinstance(vault, int):
+            self.__vault = vault
+        else:
+            raise ValueError("Invalid vault type")
 
         self.__vault = vault
         self.__private_key = int(private_key, base=16)
@@ -67,7 +74,7 @@ class AccountModel(X10BaseModel):
     account_index: int
     status: str
     l2_key: str
-    l2_vault: str
+    l2_vault: int
     api_keys: Optional[List[str]] = None
 
 

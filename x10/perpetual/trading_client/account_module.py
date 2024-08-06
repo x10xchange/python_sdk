@@ -150,22 +150,21 @@ class AccountModule(BaseModule):
 
     async def transfer(
         self,
-        from_account_id: int,
-        to_account_id: int,
+        to_vault: int,
+        to_l2_key: str,
         amount: Decimal,
-        transferred_asset: str,
-        accounts: List[AccountModel],
-        market: MarketModel,
     ) -> WrappedApiResponse[EmptyModel]:
-        url = self._get_url("/user/transfer")
+        from_vault = self._get_stark_account().vault
+        from_l2_key = self._get_stark_account().public_key
+        url = self._get_url("/user/transfer/onchain")
         request_model = create_transfer_object(
-            from_account_id,
-            to_account_id,
-            amount,
-            transferred_asset,
+            from_vault=from_vault,
+            from_l2_key=from_l2_key,
+            to_vault=to_vault,
+            to_l2_key=to_l2_key,
+            amount=amount,
+            config=self._get_endpoint_config(),
             stark_account=self._get_stark_account(),
-            accounts=accounts,
-            market=market,
         )
 
         return await send_post_request(

@@ -1,15 +1,15 @@
-import asyncio
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from typing import Callable, Dict, List, Optional
 
 import aiohttp
 from eth_account import Account
 from eth_account.messages import encode_defunct
 from eth_account.signers.local import LocalAccount
 
+from x10.errors import X10Error
 from x10.perpetual.accounts import AccountModel, ApiKeyRequestModel, ApiKeyResponseModel
-from x10.perpetual.configuration import TESTNET_CONFIG, EndpointConfig
+from x10.perpetual.configuration import EndpointConfig
 from x10.perpetual.user_client.onboarding import (
     OnboardedClientModel,
     StarkKeyPair,
@@ -29,7 +29,7 @@ L1_MESSAGE_TIME_HEADER = "L1_MESSAGE_TIME"
 ACTIVE_ACCOUNT_HEADER = "X-X10-ACTIVE-ACCOUNT"
 
 
-class SubAccountExists(Exception):
+class SubAccountExists(X10Error):
     pass
 
 
@@ -41,13 +41,13 @@ class OnBoardedAccount:
 
 class UserClient:
     __endpoint_config: EndpointConfig
-    __l1_private_key: str
+    __l1_private_key: Callable[[], str]
     __session: Optional[aiohttp.ClientSession] = None
 
     def __init__(
         self,
         endpoint_config: EndpointConfig,
-        l1_private_key: str,
+        l1_private_key: Callable[[], str],
     ):
         super().__init__()
         self.__endpoint_config = endpoint_config
@@ -69,7 +69,7 @@ class UserClient:
             self.__session = None
 
     async def onboard(self, referral_code: Optional[str] = None):
-        signing_account: LocalAccount = Account.from_key(self.__l1_private_key)
+        signing_account: LocalAccount = Account.from_key(self.__l1_private_key())
         key_pair = get_l2_keys_from_l1_account(
             l1_account=signing_account, account_index=0, signing_domain=self.__endpoint_config.signing_domain
         )
@@ -95,7 +95,7 @@ class UserClient:
         if description is None:
             description = f"Subaccount {account_index}"
 
-        signing_account: LocalAccount = Account.from_key(self.__l1_private_key)
+        signing_account: LocalAccount = Account.from_key(self.__l1_private_key())
         time = datetime.now(timezone.utc)
         auth_time_string = time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         l1_message = f"{request_path}@{auth_time_string}".encode(encoding="utf-8")
@@ -134,7 +134,7 @@ class UserClient:
 
     async def get_accounts(self) -> List[OnBoardedAccount]:
         request_path = "/api/v1/user/accounts"
-        signing_account: LocalAccount = Account.from_key(self.__l1_private_key)
+        signing_account: LocalAccount = Account.from_key(self.__l1_private_key())
         time = datetime.now(timezone.utc)
         auth_time_string = time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         l1_message = f"{request_path}@{auth_time_string}".encode(encoding="utf-8")
@@ -165,7 +165,7 @@ class UserClient:
         if description is None:
             description = "trading api key for account {}".format(account.id)
 
-        signing_account: LocalAccount = Account.from_key(self.__l1_private_key)
+        signing_account: LocalAccount = Account.from_key(self.__l1_private_key())
         time = datetime.now(timezone.utc)
         auth_time_string = time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         l1_message = f"{request_path}@{auth_time_string}".encode(encoding="utf-8")
@@ -189,19 +189,3 @@ class UserClient:
         if response_data is None:
             raise ValueError("No API key data returned from onboarding")
         return response_data.key
-
-
-async def do_something():
-    eth_account = Account.from_key("0x179edf14fb885920e1dbb4311a102aa972fcb2e8c3e6128a7718867d19ea3338")
-    user_client = UserClient(endpoint_config=TESTNET_CONFIG, l1_private_key=eth_account.key.hex())
-    onboarded_user = await user_client.onboard()
-    print("User onboarded, default account:")
-    print(f"\tvault: {onboarded_user.account.l2_vault}")
-    print(f"\tL2PublicKey: {onboarded_user.l2_key_pair.public_hex}")
-    print(f"\tL2PrivateKey: {onboarded_user.l2_key_pair.private_hex}")
-    print("All accounts: {}".format(await user_client.get_accounts()))
-    api_key = await user_client.create_account_api_key(onboarded_user.account, "trading key test")
-    print(api_key)
-
-
-asyncio.run(do_something())

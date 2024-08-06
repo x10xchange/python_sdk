@@ -22,7 +22,6 @@ class BaseModule:
         stark_account: Optional[StarkPerpetualAccount] = None,
     ):
         super().__init__()
-
         self.__endpoint_config = endpoint_config
         self.__api_key = api_key
         self.__stark_account = stark_account

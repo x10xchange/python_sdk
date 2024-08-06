@@ -208,6 +208,10 @@ def handle_known_errors(
     if response_code_handler and response.status in response_code_handler:
         raise response_code_handler[response.status](response_text)
 
+    if response.status > 299:
+        LOGGER.error("Error response from POST %s: %s", url, response_text)
+        raise ValueError(f"Error response from POST {url}: code {response.status} - {response_text}")
+
 
 def __get_headers(*, api_key: Optional[str] = None, request_headers: Optional[Dict[str, str]] = None) -> Dict[str, str]:
     headers = {
