@@ -29,4 +29,3 @@ class OnChainPerpetualTransferModel(X10BaseModel):
     to_vault: int
     amount: Decimal
     settlement: StarkTransferSettlement
-    transferred_asset: str = "ETH"

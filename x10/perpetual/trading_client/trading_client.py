@@ -1,10 +1,9 @@
-import asyncio
 from datetime import timedelta
 from decimal import Decimal
 from typing import Dict
 
 from x10.perpetual.accounts import StarkPerpetualAccount
-from x10.perpetual.configuration import TESTNET_CONFIG, EndpointConfig
+from x10.perpetual.configuration import EndpointConfig
 from x10.perpetual.markets import MarketModel
 from x10.perpetual.order_object import create_order_object
 from x10.perpetual.orders import OrderSide, PlacedOrderModel, TimeInForce

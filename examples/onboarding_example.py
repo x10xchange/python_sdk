@@ -20,7 +20,10 @@ async def do_something():
     sub_account_1 = await user_client.onboard_subaccount(1, "sub account 1")
     # account_1_api_key = await user_client.create_account_api_key(sub_account_1.account, "sub account 1 api key")
 
-    call_erc20_approve(Decimal("1000"), eth_account.key.hex, environment_config)
+    call_erc20_approve(
+        human_readable_amount=Decimal("1000"), get_eth_private_key=eth_account.key.hex, config=environment_config
+    )
+
     call_stark_perpetual_deposit(
         l2_vault=int(onboarded_user.account.l2_vault),
         l2_key=onboarded_user.l2_key_pair.public_hex,

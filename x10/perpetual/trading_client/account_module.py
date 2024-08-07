@@ -1,7 +1,7 @@
 from decimal import Decimal
 from typing import Callable, List, Optional
 
-from x10.perpetual.accounts import AccountLeverage, AccountModel
+from x10.perpetual.accounts import AccountLeverage
 from x10.perpetual.assets import (
     AssetOperationModel,
     AssetOperationStatus,
@@ -177,20 +177,15 @@ class AccountModule(BaseModule):
 
     async def withdrawal_slow_request(
         self,
-        account: AccountModel,
         amount: Decimal,
-        asset: str,
         eth_address: str,
-        market: MarketModel,
     ) -> WrappedApiResponse[int]:
-        url = self._get_url("/user/withdrawal")
+        url = self._get_url("/user/withdrawal/onchain")
         request_model = create_withdrawal_object(
-            account=account,
             amount=amount,
-            asset=asset,
             eth_address=eth_address,
             stark_account=self._get_stark_account(),
-            market=market,
+            config=self._get_endpoint_config(),
         )
 
         return await send_post_request(

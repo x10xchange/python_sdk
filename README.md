@@ -245,6 +245,11 @@ trading_client.markets_info
 ```
 TODO
 
+
+## OnBoarding via API
+
+To onboard to the X10 Exchange 
+
 ## Contribution
 
 Make sure you have [poetry](https://python-poetry.org/) installed.
