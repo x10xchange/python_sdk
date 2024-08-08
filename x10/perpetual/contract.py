@@ -51,7 +51,7 @@ def call_stark_perpetual_withdraw_balance(
         abi=json.load(open(os.path.join(ABI_FOLDER, ERC20_ABI), "r")),
     )
     decimals = asset_erc20_contract.functions.decimals().call()
-    return Decimal(withdrawable_amount) / 10**decimals
+    return Decimal(withdrawable_amount).scaleb(-decimals)
 
 
 def call_erc20_approve(
@@ -141,17 +141,16 @@ def call_stark_perpetual_deposit(
 
 
 def call_stark_perpetual_withdraw(
-    contract_address: str,
-    eth_address: str,
-    market: MarketModel,
     config: EndpointConfig,
     get_eth_private_key: Callable[[], str],
 ) -> str:
+    signing_account: LocalAccount = Account.from_key(get_eth_private_key())
+
     web3_provider = Web3.HTTPProvider(config.chain_rpc_url, request_kwargs={"timeout": DEFAULT_API_TIMEOUT})
     web3 = Web3(web3_provider)
 
-    checksum_contract_address = Web3.to_checksum_address(contract_address)
-    checksum_eth_address = Web3.to_checksum_address(eth_address)
+    checksum_contract_address = Web3.to_checksum_address(config.asset_operations_contract)
+    checksum_eth_address = Web3.to_checksum_address(signing_account.address)
 
     asset_operations_contract = web3.eth.contract(
         address=checksum_contract_address,
@@ -160,22 +159,16 @@ def call_stark_perpetual_withdraw(
 
     method = asset_operations_contract.functions.withdraw(
         int(checksum_eth_address, base=16),
-        int(market.l2_config.collateral_id, base=16),
+        int(config.collateral_asset_on_chain_id, base=16),
     )
 
-    eth_private_key = get_eth_private_key()
-
-    assert is_hex_string(eth_private_key)
-
-    signed_transaction = web3.eth.account.sign_transaction(
+    signed_transaction = signing_account.sign_transaction(
         method.build_transaction(
             {
-                "from": checksum_eth_address,
-                "nonce": web3.eth.get_transaction_count(checksum_eth_address),
+                "from": signing_account.address,
+                "nonce": web3.eth.get_transaction_count(signing_account.address),
             }
         ),
-        eth_private_key,
     )
-
     web3.eth.send_raw_transaction(signed_transaction.rawTransaction)
     return signed_transaction.hash.hex()

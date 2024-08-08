@@ -135,7 +135,7 @@ async def test_get_asset_operations(aiohttp_server, create_asset_operations, cre
     stark_account = create_trading_account()
     endpoint_config = endpoint_config = dataclasses.replace(TESTNET_CONFIG, api_base_url=url)
     trading_client = PerpetualTradingClient(endpoint_config=endpoint_config, stark_account=stark_account)
-    operations = await trading_client.account.get_asset_operations()
+    operations = await trading_client.account.asset_operations()
 
     assert_that(operations.status, equal_to("OK"))
     assert_that(operations.data, has_length(2))

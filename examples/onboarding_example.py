@@ -2,23 +2,25 @@ import asyncio
 from decimal import Decimal
 
 from eth_account import Account
+from eth_account.signers.local import LocalAccount
 
 from x10.perpetual.accounts import StarkPerpetualAccount
-from x10.perpetual.configuration import TESTNET_CONFIG
+from x10.perpetual.assets import AssetOperationType
+from x10.perpetual.configuration import TESTNET_CONFIG_LEGACY_SIGNING_DOMAIN
 from x10.perpetual.contract import call_erc20_approve, call_stark_perpetual_deposit
 from x10.perpetual.trading_client.trading_client import PerpetualTradingClient
 from x10.perpetual.user_client.user_client import UserClient
 
 
-async def do_something():
-    environment_config = TESTNET_CONFIG
-    eth_account = Account.create()
+async def on_board():
+    environment_config = TESTNET_CONFIG_LEGACY_SIGNING_DOMAIN
+    eth_account: LocalAccount = Account.from_key("4375ab4569a33c9ce06ff0ebc51882b89043e71d63783be61d837f48396685a0")
     user_client = UserClient(endpoint_config=environment_config, l1_private_key=eth_account.key.hex)
     onboarded_user = await user_client.onboard()
     default_api_key = await user_client.create_account_api_key(onboarded_user.account, "trading api key")
 
     sub_account_1 = await user_client.onboard_subaccount(1, "sub account 1")
-    # account_1_api_key = await user_client.create_account_api_key(sub_account_1.account, "sub account 1 api key")
+    account_1_api_key = await user_client.create_account_api_key(sub_account_1.account, "sub account 1 api key")
 
     call_erc20_approve(
         human_readable_amount=Decimal("1000"), get_eth_private_key=eth_account.key.hex, config=environment_config
@@ -42,23 +44,48 @@ async def do_something():
         ),
     )
 
+    sub_account_1_trading_client = PerpetualTradingClient(
+        environment_config,
+        StarkPerpetualAccount(
+            vault=sub_account_1.account.l2_vault,
+            private_key=sub_account_1.l2_key_pair.private_hex,
+            public_key=sub_account_1.l2_key_pair.public_hex,
+            api_key=account_1_api_key,
+        ),
+    )
+
     default_account_trading_client.account.transfer(
         to_vault=int(sub_account_1.account.l2_vault),
         to_l2_key=sub_account_1.l2_key_pair.public_hex,
         amount=Decimal("10"),
     )
 
-    print("User onboarded, default account:")
-    print(f"\taccount_id: {onboarded_user.account.id}")
-    print(f"\tdefault_vault: {onboarded_user.account.l2_vault}")
-    print(f"\tdefault_L2PublicKey: {onboarded_user.l2_key_pair.public_hex}")
-    print(f"\tdefault_L2PrivateKey: {onboarded_user.l2_key_pair.private_hex}")
+    created_withdrawal_id = await default_account_trading_client.account.slow_withdrawal(
+        amount=Decimal("10"),
+        eth_address=eth_account.address,
+    )
 
-    print("Sub account 1:")
-    print(f"\taccount_id: {sub_account_1.account.id}")
-    print(f"\tsub_account_1_vault: {sub_account_1.account.l2_vault}")
-    print(f"\tsub_account_1_L2PublicKey: {sub_account_1.l2_key_pair.public_hex}")
-    print(f"\tsub_account_1_L2PrivateKey: {sub_account_1.l2_key_pair.private_hex}")
+    withdrawals = await default_account_trading_client.account.asset_operations(
+        operations_type=[AssetOperationType.SLOW_WITHDRAWAL],
+    )
+
+    available_withdrawal_balance = await user_client.available_l1_withdrawal_balance()
+
+    withdrawal_tx_hash = await user_client.perform_l1_withdrawal()
+
+    print()
+
+    # print("User onboarded, default account:")
+    # print(f"\taccount_id: {onboarded_user.account.id}")
+    # print(f"\tdefault_vault: {onboarded_user.account.l2_vault}")
+    # print(f"\tdefault_L2PublicKey: {onboarded_user.l2_key_pair.public_hex}")
+    # print(f"\tdefault_L2PrivateKey: {onboarded_user.l2_key_pair.private_hex}")
+
+    # print("Sub account 1:")
+    # print(f"\taccount_id: {sub_account_1.account.id}")
+    # print(f"\tsub_account_1_vault: {sub_account_1.account.l2_vault}")
+    # print(f"\tsub_account_1_L2PublicKey: {sub_account_1.l2_key_pair.public_hex}")
+    # print(f"\tsub_account_1_L2PrivateKey: {sub_account_1.l2_key_pair.private_hex}")
 
 
-asyncio.run(do_something())
+asyncio.run(on_board())

@@ -175,7 +175,7 @@ class AccountModule(BaseModule):
             api_key=self._get_api_key(),
         )
 
-    async def withdrawal_slow_request(
+    async def slow_withdrawal(
         self,
         amount: Decimal,
         eth_address: str,
@@ -188,30 +188,16 @@ class AccountModule(BaseModule):
             config=self._get_endpoint_config(),
         )
 
+        payload = request_model.to_api_request_json()
         return await send_post_request(
             await self.get_session(),
             url,
             int,
-            json=request_model.to_api_request_json(),
+            json=payload,
             api_key=self._get_api_key(),
         )
 
-    def withdrawal_slow_reclaim(
-        self,
-        contract_address: str,
-        eth_address: str,
-        market: MarketModel,
-        get_eth_private_key: Callable[[], str],
-    ):
-        return call_stark_perpetual_withdraw(
-            contract_address,
-            eth_address,
-            market,
-            self._get_endpoint_config(),
-            get_eth_private_key,
-        )
-
-    async def get_asset_operations(
+    async def asset_operations(
         self,
         operations_type: Optional[List[AssetOperationType]] = None,
         operations_status: Optional[List[AssetOperationStatus]] = None,
@@ -223,8 +209,10 @@ class AccountModule(BaseModule):
         url = self._get_url(
             "/user/assetOperations",
             query={
-                "type": operations_type,
-                "status": operations_status,
+                "type": [operation_type.name for operation_type in operations_type] if operations_type else None,
+                "status": [operation_status.name for operation_status in operations_status]
+                if operations_status
+                else None,
                 "startTime": start_time,
                 "endTime": end_time,
                 "cursor": cursor,

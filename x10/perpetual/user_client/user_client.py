@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Callable, Dict, List, Optional
 
 import aiohttp
@@ -23,6 +24,8 @@ from x10.utils.http import (  # WrappedApiResponse,; send_get_request,; send_pat
     send_get_request,
     send_post_request,
 )
+
+from x10.perpetual.contract import call_stark_perpetual_withdraw, call_stark_perpetual_withdraw_balance
 
 L1_AUTH_SIGNATURE_HEADER = "L1_SIGNATURE"
 L1_MESSAGE_TIME_HEADER = "L1_MESSAGE_TIME"
@@ -189,3 +192,13 @@ class UserClient:
         if response_data is None:
             raise ValueError("No API key data returned from onboarding")
         return response_data.key
+
+    async def perform_l1_withdrawal(self) -> str:
+        signing_account: LocalAccount = Account.from_key(self.__l1_private_key())
+        return call_stark_perpetual_withdraw(
+            self.__endpoint_config.asset_operations_contract,
+            signing_account.address,
+        )
+
+    async def available_l1_withdrawal_balance(self) -> Decimal:
+        call_stark_perpetual_withdraw_balance(self.__l1_private_key, self.__endpoint_config)
