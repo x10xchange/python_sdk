@@ -1,6 +1,8 @@
 from decimal import Decimal
 from typing import Dict, List, Optional, Tuple
 
+from pydantic import AliasChoices, Field
+
 from x10.perpetual.balances import BalanceModel
 from x10.perpetual.fees import TradingFeeModel
 from x10.perpetual.orders import OpenOrderModel
@@ -17,9 +19,16 @@ class StarkPerpetualAccount:
     __public_key: int
     __trading_fee: Dict[str, TradingFeeModel]
 
-    def __init__(self, vault: int, private_key: str, public_key: str, api_key: str):
+    def __init__(self, vault: int | str, private_key: str, public_key: str, api_key: str):
         assert is_hex_string(private_key)
         assert is_hex_string(public_key)
+
+        if isinstance(vault, str):
+            vault = int(vault)
+        elif isinstance(vault, int):
+            self.__vault = vault
+        else:
+            raise ValueError("Invalid vault type")
 
         self.__vault = vault
         self.__private_key = int(private_key, base=16)
@@ -60,10 +69,18 @@ class AccountLeverage(X10BaseModel):
 
 
 class AccountModel(X10BaseModel):
-    account_id: int
+    id: int = Field(validation_alias=AliasChoices("accountId", "id"), serialization_alias="id")
     description: str
     account_index: int
     status: str
     l2_key: str
-    l2_vault: str
-    api_keys: List[str]
+    l2_vault: int
+    api_keys: Optional[List[str]] = None
+
+
+class ApiKeyResponseModel(X10BaseModel):
+    key: str
+
+
+class ApiKeyRequestModel(X10BaseModel):
+    description: str

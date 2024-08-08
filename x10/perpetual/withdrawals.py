@@ -21,3 +21,9 @@ class PerpetualWithdrawalModel(X10BaseModel):
     amount: Decimal
     asset: str
     settlement: StarkWithdrawalSettlement
+
+
+class PerpetualSlowWithdrawal(X10BaseModel):
+    amount: Decimal
+    settlement: StarkWithdrawalSettlement
+    description: str | None

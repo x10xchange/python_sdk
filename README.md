@@ -12,15 +12,15 @@ pip install x10-python-trading
 
 Our SDK makes use of a [Rust Library](https://github.com/x10xchange/stark-crypto-wrapper) to accelerate signing and hashing of stark components. Currently this library supports the following environments
 
-|                  | 3.9    | 3.10   | 3.11   | 3.12   |
-|------------------|:------:|:------:|:------:|:------:|
-| linux (glibc) - x86    | ✅     | ✅     | ✅     | ✅     |
-| linux (musl) - x86     | ✅     | ✅     | ✅     | ✅     |
-| linux (glibc) - arm64  | ✅     | ✅     | ✅     | ✅     |
-| linux (musl) - arm64   | ✅     | ✅     | ✅     | ✅     |
-| OSX - arm64            | ✅     | ✅     | ✅     | ✅     |
-| windows - x86          | ⚠️     | ⚠️     | ⚠️     | ⚠️     |
-| windows - arm64        | ⚠️     | ⚠️     | ⚠️     | ⚠️     |
+|                       |  3.9  | 3.10  | 3.11  | 3.12  |
+| --------------------- | :---: | :---: | :---: | :---: |
+| linux (glibc) - x86   |   ✅   |   ✅   |   ✅   |   ✅   |
+| linux (musl) - x86    |   ✅   |   ✅   |   ✅   |   ✅   |
+| linux (glibc) - arm64 |   ✅   |   ✅   |   ✅   |   ✅   |
+| linux (musl) - arm64  |   ✅   |   ✅   |   ✅   |   ✅   |
+| OSX - arm64           |   ✅   |   ✅   |   ✅   |   ✅   |
+| windows - x86         |   ⚠️   |   ⚠️   |   ⚠️   |   ⚠️   |
+| windows - arm64       |   ⚠️   |   ⚠️   |   ⚠️   |   ⚠️   |
 
 
 
@@ -244,6 +244,126 @@ The markets module is accessed using the `markets_info` property of the trading 
 trading_client.markets_info
 ```
 TODO
+
+## SDK Environment configurations (Since version 0.3.0)
+
+The SDK is controlled by an `EndpointConfiguration` object passed to the various methods and clients, several helpful instances are defined in [configuration.py](x10/perpetual/configuration.py)
+
+### `TESTNET_CONFIG` vs `TESTNET_CONFIG_LEGACY_SIGNING_DOMAIN`
+If you previously onboarded to our testnet environment, you should use the `TESTNET_CONFIG_LEGACY_SIGNING_DOMAIN` configuration bundle, as this will allow you to regenerate the same l2 keys as were created by our legacy testnet environment. 
+
+All new accounts should use the `TESTNET_CONFIG` configuration bundle
+
+## OnBoarding via SDK (Since Version 0.3.0)
+
+To onboard to the X10 Exchange, the `UserClient` defined in [user_client.py](x10/perpetual/user_client/user_client.py) provides a way to use an Ethereum account to onboard onto the X10 exchange. 
+
+### TLDR - Check out: [onboarding_example.py](examples/onboarding_example.py)
+
+### `onboard(referral_code: Optional[str] = None) -> OnBoardedAccount`
+This method handles the onboarding process of a user. It generates an L2 key pair from the user's L1 Ethereum account, creates an onboarding payload, and sends it to the onboarding endpoint. Upon successful onboarding, it returns an `OnBoardedAccount` object containing the default account and the L2 key pair.
+
+### `onboard_subaccount(account_index: int, description: str | None = None) -> OnBoardedAccount`
+This method onboards a subaccount associated with the user's main account. It allows you to specify an `account_index` and an optional description. If a subaccount with the given index already exists, it retrieves and returns that subaccount. Otherwise, it creates a new subaccount and returns an `OnBoardedAccount` object with the subaccount details and the associated L2 key pair.
+
+### `get_accounts() -> List[OnBoardedAccount]`
+This method retrieves all the accounts associated with the user. It returns a list of `OnBoardedAccount` objects, each containing the account details and corresponding L2 key pair.
+
+### `create_account_api_key(account: AccountModel, description: str | None) -> str`
+This method generates an API key for a specified account. You can provide an optional description for the API key. It returns the newly created API key as a string.
+
+### `perform_l1_withdrawal() -> str`
+This method initiates a withdrawal from Layer 2 (L2) to Layer 1 (L1) using the user's Ethereum account. It calls the underlying contract function to perform the withdrawal and returns a string, typically a transaction hash or status.
+
+### `available_l1_withdrawal_balance() -> Decimal`
+This method retrieves the available balance for L1 withdrawals. It calls the underlying contract function to fetch the withdrawal balance and returns the balance as a `Decimal` value.
+
+### Process of Obtaining a Stark Key Pair from an Ethereum Account
+
+The process of obtaining a Stark key pair from an Ethereum account is a cryptographic procedure that involves generating a private and public key pair used in the StarkWare ecosystem. This process leverages the Ethereum account to create a deterministic Stark key pair that can be used for operations on StarkWare-based systems such as StarkEx and StarkNet
+
+#### 1. Context and Purpose
+
+StarkWare-based systems require their own cryptographic keys (Stark keys) separate from Ethereum keys. However, to maintain a consistent user experience, StarkWare allows users to derive these keys deterministically from their existing Ethereum accounts. The process of obtaining a Stark key pair from an Ethereum account involves generating a signing message that the Ethereum account can sign, and then using that signature to derive the Stark private key.
+
+#### 2. Generating the Signing Structure
+
+The first step in the process is to generate a signing structure that will be signed by the Ethereum account. This structure is constructed using the EIP-712 standard, which allows for typed data to be signed in a structured way on Ethereum.
+
+##### a. Define the Signing Structure
+
+The message to be signed includes:
+1. account index, 
+2. the Ethereum wallet address, 
+3. and whether the terms of service (TOS) are accepted. 
+
+in the function `get_key_derivation_struct_to_sign`, the signing structure is constructed as follows:
+
+```python
+def get_key_derivation_struct_to_sign(account_index: int, address: str, signing_domain: str) -> SignableMessage:
+    primary_type = "AccountCreation"
+    domain = {"name": signing_domain}
+    message = {
+        "accountIndex": account_index,
+        "wallet": address,
+        "tosAccepted": True,
+    }
+    types = {
+        "EIP712Domain": [
+            {"name": "name", "type": "string"},
+        ],
+        "AccountCreation": [
+            {"name": "accountIndex", "type": "int8"},
+            {"name": "wallet", "type": "address"},
+            {"name": "tosAccepted", "type": "bool"},
+        ],
+    }
+    structured_data = {
+        "types": types,
+        "domain": domain,
+        "primaryType": primary_type,
+        "message": message,
+    }
+    return encode_typed_data(full_message=structured_data)
+```
+
+##### b. EIP-712 Typed Data
+
+The signing structure uses EIP-712 typed data, which consists of:
+
+    Domain: This is a structured domain object that helps to prevent cross-domain replay attacks. In this case, it typically includes the name field (which might be the name of the application or system).
+
+    Message: This is the main data being signed, which includes the accountIndex, wallet address, and tosAccepted fields.
+
+    Types: This describes the types of the fields in both the domain and message.
+
+    Primary Type: This indicates the primary type being signed (in this case, "AccountCreation").
+
+##### c. Encoding the Typed Data
+
+The structure is encoded into a format that can be signed by the Ethereum account. This is done using the `encode_typed_data` function, which creates a `SignableMessage`. The `SignableMessage` includes the hash of the typed data according to the EIP-712 standard.
+
+#### 3. Signing the Structure with the Ethereum Account
+
+Once the signing structure is prepared, it is signed using the Ethereum private key.
+
+#### 4. Deriving the Stark Private Key
+
+The signature obtained from the Ethereum account is then used to derive the Stark private key. This is done by truncating the r value from the Ethereum signature and using it as the basis for the Stark private key:
+
+```python 
+def get_private_key_from_eth_signature(eth_signature: str) -> int:
+    eth_sig_truncated = re.sub("^0x", "", eth_signature)
+    r = eth_sig_truncated[:64]
+    return stark_sign.grind_key(int(r, 16), stark_sign.EC_ORDER)
+```
+
+`stark_sign.grind_key` is a function imported from [`vendor/starkware/crypto/signature/signature.py`](vendor/starkware/crypto/signature/signature.py) 
+
+## Depositing via SDK (Since Version 0.3.0)
+
+There is a new function `deposit` available on the [`AccountModule`](x10/perpetual/trading_client/account_module.py) which provides the ability to directly deposit USDC into your StarkEx account. For more details check out `call_stark_perpetual_deposit` in [contract.py](x10/perpetual/contract.py)
+
 
 ## Contribution
 

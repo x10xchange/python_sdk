@@ -5,6 +5,8 @@ from freezegun import freeze_time
 from hamcrest import assert_that, equal_to
 from pytest_mock import MockerFixture
 
+from x10.perpetual.configuration import TESTNET_CONFIG
+
 FROZEN_NONCE = 1473459052
 
 
@@ -16,38 +18,33 @@ async def test_create_withdrawal(mocker: MockerFixture, create_trading_account, 
     from x10.perpetual.withdrawal_object import create_withdrawal_object
 
     trading_account = create_trading_account()
-    btc_usd_market = create_btc_usd_market()
-    accounts = create_accounts()
     withdrawal_obj = create_withdrawal_object(
-        accounts[0],
-        Decimal("1.1"),
-        "USD",
-        "0x6c5a62e584D0289def8Fe3c9C8194a07246a2C52",
-        trading_account,
-        btc_usd_market,
+        amount=Decimal("1.1"),
+        eth_address="0x6c5a62e584D0289def8Fe3c9C8194a07246a2C52",
+        description="withdraw my gains",
+        config=TESTNET_CONFIG,
+        stark_account=trading_account,
     )
 
     assert_that(
         withdrawal_obj.to_api_request_json(),
         equal_to(
             {
-                "type": "SLOW_SELF",
-                "accountId": 1001,
                 "amount": "1.1",
-                "asset": "USD",
                 "settlement": {
                     "amount": 1100000,
                     "collateralAssetId": "0x31857064564ed0ff978e687456963cba09c2c6985d8f9300a1de4962fafa054",
                     "ethAddress": "0x6c5a62e584d0289def8fe3c9c8194a07246a2c52",
                     "expirationTimestamp": 473978,
                     "nonce": 1473459052,
-                    "positionId": 10001,
-                    "publicKey": "0x6970ac7180192cb58070d639064408610d0fbfd3b16c6b2c6219b9d91aa456f",
+                    "positionId": 10002,
+                    "publicKey": "0x61c5e7e8339b7d56f197f54ea91b776776690e3232313de0f2ecbd0ef76f466",
                     "signature": {
-                        "r": "0x709f76681147a6c0fd272173aa7fdb2cce0d2bc1e3f623851ab91d5af585fd2",
-                        "s": "0x416e5115b16c99c075fe4d2e7c8b733177d7e88aad666b255e8a6c7c7cb085",
+                        "r": "0x25a1e850caac5dc9f5eb72943f058bddaf01f2ccd7f5b8e0a303b59e77d3379",
+                        "s": "0x12bee36dffa733a5c2d77d09cf5bb33efe6a6c8b40951aa386c5674a3425de8",
                     },
                 },
+                "description": "withdraw my gains",
             }
         ),
     )

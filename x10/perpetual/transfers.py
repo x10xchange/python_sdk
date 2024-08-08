@@ -22,3 +22,10 @@ class PerpetualTransferModel(X10BaseModel):
     amount: Decimal
     transferred_asset: str
     settlement: StarkTransferSettlement
+
+
+class OnChainPerpetualTransferModel(X10BaseModel):
+    from_vault: int
+    to_vault: int
+    amount: Decimal
+    settlement: StarkTransferSettlement

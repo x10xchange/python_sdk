@@ -1,16 +1,15 @@
 from decimal import Decimal
 from typing import Callable, List, Optional
 
-from x10.perpetual.accounts import AccountLeverage, AccountModel
+from x10.perpetual.accounts import AccountLeverage
 from x10.perpetual.assets import (
     AssetOperationModel,
     AssetOperationStatus,
     AssetOperationType,
 )
 from x10.perpetual.balances import BalanceModel
-from x10.perpetual.contract import call_stark_perpetual_withdraw
+from x10.perpetual.contract import call_stark_perpetual_deposit
 from x10.perpetual.fees import TradingFeeModel
-from x10.perpetual.markets import MarketModel
 from x10.perpetual.orders import OpenOrderModel, OrderSide, OrderType
 from x10.perpetual.positions import PositionHistoryModel, PositionModel, PositionSide
 from x10.perpetual.trades import AccountTradeModel, TradeType
@@ -150,22 +149,21 @@ class AccountModule(BaseModule):
 
     async def transfer(
         self,
-        from_account_id: int,
-        to_account_id: int,
+        to_vault: int,
+        to_l2_key: str,
         amount: Decimal,
-        transferred_asset: str,
-        accounts: List[AccountModel],
-        market: MarketModel,
     ) -> WrappedApiResponse[EmptyModel]:
-        url = self._get_url("/user/transfer")
+        from_vault = self._get_stark_account().vault
+        from_l2_key = self._get_stark_account().public_key
+        url = self._get_url("/user/transfer/onchain")
         request_model = create_transfer_object(
-            from_account_id,
-            to_account_id,
-            amount,
-            transferred_asset,
+            from_vault=from_vault,
+            from_l2_key=from_l2_key,
+            to_vault=to_vault,
+            to_l2_key=to_l2_key,
+            amount=amount,
+            config=self._get_endpoint_config(),
             stark_account=self._get_stark_account(),
-            accounts=accounts,
-            market=market,
         )
 
         return await send_post_request(
@@ -176,48 +174,29 @@ class AccountModule(BaseModule):
             api_key=self._get_api_key(),
         )
 
-    async def withdrawal_slow_request(
+    async def slow_withdrawal(
         self,
-        account: AccountModel,
         amount: Decimal,
-        asset: str,
         eth_address: str,
-        market: MarketModel,
     ) -> WrappedApiResponse[int]:
-        url = self._get_url("/user/withdrawal")
+        url = self._get_url("/user/withdrawal/onchain")
         request_model = create_withdrawal_object(
-            account=account,
             amount=amount,
-            asset=asset,
             eth_address=eth_address,
             stark_account=self._get_stark_account(),
-            market=market,
+            config=self._get_endpoint_config(),
         )
 
+        payload = request_model.to_api_request_json()
         return await send_post_request(
             await self.get_session(),
             url,
             int,
-            json=request_model.to_api_request_json(),
+            json=payload,
             api_key=self._get_api_key(),
         )
 
-    def withdrawal_slow_reclaim(
-        self,
-        contract_address: str,
-        eth_address: str,
-        market: MarketModel,
-        get_eth_private_key: Callable[[], str],
-    ):
-        return call_stark_perpetual_withdraw(
-            contract_address,
-            eth_address,
-            market,
-            self._get_endpoint_config(),
-            get_eth_private_key,
-        )
-
-    async def get_asset_operations(
+    async def asset_operations(
         self,
         operations_type: Optional[List[AssetOperationType]] = None,
         operations_status: Optional[List[AssetOperationStatus]] = None,
@@ -229,8 +208,10 @@ class AccountModule(BaseModule):
         url = self._get_url(
             "/user/assetOperations",
             query={
-                "type": operations_type,
-                "status": operations_status,
+                "type": [operation_type.name for operation_type in operations_type] if operations_type else None,
+                "status": [operation_status.name for operation_status in operations_status]
+                if operations_status
+                else None,
                 "startTime": start_time,
                 "endTime": end_time,
                 "cursor": cursor,
@@ -239,4 +220,18 @@ class AccountModule(BaseModule):
         )
         return await send_get_request(
             await self.get_session(), url, List[AssetOperationModel], api_key=self._get_api_key()
+        )
+
+    async def deposit(self, amount: Decimal, get_eth_private_key: Callable[[], str]) -> str:
+        stark_account = self.__stark_account
+
+        if not stark_account:
+            raise ValueError("Stark account is not set")
+
+        return call_stark_perpetual_deposit(
+            l2_vault=stark_account.vault,
+            l2_key=stark_account.public_key,
+            config=self._get_endpoint_config(),
+            human_readable_amount=amount,
+            get_eth_private_key=get_eth_private_key,
         )

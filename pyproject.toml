@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "x10-python-trading"
-version = "0.2.8"
+version = "0.3.0-alpha"
 description = "Python client for X10 API"
 authors = ["X10 <tech@ex10.org>"]
 repository = "https://github.com/x10xchange/python_sdk"
