@@ -25,7 +25,7 @@ def test_generate_valid_url_from_template():
             },
         ),
         equal_to(
-            "/info/candles?param1=value1&param2=value2_1&param2=value2_2&param4=0&param5=False&param6=VALUE_1&param7=VALUE_1&param7=VALUE_2"
+            "/info/candles?param1=value1&param2=value2_1&param2=value2_2&param4=0&param5=False&param6=VALUE_1&param7=VALUE_1&param7=VALUE_2"  # noqa: E501
         ),
     )
     assert_that(get_url("/info/candles/<market>", market="BTC-USD"), equal_to("/info/candles/BTC-USD"))
