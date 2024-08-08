@@ -11,6 +11,10 @@ from eth_account.signers.local import LocalAccount
 from x10.errors import X10Error
 from x10.perpetual.accounts import AccountModel, ApiKeyRequestModel, ApiKeyResponseModel
 from x10.perpetual.configuration import EndpointConfig
+from x10.perpetual.contract import (
+    call_stark_perpetual_withdraw,
+    call_stark_perpetual_withdraw_balance,
+)
 from x10.perpetual.user_client.onboarding import (
     OnboardedClientModel,
     StarkKeyPair,
@@ -24,8 +28,6 @@ from x10.utils.http import (  # WrappedApiResponse,; send_get_request,; send_pat
     send_get_request,
     send_post_request,
 )
-
-from x10.perpetual.contract import call_stark_perpetual_withdraw, call_stark_perpetual_withdraw_balance
 
 L1_AUTH_SIGNATURE_HEADER = "L1_SIGNATURE"
 L1_MESSAGE_TIME_HEADER = "L1_MESSAGE_TIME"
@@ -120,19 +122,27 @@ class UserClient:
             L1_MESSAGE_TIME_HEADER: auth_time_string,
         }
         url = self._get_url(self.__endpoint_config.onboarding_url, path=request_path)
-        onboarding_response = await send_post_request(
-            await self.get_session(),
-            url,
-            AccountModel,
-            json=payload.to_json(),
-            request_headers=headers,
-            response_code_to_exception={409: SubAccountExists},
-        )
 
-        onboarded_account = onboarding_response.data
+        try:
+            onboarding_response = await send_post_request(
+                await self.get_session(),
+                url,
+                AccountModel,
+                json=payload.to_json(),
+                request_headers=headers,
+                response_code_to_exception={409: SubAccountExists},
+            )
+            onboarded_account = onboarding_response.data
+        except SubAccountExists:
+            client_accounts = await self.get_accounts()
+            account_with_index = [
+                account for account in client_accounts if account.account.account_index == account_index
+            ]
+            if not account_with_index:
+                raise SubAccountExists("Subaccount already exists but not found in client accounts")
+            onboarded_account = account_with_index[0].account
         if onboarded_account is None:
             raise ValueError("No account data returned from onboarding")
-
         return OnBoardedAccount(account=onboarded_account, l2_key_pair=key_pair)
 
     async def get_accounts(self) -> List[OnBoardedAccount]:
@@ -194,11 +204,7 @@ class UserClient:
         return response_data.key
 
     async def perform_l1_withdrawal(self) -> str:
-        signing_account: LocalAccount = Account.from_key(self.__l1_private_key())
-        return call_stark_perpetual_withdraw(
-            self.__endpoint_config.asset_operations_contract,
-            signing_account.address,
-        )
+        return call_stark_perpetual_withdraw(config=self.__endpoint_config, get_eth_private_key=self.__l1_private_key)
 
     async def available_l1_withdrawal_balance(self) -> Decimal:
-        call_stark_perpetual_withdraw_balance(self.__l1_private_key, self.__endpoint_config)
+        return call_stark_perpetual_withdraw_balance(self.__l1_private_key, self.__endpoint_config)

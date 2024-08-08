@@ -8,9 +8,7 @@ from eth_account.signers.local import LocalAccount
 from web3 import Web3
 
 from x10.perpetual.configuration import EndpointConfig
-from x10.perpetual.markets import MarketModel
 from x10.utils.log import get_logger
-from x10.utils.string import is_hex_string
 
 LOGGER = get_logger(__name__)
 
