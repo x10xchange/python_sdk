@@ -1,3 +1,4 @@
+import itertools
 import re
 from enum import Enum
 from typing import Any, Dict, Generic, List, Optional, Sequence, Type, TypeVar, Union
@@ -98,6 +99,18 @@ def get_url(template: str, *, query: Optional[Dict[str, str | List[str]]] = None
 
         return str(param_value) if param_value is not None else ""
 
+    def serialize_query_param(param_key: str, param_value: Union[str, List[str]]):
+        if isinstance(param_value, list):
+            return itertools.chain.from_iterable(
+                [serialize_query_param(param_key, item) for item in param_value if item is not None]
+            )
+        elif isinstance(param_value, Enum):
+            return [f"{param_key}={param_value.value}"]
+        elif param_value is not None:
+            return [f"{param_key}={param_value}"]
+        else:
+            return []
+
     template = re.sub(r"<(\??[^<>]+)>", replace_path_param, template)
     template = template.rstrip("/")
 
@@ -105,12 +118,7 @@ def get_url(template: str, *, query: Optional[Dict[str, str | List[str]]] = None
         query_parts = []
 
         for key, value in query.items():
-            if isinstance(value, list):
-                query_parts += [f"{key}={item}" for item in value if item is not None]
-            elif isinstance(value, Enum):
-                query_parts += [f"{key}={value.value}"]
-            elif value is not None:
-                query_parts += [f"{key}={value}"]
+            query_parts.extend(serialize_query_param(key, value))
 
         template += "?" + "&".join(query_parts)
 
