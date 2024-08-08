@@ -9,6 +9,7 @@ from pydantic import GetCoreSchemaHandler
 from pydantic_core import CoreSchema, core_schema
 
 from x10.config import DEFAULT_REQUEST_TIMEOUT_SECONDS, USER_AGENT
+from x10.errors import X10Error
 from x10.utils.log import get_logger
 from x10.utils.model import X10BaseModel
 
@@ -18,11 +19,11 @@ CLIENT_TIMEOUT = ClientTimeout(total=DEFAULT_REQUEST_TIMEOUT_SECONDS)
 ApiResponseType = TypeVar("ApiResponseType", bound=Union[int, X10BaseModel, Sequence[X10BaseModel]])
 
 
-class RateLimitException(Exception):
+class RateLimitException(X10Error):
     pass
 
 
-class NotAuthorizedException(Exception):
+class NotAuthorizedException(X10Error):
     pass
 
 

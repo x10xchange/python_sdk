@@ -7,13 +7,14 @@ from eth_account import Account
 from eth_account.signers.local import LocalAccount
 from web3 import Web3
 
+from x10.errors import X10Error
 from x10.perpetual.configuration import EndpointConfig
 from x10.utils.log import get_logger
 
 LOGGER = get_logger(__name__)
 
 
-class InsufficientAllowance(Exception):
+class InsufficientAllowance(X10Error):
     pass
 
 
