@@ -4,8 +4,11 @@ from decimal import Decimal
 from typing import List
 
 from x10.perpetual.accounts import AccountModel, StarkPerpetualAccount
-from x10.perpetual.markets import MarketModel
-from x10.perpetual.transfers import PerpetualTransferModel, StarkTransferSettlement
+from x10.perpetual.configuration import EndpointConfig
+from x10.perpetual.transfers import (
+    OnChainPerpetualTransferModel,
+    StarkTransferSettlement,
+)
 from x10.utils.date import utc_now
 from x10.utils.model import SettlementSignatureModel
 from x10.utils.starkex import generate_nonce, get_transfer_msg
@@ -16,7 +19,7 @@ MAX_AMOUNT_FEE = 0
 
 
 def find_account_by_id(accounts: List[AccountModel], account_id: int):
-    return next((account for account in accounts if account.account_id == account_id), None)
+    return next((account for account in accounts if account.id == account_id), None)
 
 
 def calc_expiration_timestamp():
@@ -28,28 +31,26 @@ def calc_expiration_timestamp():
 
 
 def create_transfer_object(
-    from_account_id: int,
-    to_account_id: int,
+    from_vault: int,
+    from_l2_key: str,
+    to_vault: int,
+    to_l2_key: str,
     amount: Decimal,
-    transferred_asset: str,
+    config: EndpointConfig,
     stark_account: StarkPerpetualAccount,
-    accounts: List[AccountModel],
-    market: MarketModel,
-):
-    from_account = find_account_by_id(accounts, from_account_id)
-    to_account = find_account_by_id(accounts, to_account_id)
-
+) -> OnChainPerpetualTransferModel:
     expiration_timestamp = calc_expiration_timestamp()
-    stark_amount = (amount * market.collateral_asset.settlement_resolution).to_integral_exact()
+    scaled_amount = amount.scaleb(config.collateral_decimals)
+    stark_amount = scaled_amount.to_integral_exact()
 
     nonce = generate_nonce()
     transfer_hash = get_transfer_msg(
-        asset_id=int(market.l2_config.collateral_id, base=16),
+        asset_id=int(config.collateral_asset_on_chain_id, base=16),
         asset_id_fee=ASSET_ID_FEE,
-        receiver_public_key=int(to_account.l2_key, base=16),
-        sender_position_id=int(from_account.l2_vault),
-        receiver_position_id=int(to_account.l2_vault),
-        src_fee_position_id=int(from_account.l2_vault),
+        sender_position_id=from_vault,
+        receiver_position_id=to_vault,
+        receiver_public_key=int(to_l2_key, base=16),
+        src_fee_position_id=from_vault,
         nonce=nonce,
         amount=int(stark_amount),
         max_amount_fee=MAX_AMOUNT_FEE,
@@ -59,20 +60,19 @@ def create_transfer_object(
 
     settlement = StarkTransferSettlement(
         amount=int(stark_amount),
-        asset_id=int(market.l2_config.collateral_id, base=16),
+        asset_id=int(config.collateral_asset_on_chain_id, base=16),
         expiration_timestamp=expiration_timestamp,
         nonce=nonce,
-        receiver_position_id=int(to_account.l2_vault),
-        receiver_public_key=to_account.l2_key,
-        sender_position_id=int(from_account.l2_vault),
-        sender_public_key=from_account.l2_key,
+        receiver_position_id=to_vault,
+        receiver_public_key=int(to_l2_key, 16),
+        sender_position_id=from_vault,
+        sender_public_key=int(from_l2_key, 16),
         signature=SettlementSignatureModel(r=transfer_signature_r, s=transfer_signature_s),
     )
 
-    return PerpetualTransferModel(
-        from_account=from_account_id,
-        to_account=to_account_id,
+    return OnChainPerpetualTransferModel(
+        from_vault=from_vault,
+        to_vault=to_vault,
         amount=amount,
-        transferred_asset=transferred_asset,
         settlement=settlement,
     )

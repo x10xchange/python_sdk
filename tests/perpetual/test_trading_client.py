@@ -1,3 +1,4 @@
+import dataclasses
 from typing import List
 
 import pytest
@@ -5,7 +6,7 @@ from aiohttp import web
 from hamcrest import assert_that, equal_to, has_length
 
 from x10.perpetual.assets import AssetOperationModel
-from x10.perpetual.configuration import EndpointConfig
+from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.markets import MarketModel
 from x10.utils.http import WrappedApiResponse
 
@@ -32,7 +33,7 @@ async def test_get_markets(aiohttp_server, create_btc_usd_market):
     server = await aiohttp_server(app)
     url = f"http://{server.host}:{server.port}"
 
-    endpoint_config = EndpointConfig(chain_rpc_url="", api_base_url=url, stream_url="")
+    endpoint_config = dataclasses.replace(TESTNET_CONFIG, api_base_url=url)
     trading_client = PerpetualTradingClient(endpoint_config=endpoint_config)
     markets = await trading_client.markets_info.get_markets()
 
@@ -132,9 +133,9 @@ async def test_get_asset_operations(aiohttp_server, create_asset_operations, cre
     url = f"http://{server.host}:{server.port}"
 
     stark_account = create_trading_account()
-    endpoint_config = EndpointConfig(chain_rpc_url="", api_base_url=url, stream_url="")
+    endpoint_config = endpoint_config = dataclasses.replace(TESTNET_CONFIG, api_base_url=url)
     trading_client = PerpetualTradingClient(endpoint_config=endpoint_config, stark_account=stark_account)
-    operations = await trading_client.account.get_asset_operations()
+    operations = await trading_client.account.asset_operations()
 
     assert_that(operations.status, equal_to("OK"))
     assert_that(operations.data, has_length(2))

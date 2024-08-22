@@ -5,6 +5,8 @@ from freezegun import freeze_time
 from hamcrest import assert_that, equal_to
 from pytest_mock import MockerFixture
 
+from x10.perpetual.configuration import TESTNET_CONFIG
+
 FROZEN_NONCE = 1473459052
 
 
@@ -16,26 +18,25 @@ async def test_create_transfer(mocker: MockerFixture, create_trading_account, cr
     from x10.perpetual.transfer_object import create_transfer_object
 
     trading_account = create_trading_account()
-    btc_usd_market = create_btc_usd_market()
     accounts = create_accounts()
+
     transfer_obj = create_transfer_object(
-        accounts[0].account_id,
-        accounts[1].account_id,
-        Decimal("1.1"),
-        "USD",
+        from_vault=int(accounts[0].l2_vault),
+        from_l2_key=accounts[0].l2_key,
+        to_vault=int(accounts[1].l2_vault),
+        to_l2_key=accounts[1].l2_key,
+        amount=Decimal("1.1"),
         stark_account=trading_account,
-        accounts=accounts,
-        market=btc_usd_market,
+        config=TESTNET_CONFIG,
     )
 
     assert_that(
         transfer_obj.to_api_request_json(),
         equal_to(
             {
-                "fromAccount": 1001,
-                "toAccount": 1002,
+                "fromVault": 10001,
+                "toVault": 10002,
                 "amount": "1.1",
-                "transferredAsset": "USD",
                 "settlement": {
                     "amount": 1100000,
                     "assetId": "0x31857064564ed0ff978e687456963cba09c2c6985d8f9300a1de4962fafa054",

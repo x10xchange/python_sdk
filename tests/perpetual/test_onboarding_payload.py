@@ -2,6 +2,8 @@ import datetime
 
 from eth_account import Account
 
+from x10.perpetual.user_client.onboarding import get_l2_keys_from_l1_account
+
 
 def test_onboarding_object_generation():
     # all known values from authentication service tests
@@ -11,9 +13,10 @@ def test_onboarding_object_generation():
     known_l2_public_key = "0x78298687996aff29a0bbcb994e1305db082d084f85ec38bb78c41e6787740ec"
 
     l1_account = Account.from_key(known_private_key)
+    key_pair = get_l2_keys_from_l1_account(l1_account=l1_account, account_index=0, signing_domain="x10.exchange")
 
     payload = get_onboarding_payload(
-        l1_account,
+        account=l1_account,
         time=datetime.datetime(
             year=2024,
             month=7,
@@ -23,6 +26,8 @@ def test_onboarding_object_generation():
             second=2,
             tzinfo=datetime.timezone.utc,
         ),
+        key_pair=key_pair,
+        signing_domain="x10.exchange",
     ).to_json()
 
     assert (
