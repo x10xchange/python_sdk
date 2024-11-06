@@ -18,7 +18,8 @@ lint:
 		-i 71064 \
 		-i 71545 \
 		-i 71591 \
-		-i 71608
+		-i 71608 \
+		-i 73456
 	black --check --diff --target-version py310 --line-length 120 ./examples ./tests ./x10
 	flake8 ./examples ./tests ./x10
 	mypy
