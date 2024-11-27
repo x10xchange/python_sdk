@@ -167,13 +167,13 @@ def entry_point(base: str, queue: Queue):
 
 
 if __name__ == "__main__":
-    markets = ["ARB", "AVAX", "BTC", "DOGE", "ETH", "LINK", "SOL", "WLD"]
+    markets = ["BTC", "ETH"]
     cancels: List[TimedOperation] = []
     cancels_chunks: List[TimeSeriesChunk] = []
     places: List[TimedOperation] = []
     place_chunks: List[TimeSeriesChunk] = []
 
-    q: Queue[TimedOperation] = Queue()
+    q: "Queue[TimedOperation]" = Queue()
     subprocesses = map(lambda market: Process(target=entry_point, args=[market, q]), markets)
 
     for p in subprocesses:
