@@ -46,7 +46,7 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
                 "expiryEpochMillis": 1705626536860,
                 "fee": "0.0005",
                 "nonce": "1473459052",
-                "selfTradeProtection": "ACCOUNT",
+                "selfTradeProtectionLevel": "ACCOUNT",
                 "cancelId": None,
                 "settlement": {
                     "signature": {
@@ -101,7 +101,7 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
                 "expiryEpochMillis": 1705626536860,
                 "fee": "0.0005",
                 "nonce": "1473459052",
-                "selfTradeProtection": "CLIENT",
+                "selfTradeProtectionLevel": "CLIENT",
                 "cancelId": None,
                 "settlement": {
                     "signature": {
