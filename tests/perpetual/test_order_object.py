@@ -6,7 +6,7 @@ from freezegun import freeze_time
 from hamcrest import assert_that, equal_to, has_entries
 from pytest_mock import MockerFixture
 
-from x10.perpetual.orders import OrderSide
+from x10.perpetual.orders import OrderSide, SelfTradeProtectionLevel
 from x10.utils.date import utc_now
 
 FROZEN_NONCE = 1473459052
@@ -46,6 +46,7 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
                 "expiryEpochMillis": 1705626536860,
                 "fee": "0.0005",
                 "nonce": "1473459052",
+                "selfTradeProtection": "ACCOUNT",
                 "cancelId": None,
                 "settlement": {
                     "signature": {
@@ -81,6 +82,7 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
         price=Decimal("43445.11680000"),
         side=OrderSide.BUY,
         expire_time=utc_now() + timedelta(days=14),
+        self_trade_protection_level=SelfTradeProtectionLevel.CLIENT,
     )
 
     assert_that(
@@ -99,6 +101,7 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
                 "expiryEpochMillis": 1705626536860,
                 "fee": "0.0005",
                 "nonce": "1473459052",
+                "selfTradeProtection": "CLIENT",
                 "cancelId": None,
                 "settlement": {
                     "signature": {
