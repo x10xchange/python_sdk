@@ -19,7 +19,8 @@ from x10.perpetual.orders import (
     SettlementSignatureModel,
     StarkDebuggingOrderAmountsModel,
     StarkSettlementModel,
-    TimeInForce, SelfTradeProtectionLevel,
+    TimeInForce,
+    SelfTradeProtectionLevel,
 )
 from x10.utils.date import to_epoch_millis, utc_now
 from x10.utils.starkex import generate_nonce, hash_order
