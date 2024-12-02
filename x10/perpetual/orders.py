@@ -96,6 +96,12 @@ class OrderPriceType(Enum):
     LIMIT = "LIMIT"
 
 
+class SelfTradeProtectionLevel(Enum):
+    DISABLED = "DISABLED"
+    ACCOUNT = "ACCOUNT"
+    CLIENT = "CLIENT"
+
+
 class StarkSettlementModel(X10BaseModel):
     signature: SettlementSignatureModel
     stark_key: HexValue
@@ -137,6 +143,7 @@ class PerpetualOrderModel(X10BaseModel):
     expiry_epoch_millis: int
     fee: Decimal
     nonce: Decimal
+    self_trade_protection_level: SelfTradeProtectionLevel
     cancel_id: Optional[str] = None
     settlement: Optional[StarkSettlementModel] = None
     trigger: Optional[CreateOrderConditionalTriggerModel] = None

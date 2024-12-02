@@ -20,6 +20,7 @@ from x10.perpetual.orders import (
     StarkDebuggingOrderAmountsModel,
     StarkSettlementModel,
     TimeInForce,
+    SelfTradeProtectionLevel,
 )
 from x10.utils.date import to_epoch_millis, utc_now
 from x10.utils.starkex import generate_nonce, hash_order
@@ -36,6 +37,7 @@ def create_order_object(
     expire_time=utc_now() + timedelta(hours=8),
     order_external_id: Optional[str] = None,
     time_in_force: TimeInForce = TimeInForce.GTT,
+    self_trade_protection_level: SelfTradeProtectionLevel = SelfTradeProtectionLevel.ACCOUNT,
 ) -> PerpetualOrderModel:
     """
     Creates an order object to be placed on the exchange using the `place_order` method.
@@ -56,6 +58,7 @@ def create_order_object(
         previous_order_external_id=previous_order_id,
         order_external_id=order_external_id,
         time_in_force=time_in_force,
+        self_trade_protection_level=self_trade_protection_level,
     )
 
 
@@ -74,6 +77,7 @@ def __create_order_object(
     previous_order_external_id: Optional[str] = None,
     order_external_id: Optional[str] = None,
     time_in_force: TimeInForce = TimeInForce.GTT,
+    self_trade_protection_level: SelfTradeProtectionLevel = SelfTradeProtectionLevel.ACCOUNT,
 ) -> PerpetualOrderModel:
     if exact_only:
         raise NotImplementedError("`exact_only` option is not supported yet")
@@ -130,6 +134,7 @@ def __create_order_object(
         time_in_force=time_in_force,
         expiry_epoch_millis=to_epoch_millis(expire_time),
         fee=amounts.fee_rate,
+        self_trade_protection_level=self_trade_protection_level,
         nonce=Decimal(nonce),
         cancel_id=previous_order_external_id,
         settlement=settlement,

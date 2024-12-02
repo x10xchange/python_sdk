@@ -6,7 +6,7 @@ from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.configuration import EndpointConfig
 from x10.perpetual.markets import MarketModel
 from x10.perpetual.order_object import create_order_object
-from x10.perpetual.orders import OrderSide, PlacedOrderModel, TimeInForce
+from x10.perpetual.orders import OrderSide, PlacedOrderModel, TimeInForce, SelfTradeProtectionLevel
 from x10.perpetual.trading_client.account_module import AccountModule
 from x10.perpetual.trading_client.info_module import InfoModule
 from x10.perpetual.trading_client.markets_information_module import (
@@ -43,6 +43,7 @@ class PerpetualTradingClient:
         previous_order_id=None,
         expire_time=utc_now() + timedelta(hours=8),
         time_in_force: TimeInForce = TimeInForce.GTT,
+        self_trade_protection_level: SelfTradeProtectionLevel = SelfTradeProtectionLevel.ACCOUNT,
     ) -> WrappedApiResponse[PlacedOrderModel]:
         if not self.__stark_account:
             raise ValueError("Stark account is not set")
@@ -65,6 +66,7 @@ class PerpetualTradingClient:
             previous_order_id,
             expire_time,
             time_in_force=time_in_force,
+            self_trade_protection_level=self_trade_protection_level,
         )
 
         return await self.__order_management_module.place_order(order)
