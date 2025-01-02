@@ -26,9 +26,9 @@ Our SDK makes use of a [Rust Library](https://github.com/x10xchange/stark-crypto
 
 ## TLDR:
 
-Register at [x10 testnet](https://testnet.x10.exchange/) by connecting a supported Ethereum Wallet. 
+Register at [x10 testnet](https://testnet.extended.exchange/) by connecting a supported Ethereum Wallet. 
 
-Navigate to [Api Management](https://testnet.x10.exchange/api-management)
+Navigate to [Api Management](https://testnet.extended.exchange/api-management)
 1. Generate an API key
 2. Show API details (You will need these details to initialise a trading client)
 

@@ -16,9 +16,9 @@ class EndpointConfig:
 
 TESTNET_CONFIG = EndpointConfig(
     chain_rpc_url="https://rpc.sepolia.org",
-    api_base_url="https://api.testnet.x10.exchange/api/v1",
-    stream_url="wss://api.testnet.x10.exchange/stream.x10.exchange/v1",
-    onboarding_url="https://api.testnet.x10.exchange",
+    api_base_url="https://api.testnet.extended.exchange/api/v1",
+    stream_url="wss://api.testnet.extended.exchange/stream.extended.exchange/v1",
+    onboarding_url="https://api.testnet.extended.exchange",
     signing_domain="testnet.x10.exchange",
     collateral_asset_contract="0x0c9165046063b7bcd05c6924bbe05ed535c140a1",
     asset_operations_contract="0x7f0C670079147C5c5C45eef548E55D2cAc53B391",
@@ -28,9 +28,9 @@ TESTNET_CONFIG = EndpointConfig(
 
 TESTNET_CONFIG_LEGACY_SIGNING_DOMAIN = EndpointConfig(
     chain_rpc_url="https://rpc.sepolia.org",
-    api_base_url="https://api.testnet.x10.exchange/api/v1",
-    stream_url="wss://api.testnet.x10.exchange/stream.x10.exchange/v1",
-    onboarding_url="https://api.testnet.x10.exchange",
+    api_base_url="https://api.testnet.extended.exchange/api/v1",
+    stream_url="wss://api.testnet.extended.exchange/stream.extended.exchange/v1",
+    onboarding_url="https://api.testnet.extended.exchange",
     signing_domain="x10.exchange",
     collateral_asset_contract="0x0c9165046063b7bcd05c6924bbe05ed535c140a1",
     asset_operations_contract="0x7f0C670079147C5c5C45eef548E55D2cAc53B391",
@@ -41,7 +41,7 @@ TESTNET_CONFIG_LEGACY_SIGNING_DOMAIN = EndpointConfig(
 MAINNET_CONFIG = EndpointConfig(
     chain_rpc_url="https://cloudflare-eth.com",
     api_base_url="https://api.extended.exchange/api/v1",
-    stream_url="wss://api.extended.exchange/stream.x10.exchange/v1",
+    stream_url="wss://api.extended.exchange/stream.extended.exchange/v1",
     onboarding_url="https://api.extended.exchange",
     signing_domain="x10.exchange",
     collateral_asset_contract="0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
