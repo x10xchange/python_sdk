@@ -12,7 +12,7 @@ from x10.utils.http import send_get_request
 class MarketsInformationModule(BaseModule):
     async def get_markets(self, *, market_names: Optional[List[str]] = None):
         """
-        https://x10xchange.github.io/x10-documentation/#get-markets
+        https://api.docs.extended.exchange/#get-markets
         """
 
         url = self._get_url("/info/markets", query={"market": market_names})
@@ -20,7 +20,7 @@ class MarketsInformationModule(BaseModule):
 
     async def get_market_statistics(self, *, market_name: str):
         """
-        https://x10xchange.github.io/x10-documentation/#get-market-statistics
+        https://api.docs.extended.exchange/#get-market-statistics
         """
 
         url = self._get_url("/info/markets/<market>/stats", market=market_name)
@@ -36,7 +36,7 @@ class MarketsInformationModule(BaseModule):
         end_time: Optional[datetime] = None,
     ):
         """
-        https://x10xchange.github.io/x10-documentation/#get-candles-history
+        https://api.docs.extended.exchange/#get-candles-history
         """
 
         url = self._get_url(
@@ -53,7 +53,7 @@ class MarketsInformationModule(BaseModule):
 
     async def get_funding_rates_history(self, *, market_name: str, start_time: datetime, end_time: datetime):
         """
-        https://x10xchange.github.io/x10-documentation/#get-funding-rates-history
+        https://api.docs.extended.exchange/#get-funding-rates-history
         """
 
         url = self._get_url(

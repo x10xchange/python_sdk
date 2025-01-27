@@ -1,6 +1,6 @@
-# X10
+# Extended Python SDK
 
-Python client for [X10 API](https://x10xchange.github.io/x10-documentation/).
+Python client for [Extended API](https://api.docs.extended.exchange/).
 
 Minimum Python version required to use this library is `3.10` (you can use [pyenv](https://github.com/pyenv/pyenv) to manage your Python versions easily).
 
@@ -26,9 +26,9 @@ Our SDK makes use of a [Rust Library](https://github.com/x10xchange/stark-crypto
 
 ## TLDR:
 
-Register at [x10 testnet](https://testnet.x10.exchange/) by connecting a supported Ethereum Wallet. 
+Register at [Extended Testnet](https://testnet.extended.exchange/) by connecting a supported Ethereum Wallet. 
 
-Navigate to [Api Management](https://testnet.x10.exchange/api-management)
+Navigate to [Api Management](https://testnet.extended.exchange/api-management)
 1. Generate an API key
 2. Show API details (You will need these details to initialise a trading client)
 
@@ -249,14 +249,14 @@ TODO
 
 The SDK is controlled by an `EndpointConfiguration` object passed to the various methods and clients, several helpful instances are defined in [configuration.py](x10/perpetual/configuration.py)
 
-### `TESTNET_CONFIG` vs `TESTNET_CONFIG_LEGACY_SIGNING_DOMAIN`
-If you previously onboarded to our testnet environment, you should use the `TESTNET_CONFIG_LEGACY_SIGNING_DOMAIN` configuration bundle, as this will allow you to regenerate the same l2 keys as were created by our legacy testnet environment. 
+### `MAINNET_CONFIG` vs `MAINNET_CONFIG_LEGACY_SIGNING_DOMAIN`
+If you previously onboarded to our mainnet environment on `app.x10.exchange`, you should use the `MAINNET_CONFIG_LEGACY_SIGNING_DOMAIN` configuration bundle, as this will allow you to regenerate the same l2 keys as were created by our mainnet environment that was running on a legacy domain. 
 
-All new accounts should use the `TESTNET_CONFIG` configuration bundle
+All new accounts should use the `MAINNET_CONFIG` configuration bundle.
 
 ## OnBoarding via SDK (Since Version 0.3.0)
 
-To onboard to the X10 Exchange, the `UserClient` defined in [user_client.py](x10/perpetual/user_client/user_client.py) provides a way to use an Ethereum account to onboard onto the X10 exchange. 
+To onboard to the Extended Exchange, the `UserClient` defined in [user_client.py](x10/perpetual/user_client/user_client.py) provides a way to use an Ethereum account to onboard onto the Extended Exchange. 
 
 ### TLDR - Check out: [onboarding_example.py](examples/onboarding_example.py)
 
