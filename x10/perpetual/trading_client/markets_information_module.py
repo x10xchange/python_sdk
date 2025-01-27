@@ -65,3 +65,11 @@ class MarketsInformationModule(BaseModule):
             },
         )
         return await send_get_request(await self.get_session(), url, List[FundingRateModel])
+
+    async def get_orderbook_snapshot(self, *, market_name: str):
+        """
+        https://x10xchange.github.io/x10-documentation/#get-market-order-book
+        """
+
+        url = self._get_url("/info/markets/<market>/orderbook", market=market_name)
+        return await send_get_request(await self.get_session(), url, dict)
