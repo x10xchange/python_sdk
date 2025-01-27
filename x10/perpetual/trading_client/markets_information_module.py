@@ -69,7 +69,7 @@ class MarketsInformationModule(BaseModule):
 
     async def get_orderbook_snapshot(self, *, market_name: str):
         """
-        https://x10xchange.github.io/x10-documentation/#get-market-order-book
+        https://api.docs.extended.exchange/#get-market-order-book
         """
 
         url = self._get_url("/info/markets/<market>/orderbook", market=market_name)
