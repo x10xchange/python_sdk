@@ -23,7 +23,7 @@ class OrderManagementModule(BaseModule):
 
         :param order: Order object created by `create_order_object` method.
 
-        https://x10xchange.github.io/x10-documentation/#create-order
+        https://api.docs.extended.exchange/#create-order
         """
         LOGGER.debug("Placing an order: id=%s", order.id)
 
@@ -39,7 +39,7 @@ class OrderManagementModule(BaseModule):
 
     async def cancel_order(self, order_id: int):
         """
-        https://x10xchange.github.io/x10-documentation/#cancel-order
+        https://api.docs.extended.exchange/#cancel-order
         """
 
         url = self._get_url("/user/order/<order_id>", order_id=order_id)
@@ -47,7 +47,7 @@ class OrderManagementModule(BaseModule):
 
     async def cancel_order_by_external_id(self, order_external_id: str):
         """
-        https://x10xchange.github.io/x10-documentation/#cancel-order
+        https://api.docs.extended.exchange/#cancel-order
         """
 
         url = self._get_url("/user/order", query={"externalId": order_external_id})
@@ -62,7 +62,7 @@ class OrderManagementModule(BaseModule):
         cancel_all: Optional[bool] = False,
     ):
         """
-        https://x10xchange.github.io/x10-documentation/#mass-cancel
+        https://api.docs.extended.exchange/#mass-cancel
         """
 
         url = self._get_url("/user/order/massCancel")

@@ -28,7 +28,7 @@ from x10.utils.model import EmptyModel
 class AccountModule(BaseModule):
     async def get_balance(self) -> WrappedApiResponse[BalanceModel]:
         """
-        https://x10xchange.github.io/x10-documentation/#get-balance
+        https://api.docs.extended.exchange/#get-balance
         """
 
         url = self._get_url("/user/balance")
@@ -38,7 +38,7 @@ class AccountModule(BaseModule):
         self, *, market_names: Optional[List[str]] = None, position_side: Optional[PositionSide] = None
     ) -> WrappedApiResponse[List[PositionModel]]:
         """
-        https://x10xchange.github.io/x10-documentation/#get-positions
+        https://api.docs.extended.exchange/#get-positions
         """
 
         url = self._get_url("/user/positions", query={"market": market_names, "side": position_side})
@@ -52,7 +52,7 @@ class AccountModule(BaseModule):
         limit: Optional[int] = None,
     ) -> WrappedApiResponse[List[PositionHistoryModel]]:
         """
-        https://x10xchange.github.io/x10-documentation/#get-positions-history
+        https://api.docs.extended.exchange/#get-positions-history
         """
 
         url = self._get_url(
@@ -70,7 +70,7 @@ class AccountModule(BaseModule):
         order_side: Optional[OrderSide] = None,
     ) -> WrappedApiResponse[List[OpenOrderModel]]:
         """
-        https://x10xchange.github.io/x10-documentation/#get-open-orders
+        https://api.docs.extended.exchange/#get-open-orders
         """
 
         url = self._get_url(
@@ -88,7 +88,7 @@ class AccountModule(BaseModule):
         limit: Optional[int] = None,
     ) -> WrappedApiResponse[List[OpenOrderModel]]:
         """
-        https://x10xchange.github.io/x10-documentation/#get-orders-history
+        https://api.docs.extended.exchange/#get-orders-history
         """
 
         url = self._get_url(
@@ -104,7 +104,7 @@ class AccountModule(BaseModule):
         trade_type: Optional[TradeType] = None,
     ) -> WrappedApiResponse[List[AccountTradeModel]]:
         """
-        https://x10xchange.github.io/x10-documentation/#get-trades
+        https://api.docs.extended.exchange/#get-trades
         """
 
         url = self._get_url(
@@ -118,7 +118,7 @@ class AccountModule(BaseModule):
 
     async def get_fees(self, *, market_names: List[str]) -> WrappedApiResponse[List[TradingFeeModel]]:
         """
-        https://x10xchange.github.io/x10-documentation/#get-fees
+        https://api.docs.extended.exchange/#get-fees
         """
 
         url = self._get_url("/user/fees", query={"market": market_names})
@@ -126,7 +126,7 @@ class AccountModule(BaseModule):
 
     async def get_leverage(self, market_names: List[str]) -> WrappedApiResponse[List[AccountLeverage]]:
         """
-        https://x10xchange.github.io/x10-documentation/#get-current-leverage
+        https://api.docs.extended.exchange/#get-current-leverage
         """
 
         url = self._get_url("/user/leverage", query={"market": market_names})
@@ -134,7 +134,7 @@ class AccountModule(BaseModule):
 
     async def update_leverage(self, market_name: str, leverage: Decimal) -> WrappedApiResponse[EmptyModel]:
         """
-        https://x10xchange.github.io/x10-documentation/#update-leverage
+        https://api.docs.extended.exchange/#update-leverage
         """
 
         url = self._get_url("/user/leverage")
