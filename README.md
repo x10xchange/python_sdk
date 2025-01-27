@@ -1,6 +1,6 @@
-# X10
+# Extended Python SDK
 
-Python client for [X10 API](https://api.docs.extended.exchange/).
+Python client for [Extended API](https://api.docs.extended.exchange/).
 
 Minimum Python version required to use this library is `3.10` (you can use [pyenv](https://github.com/pyenv/pyenv) to manage your Python versions easily).
 
@@ -26,7 +26,7 @@ Our SDK makes use of a [Rust Library](https://github.com/x10xchange/stark-crypto
 
 ## TLDR:
 
-Register at [x10 testnet](https://testnet.extended.exchange/) by connecting a supported Ethereum Wallet. 
+Register at [Extended Testnet](https://testnet.extended.exchange/) by connecting a supported Ethereum Wallet. 
 
 Navigate to [Api Management](https://testnet.extended.exchange/api-management)
 1. Generate an API key
@@ -256,7 +256,7 @@ All new accounts should use the `MAINNET_CONFIG` configuration bundle.
 
 ## OnBoarding via SDK (Since Version 0.3.0)
 
-To onboard to the X10 Exchange, the `UserClient` defined in [user_client.py](x10/perpetual/user_client/user_client.py) provides a way to use an Ethereum account to onboard onto the X10 exchange. 
+To onboard to the Extended Exchange, the `UserClient` defined in [user_client.py](x10/perpetual/user_client/user_client.py) provides a way to use an Ethereum account to onboard onto the Extended Exchange. 
 
 ### TLDR - Check out: [onboarding_example.py](examples/onboarding_example.py)
 

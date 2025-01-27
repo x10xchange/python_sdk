@@ -6,7 +6,12 @@ from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.configuration import EndpointConfig
 from x10.perpetual.markets import MarketModel
 from x10.perpetual.order_object import create_order_object
-from x10.perpetual.orders import OrderSide, PlacedOrderModel, TimeInForce, SelfTradeProtectionLevel
+from x10.perpetual.orders import (
+    OrderSide,
+    PlacedOrderModel,
+    SelfTradeProtectionLevel,
+    TimeInForce,
+)
 from x10.perpetual.trading_client.account_module import AccountModule
 from x10.perpetual.trading_client.info_module import InfoModule
 from x10.perpetual.trading_client.markets_information_module import (
