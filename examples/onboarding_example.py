@@ -6,7 +6,7 @@ from eth_account.signers.local import LocalAccount
 
 from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.assets import AssetOperationType
-from x10.perpetual.configuration import TESTNET_CONFIG_LEGACY_SIGNING_DOMAIN
+from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.contract import call_erc20_approve, call_stark_perpetual_deposit
 from x10.perpetual.trading_client.trading_client import PerpetualTradingClient
 from x10.perpetual.user_client.user_client import UserClient
@@ -14,7 +14,7 @@ from x10.perpetual.user_client.user_client import UserClient
 
 # flake8: noqa
 async def on_board_example():
-    environment_config = TESTNET_CONFIG_LEGACY_SIGNING_DOMAIN
+    environment_config = TESTNET_CONFIG
     eth_account: LocalAccount = Account.from_key("<your private key>")
     user_client = UserClient(endpoint_config=environment_config, l1_private_key=eth_account.key.hex)
     onboarded_user = await user_client.onboard()
