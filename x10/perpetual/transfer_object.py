@@ -66,7 +66,7 @@ def create_transfer_object(
         receiver_position_id=to_vault,
         receiver_public_key=int(to_l2_key, 16),
         sender_position_id=from_vault,
-        sender_public_key=from_l2_key if type(from_l2_key) == int else int(from_l2_key, 16),
+        sender_public_key=from_l2_key if isinstance(from_l2_key, int) else int(from_l2_key, 16),
         signature=SettlementSignatureModel(r=transfer_signature_r, s=transfer_signature_s),
     )
 
