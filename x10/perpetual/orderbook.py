@@ -1,7 +1,7 @@
 import asyncio
 import dataclasses
 import decimal
-from typing import Callable
+from typing import Callable, Iterable, Tuple
 
 from sortedcontainers import SortedDict  # type: ignore[import-untyped]
 
@@ -18,6 +18,12 @@ class OrderBookEntry:
 
     def __repr__(self) -> str:
         return f"OrderBookEntry(price={self.price}, amount={self.amount})"
+
+
+@dataclasses.dataclass
+class ImpactDetails:
+    price: decimal.Decimal
+    amount: decimal.Decimal
 
 
 class OrderBook:
@@ -133,3 +139,73 @@ class OrderBook:
             return entry[1]
         except IndexError:
             return None
+
+    def __price_impact_notional(
+        self, notional: decimal.Decimal, levels: Iterable[Tuple[decimal.Decimal, OrderBookEntry]]
+    ):
+        remaining_to_spend = notional
+        total_amount = decimal.Decimal(0)
+        weighted_sum = decimal.Decimal(0)
+        for price, entry in levels:
+            available_at_price = entry.amount
+            amount_to_purchase = min(remaining_to_spend / price, available_at_price)
+            if remaining_to_spend <= 0:
+                break
+            if available_at_price <= 0:
+                continue
+            take = amount_to_purchase
+            spent = take * price
+            weighted_sum += take * price
+            total_amount += take
+            remaining_to_spend -= spent
+
+        if remaining_to_spend > 0:
+            return None
+        average_price = weighted_sum / total_amount
+        return ImpactDetails(price=average_price, amount=total_amount)
+
+    def __price_impact_qty(self, qty: decimal.Decimal, levels: Iterable[Tuple[decimal.Decimal, OrderBookEntry]]):
+        remaining_qty = qty
+        total_amount = decimal.Decimal(0)
+        total_spent = decimal.Decimal(0)
+        for price, entry in levels:
+            available_at_price = entry.amount
+            take = min(remaining_qty, available_at_price)
+            if remaining_qty <= 0:
+                break
+            if available_at_price <= 0:
+                continue
+            total_spent += take * price
+            total_amount += take
+            remaining_qty -= take
+
+        if remaining_qty > 0:
+            return None
+        average_price = total_spent / total_amount
+        return ImpactDetails(price=average_price, amount=total_amount)
+
+    def calculate_price_impact_notional(self, notional: decimal.Decimal, side: str) -> ImpactDetails | None:
+        if notional <= 0:
+            return None
+        if side == "SELL":
+            if not self._bid_prices:
+                return None
+            return self.__price_impact_notional(notional, reversed(self._bid_prices.items()))
+        elif side == "BUY":
+            if not self._ask_prices:
+                return None
+            return self.__price_impact_notional(notional, self._ask_prices.items())
+        return None
+
+    def calculate_price_impact_qty(self, qty: decimal.Decimal, side: str) -> ImpactDetails | None:
+        if qty <= 0:
+            return None
+        if side == "SELL":
+            if not self._bid_prices:
+                return None
+            return self.__price_impact_qty(qty, reversed(self._bid_prices.items()))
+        elif side == "BUY":
+            if not self._ask_prices:
+                return None
+            return self.__price_impact_qty(qty, self._ask_prices.items())
+        return None
