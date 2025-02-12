@@ -181,6 +181,7 @@ class OpenOrderModel(X10BaseModel):
     reduce_only: bool
     post_only: bool
     created_time: int
+    updated_time: int
     expiry_time: Optional[int] = None
 ```
 
