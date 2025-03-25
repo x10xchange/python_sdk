@@ -187,9 +187,12 @@ def get_onboarding_payload(
     account: LocalAccount,
     signing_domain: str,
     key_pair: StarkKeyPair,
-    time: datetime = datetime.now(timezone.utc),
+    time: datetime | None = None,
     referral_code: str | None = None,
 ) -> OnboardingPayLoad:
+    if time is None:
+        time = datetime.now(timezone.utc)
+
     registration_payload = get_registration_struct_to_sign(
         account_index=0, address=account.address, timestamp=time, action=register_action
     )
@@ -210,12 +213,11 @@ def get_onboarding_payload(
 
 
 def get_sub_account_creation_payload(
-    account_index: int,
-    l1_address: str,
-    key_pair: StarkKeyPair,
-    description: str,
-    time: datetime = datetime.now(timezone.utc),
+    account_index: int, l1_address: str, key_pair: StarkKeyPair, description: str, time: datetime | None = None
 ):
+    if time is None:
+        time = datetime.now(timezone.utc)
+
     registration_payload = get_registration_struct_to_sign(
         account_index=account_index,
         address=l1_address,
