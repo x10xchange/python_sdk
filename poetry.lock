@@ -1105,21 +1105,18 @@ files = [
 
 [[package]]
 name = "fastecdsa"
-version = "2.3.0"
+version = "2.3.2"
 description = "Fast elliptic curve digital signatures"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "fastecdsa-2.3.0-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:0147804e6bf4915e83064f17a4bcc518d986dab87cba3609409e9f56b8d56772"},
-    {file = "fastecdsa-2.3.0-cp310-cp310-win_amd64.whl", hash = "sha256:c72f8f13160798b431c8a772e4e4bce39adf6faeea80fbf75f88010d0b304aa1"},
-    {file = "fastecdsa-2.3.0-cp311-cp311-macosx_12_0_arm64.whl", hash = "sha256:b943a1ad3e1e306f0df422b198f544d029a70f19581e5b56a36ddfbe6302a33d"},
-    {file = "fastecdsa-2.3.0-cp37-cp37m-macosx_12_0_arm64.whl", hash = "sha256:82985e09b299ba400f1a21f2872dcc8e659bc127286f026d01b3540853298f9c"},
-    {file = "fastecdsa-2.3.0-cp37-cp37m-win_amd64.whl", hash = "sha256:8011db68e65b747b11ffa9575dc5bc6ad6d02aa971054e952e261694f705845a"},
-    {file = "fastecdsa-2.3.0-cp38-cp38-macosx_12_0_arm64.whl", hash = "sha256:fd61e461389a4fc1e965a1bbd5efb77588a0ebae2328aecdf011a5e9d439ce66"},
-    {file = "fastecdsa-2.3.0-cp38-cp38-win_amd64.whl", hash = "sha256:b0a4637e99cc22b5107d32ae001c2e36a5821c7a50ac001b806d64c157bf62c0"},
-    {file = "fastecdsa-2.3.0-cp39-cp39-macosx_12_0_arm64.whl", hash = "sha256:7b91663b36137454299d7487a7a1b4a345120bd098ab5f7d7b0a02b50d6c9706"},
-    {file = "fastecdsa-2.3.0-cp39-cp39-win_amd64.whl", hash = "sha256:e45be9bcd063362576f93b344e032c743572c2a9ca7426eea3e4035ba21b1654"},
-    {file = "fastecdsa-2.3.0.tar.gz", hash = "sha256:6c59aba650862a59f601ff7f66cd6712f4798ae68907c953d58417a5887103de"},
+    {file = "fastecdsa-2.3.2-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:138278b123b6c519f24fe9043d857e2f92c421c4fe256ac80d57404a38dc1326"},
+    {file = "fastecdsa-2.3.2-cp311-cp311-macosx_12_0_arm64.whl", hash = "sha256:5ba5eb5b33d4b861731108d0ac6e544fcdbdc1ab095a5e86e68081ba5713c958"},
+    {file = "fastecdsa-2.3.2-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:cc7189b971bc434b4145c9e7084e4970a0817623927a647b70fb162060baaea2"},
+    {file = "fastecdsa-2.3.2-cp37-cp37m-macosx_12_0_arm64.whl", hash = "sha256:08deada741efb94691873d50c0002b2b826bc41459f0d427fbc1a791176e7c2d"},
+    {file = "fastecdsa-2.3.2-cp38-cp38-macosx_12_0_arm64.whl", hash = "sha256:398448290a70bede54f1a8878e797865c40f359ca5840dd12fa33cab277b3b47"},
+    {file = "fastecdsa-2.3.2-cp39-cp39-macosx_12_0_arm64.whl", hash = "sha256:368f757403f191560d6e0757b8580a58c7b0b53d4db0fa8154b398c1de9f733d"},
+    {file = "fastecdsa-2.3.2.tar.gz", hash = "sha256:f35255a6d3e41109166b5d4b08866d5acbb99f2e1e64d3a7e74c774664cda842"},
 ]
 
 [[package]]
@@ -3280,4 +3277,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "3ef98b8adba279c2a2b124dfcc8d686090a609c6b0d1e3fd4839498f45794691"
+content-hash = "88d58d479d9a1cbd9f0cea89cb0646a0c266b9c57faf604bfade17bfa9f8f9d3"
