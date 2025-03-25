@@ -34,7 +34,7 @@ def create_order_object(
     side: OrderSide,
     post_only: bool = False,
     previous_order_id: Optional[str] = None,
-    expire_time=utc_now() + timedelta(hours=8),
+    expire_time: Optional[datetime] = None,
     order_external_id: Optional[str] = None,
     time_in_force: TimeInForce = TimeInForce.GTT,
     self_trade_protection_level: SelfTradeProtectionLevel = SelfTradeProtectionLevel.ACCOUNT,
@@ -43,6 +43,7 @@ def create_order_object(
     Creates an order object to be placed on the exchange using the `place_order` method.
     """
     fees = account.trading_fee.get(market.name, DEFAULT_FEES)
+
     return __create_order_object(
         market,
         amount_of_synthetic,
@@ -72,7 +73,7 @@ def __create_order_object(
     signer: Callable[[int], Tuple[int, int]],
     public_key: int,
     exact_only: bool = False,
-    expire_time: datetime = utc_now() + timedelta(hours=1),
+    expire_time: Optional[datetime] = None,
     post_only: bool = False,
     previous_order_external_id: Optional[str] = None,
     order_external_id: Optional[str] = None,
@@ -81,6 +82,9 @@ def __create_order_object(
 ) -> PerpetualOrderModel:
     if exact_only:
         raise NotImplementedError("`exact_only` option is not supported yet")
+
+    if expire_time is None:
+        expire_time = utc_now() + timedelta(hours=8)
 
     nonce = generate_nonce()
     is_buying_synthetic = side == OrderSide.BUY

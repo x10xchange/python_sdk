@@ -12,6 +12,67 @@ from x10.utils.date import utc_now
 FROZEN_NONCE = 1473459052
 
 
+@pytest.mark.asyncio
+async def test_create_sell_order_with_default_expiration(
+    mocker: MockerFixture, create_trading_account, create_btc_usd_market
+):
+    mocker.patch("x10.utils.starkex.generate_nonce", return_value=FROZEN_NONCE)
+
+    freezer = freeze_time("2024-01-05 01:08:56.860694")
+    frozen_time = freezer.start()
+
+    from x10.perpetual.order_object import create_order_object
+
+    frozen_time.move_to("2024-01-05 01:08:57")
+
+    trading_account = create_trading_account()
+    btc_usd_market = create_btc_usd_market()
+    order_obj = create_order_object(
+        account=trading_account,
+        market=btc_usd_market,
+        amount_of_synthetic=Decimal("0.00100000"),
+        price=Decimal("43445.11680000"),
+        side=OrderSide.SELL,
+    )
+
+    freezer.stop()
+
+    assert_that(
+        order_obj.to_api_request_json(),
+        equal_to(
+            {
+                "id": "2096045681239655445582070517240411138302380632690430411530650608228763263945",
+                "market": "BTC-USD",
+                "type": "LIMIT",
+                "side": "SELL",
+                "qty": "0.00100000",
+                "price": "43445.11680000",
+                "reduceOnly": False,
+                "postOnly": False,
+                "timeInForce": "GTT",
+                "expiryEpochMillis": 1704445737000,
+                "fee": "0.0005",
+                "nonce": "1473459052",
+                "selfTradeProtectionLevel": "ACCOUNT",
+                "cancelId": None,
+                "settlement": {
+                    "signature": {
+                        "r": "0x39ff8493e8e26c9a588a7046e1380b6e1201287a179e10831b7040d3efc26d",
+                        "s": "0x5c9acd1879bf8d43e4ccd14648186d2a9edf387fe1b61e491fe0a539de3272b",
+                    },
+                    "starkKey": "0x61c5e7e8339b7d56f197f54ea91b776776690e3232313de0f2ecbd0ef76f466",
+                    "collateralPosition": "10002",
+                },
+                "trigger": None,
+                "tpSlType": None,
+                "takeProfit": None,
+                "stopLoss": None,
+                "debuggingAmounts": {"collateralAmount": "43445116", "feeAmount": "21723", "syntheticAmount": "1000"},
+            }
+        ),
+    )
+
+
 @freeze_time("2024-01-05 01:08:56.860694")
 @pytest.mark.asyncio
 async def test_create_sell_order(mocker: MockerFixture, create_trading_account, create_btc_usd_market):

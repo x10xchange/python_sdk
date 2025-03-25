@@ -1,6 +1,6 @@
-from datetime import timedelta
+from datetime import datetime
 from decimal import Decimal
-from typing import Dict
+from typing import Dict, Optional
 
 from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.configuration import EndpointConfig
@@ -18,7 +18,6 @@ from x10.perpetual.trading_client.markets_information_module import (
     MarketsInformationModule,
 )
 from x10.perpetual.trading_client.order_management_module import OrderManagementModule
-from x10.utils.date import utc_now
 from x10.utils.http import WrappedApiResponse
 from x10.utils.log import get_logger
 
@@ -46,7 +45,7 @@ class PerpetualTradingClient:
         side: OrderSide,
         post_only: bool = False,
         previous_order_id=None,
-        expire_time=utc_now() + timedelta(hours=8),
+        expire_time: Optional[datetime] = None,
         time_in_force: TimeInForce = TimeInForce.GTT,
         self_trade_protection_level: SelfTradeProtectionLevel = SelfTradeProtectionLevel.ACCOUNT,
     ) -> WrappedApiResponse[PlacedOrderModel]:
