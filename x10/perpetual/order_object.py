@@ -39,7 +39,7 @@ def create_order_object(
     starknet_domain: StarknetDomain,
     post_only: bool = False,
     previous_order_id: Optional[str] = None,
-    expire_time=None,
+    expire_time: Optional[datetime] = None,
     order_external_id: Optional[str] = None,
     time_in_force: TimeInForce = TimeInForce.GTT,
     self_trade_protection_level: SelfTradeProtectionLevel = SelfTradeProtectionLevel.ACCOUNT,
@@ -53,6 +53,7 @@ def create_order_object(
         expire_time = utc_now() + timedelta(hours=1)
 
     fees = account.trading_fee.get(market.name, DEFAULT_FEES)
+
     return __create_order_object(
         market=market,
         synthetic_amount=amount_of_synthetic,
@@ -85,7 +86,7 @@ def __create_order_object(
     public_key: int,
     starknet_domain: StarknetDomain,
     exact_only: bool = False,
-    expire_time: datetime | None = None,
+    expire_time: Optional[datetime] = None,
     post_only: bool = False,
     previous_order_external_id: Optional[str] = None,
     order_external_id: Optional[str] = None,

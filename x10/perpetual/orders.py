@@ -175,4 +175,5 @@ class OpenOrderModel(X10BaseModel):
     post_only: bool
     payed_fee: Optional[Decimal] = None
     created_time: int
+    updated_time: int
     expiry_time: Optional[int] = None

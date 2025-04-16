@@ -83,7 +83,7 @@ async def order_loop(
         async with socket_connect_condition:
             await socket_connect_condition.wait()
 
-    for j in range(NUM_ORDERS_PER_PRICE_LEVEL):
+    for _ in range(NUM_ORDERS_PER_PRICE_LEVEL):
         (external_id, order_response) = await place_order(i, trading_client, markets_cache)
         print(f"placed order {external_id}")
         condition = order_condtions.get(external_id)
