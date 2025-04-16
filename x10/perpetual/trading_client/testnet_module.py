@@ -8,7 +8,6 @@ class ClaimResponseModel(X10BaseModel):
 
 
 class TestnetModule(BaseModule):
-
     async def claim_testing_funds(
         self,
     ) -> WrappedApiResponse[ClaimResponseModel]:

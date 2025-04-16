@@ -24,7 +24,7 @@ async def test_create_withdrawal(mocker: MockerFixture, create_trading_account, 
         description="withdraw my gains",
         config=TESTNET_CONFIG,
         stark_account=trading_account,
-        nonce=FROZEN_NONCE
+        nonce=FROZEN_NONCE,
     )
 
     assert_that(
