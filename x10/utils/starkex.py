@@ -1,5 +1,6 @@
 import random
 from typing import Callable
+
 from x10.utils.log import get_logger
 
 LOGGER = get_logger(__name__)

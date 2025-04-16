@@ -1,6 +1,6 @@
+import math
 from datetime import datetime, timedelta
 from decimal import Decimal
-import math
 from typing import Callable, Optional, Tuple
 
 from fast_stark_crypto import get_order_msg_hash
