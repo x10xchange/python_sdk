@@ -28,6 +28,7 @@ async def test_create_transfer(mocker: MockerFixture, create_trading_account, cr
         amount=Decimal("1.1"),
         stark_account=trading_account,
         config=TESTNET_CONFIG,
+        nonce=FROZEN_NONCE,
     )
 
     assert_that(

@@ -26,11 +26,12 @@ def create_withdrawal_object(
     stark_account: StarkPerpetualAccount,
     config: EndpointConfig,
     description: str | None = None,
+    nonce: int | None = None,
 ) -> PerpetualSlowWithdrawal:
     expiration_timestamp = calc_expiration_timestamp()
     stark_amount = (amount.scaleb(config.collateral_decimals)).to_integral_exact()
-
-    nonce = generate_nonce()
+    if nonce is None:
+        nonce = generate_nonce()
     withdrawal_hash = get_withdrawal_to_address_msg(
         asset_id_collateral=int(config.collateral_asset_on_chain_id, base=16),
         position_id=stark_account.vault,

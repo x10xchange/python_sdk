@@ -6,6 +6,7 @@ from freezegun import freeze_time
 from hamcrest import assert_that, equal_to, has_entries
 from pytest_mock import MockerFixture
 
+from x10.perpetual.configuration import STARKNET_TESTNET_CONFIG
 from x10.perpetual.orders import OrderSide, SelfTradeProtectionLevel
 from x10.utils.date import utc_now
 
@@ -28,13 +29,15 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
         price=Decimal("43445.11680000"),
         side=OrderSide.SELL,
         expire_time=utc_now() + timedelta(days=14),
+        starknet_domain=STARKNET_TESTNET_CONFIG.starknet_domain,
+        nonce=FROZEN_NONCE,
     )
 
     assert_that(
         order_obj.to_api_request_json(),
         equal_to(
             {
-                "id": "2656406151911156282898770907232061209407892373872976831396563134482995247110",
+                "id": "2330101804363196154981139285475973169667384614154965862650426761344411040814",
                 "market": "BTC-USD",
                 "type": "LIMIT",
                 "side": "SELL",
@@ -50,8 +53,8 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
                 "cancelId": None,
                 "settlement": {
                     "signature": {
-                        "r": "0x5766fe0420270feadb55cd6d89cedba0bb8cbd3847fca73d27fe78b0c499b48",
-                        "s": "0xc8456b2db2060d25990471f22cae59bed86d51e508812455458f0464cc5867",
+                        "r": "0x4722654f795909596cfbdc1ea21b8a668cb64f0a57d0c5440cfff4aa7931bd3",
+                        "s": "0x4cdbc5865ee46334a64b574ab3d06cdbc20ba654abd3321c50180a011123505",
                     },
                     "starkKey": "0x61c5e7e8339b7d56f197f54ea91b776776690e3232313de0f2ecbd0ef76f466",
                     "collateralPosition": "10002",
@@ -60,7 +63,7 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
                 "tpSlType": None,
                 "takeProfit": None,
                 "stopLoss": None,
-                "debuggingAmounts": {"collateralAmount": "43445116", "feeAmount": "21723", "syntheticAmount": "1000"},
+                "debuggingAmounts": {"collateralAmount": "43445116", "feeAmount": "21723", "syntheticAmount": "-1000"},
             }
         ),
     )
@@ -83,13 +86,14 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
         side=OrderSide.BUY,
         expire_time=utc_now() + timedelta(days=14),
         self_trade_protection_level=SelfTradeProtectionLevel.CLIENT,
+        starknet_domain=STARKNET_TESTNET_CONFIG.starknet_domain,
     )
 
     assert_that(
         order_obj.to_api_request_json(),
         equal_to(
             {
-                "id": "1166889461421716582054747865777410838520755143669870072976787470981175645302",
+                "id": "654658124396932115680058168732265986796695452956187015498175725004749638680",
                 "market": "BTC-USD",
                 "type": "LIMIT",
                 "side": "BUY",
@@ -105,8 +109,8 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
                 "cancelId": None,
                 "settlement": {
                     "signature": {
-                        "r": "0x52a42b6cb980b552c08d5d01b86852b64f7468f5ed7430133f0e2ea1b53df0",
-                        "s": "0x67287f8aca9f96bc0fa58e5f0f6875e52f869fc392d912145ff9cb16b73a666",
+                        "r": "0x503c2a1f342a341abbce1ffdd353b60f78618aecd96d1ca4b408de1cdeb1a25",
+                        "s": "0x4eef63c6fa034ba665d833c12918cd2888cb11812af5ac811b3ad46cdf6a531",
                     },
                     "starkKey": "0x61c5e7e8339b7d56f197f54ea91b776776690e3232313de0f2ecbd0ef76f466",
                     "collateralPosition": "10002",
@@ -115,7 +119,7 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
                 "tpSlType": None,
                 "takeProfit": None,
                 "stopLoss": None,
-                "debuggingAmounts": {"collateralAmount": "43445117", "feeAmount": "21723", "syntheticAmount": "1000"},
+                "debuggingAmounts": {"collateralAmount": "-43445117", "feeAmount": "21723", "syntheticAmount": "1000"},
             }
         ),
     )
@@ -138,6 +142,7 @@ async def test_cancel_previous_order(mocker: MockerFixture, create_trading_accou
         side=OrderSide.BUY,
         expire_time=utc_now() + timedelta(days=14),
         previous_order_id="previous_custom_id",
+        starknet_domain=STARKNET_TESTNET_CONFIG.starknet_domain,
     )
 
     assert_that(
@@ -167,6 +172,7 @@ async def test_external_order_id(mocker: MockerFixture, create_trading_account, 
         side=OrderSide.BUY,
         expire_time=utc_now() + timedelta(days=14),
         order_external_id="custom_id",
+        starknet_domain=STARKNET_TESTNET_CONFIG.starknet_domain,
     )
 
     assert_that(

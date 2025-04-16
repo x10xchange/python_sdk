@@ -38,12 +38,14 @@ def create_transfer_object(
     amount: Decimal,
     config: EndpointConfig,
     stark_account: StarkPerpetualAccount,
+    nonce: int | None = None,
 ) -> OnChainPerpetualTransferModel:
     expiration_timestamp = calc_expiration_timestamp()
     scaled_amount = amount.scaleb(config.collateral_decimals)
     stark_amount = scaled_amount.to_integral_exact()
 
-    nonce = generate_nonce()
+    if nonce is None:
+        nonce = generate_nonce()
     transfer_hash = get_transfer_msg(
         asset_id=int(config.collateral_asset_on_chain_id, base=16),
         asset_id_fee=ASSET_ID_FEE,

@@ -41,6 +41,9 @@ class StarkAmount:
     def to_internal_amount(self) -> HumanReadableAmount:
         converted_value = self.asset.convert_stark_to_internal_quantity(self.value)
         return HumanReadableAmount(converted_value, self.asset)
+    
+    def negate(self) -> "StarkAmount":
+        return StarkAmount(-self.value, self.asset)
 
 
 @dataclass

@@ -18,6 +18,7 @@ from x10.perpetual.trading_client.markets_information_module import (
     MarketsInformationModule,
 )
 from x10.perpetual.trading_client.order_management_module import OrderManagementModule
+from x10.perpetual.trading_client.testnet_module import TestnetModule
 from x10.utils.date import utc_now
 from x10.utils.http import WrappedApiResponse
 from x10.utils.log import get_logger
@@ -37,6 +38,8 @@ class PerpetualTradingClient:
     __markets_info_module: MarketsInformationModule
     __account_module: AccountModule
     __order_management_module: OrderManagementModule
+    __testnet_module: TestnetModule
+    __config: EndpointConfig
 
     async def place_order(
         self,
@@ -46,7 +49,7 @@ class PerpetualTradingClient:
         side: OrderSide,
         post_only: bool = False,
         previous_order_id=None,
-        expire_time=utc_now() + timedelta(hours=8),
+        expire_time=None,
         time_in_force: TimeInForce = TimeInForce.GTT,
         self_trade_protection_level: SelfTradeProtectionLevel = SelfTradeProtectionLevel.ACCOUNT,
     ) -> WrappedApiResponse[PlacedOrderModel]:
@@ -61,17 +64,21 @@ class PerpetualTradingClient:
         if not market:
             raise ValueError(f"Market {market_name} not found")
 
+        if expire_time is None:
+            expire_time = utc_now() + timedelta(hours=1)
+
         order = create_order_object(
-            self.__stark_account,
-            market,
-            amount_of_synthetic,
-            price,
-            side,
-            post_only,
-            previous_order_id,
-            expire_time,
+            account=self.__stark_account,
+            market=market,
+            amount_of_synthetic=amount_of_synthetic,
+            price=price,
+            side=side,
+            post_only=post_only,
+            previous_order_id=previous_order_id,
+            expire_time=expire_time,
             time_in_force=time_in_force,
             self_trade_protection_level=self_trade_protection_level,
+            starknet_domain=self.__config.starknet_domain,
         )
 
         return await self.__order_management_module.place_order(order)
@@ -93,6 +100,8 @@ class PerpetualTradingClient:
         self.__markets_info_module = MarketsInformationModule(endpoint_config, api_key=api_key)
         self.__account_module = AccountModule(endpoint_config, api_key=api_key, stark_account=stark_account)
         self.__order_management_module = OrderManagementModule(endpoint_config, api_key=api_key)
+        self.__testnet_module = TestnetModule(endpoint_config, api_key=api_key)
+        self.__config = endpoint_config
 
     @property
     def info(self):
@@ -109,3 +118,7 @@ class PerpetualTradingClient:
     @property
     def orders(self):
         return self.__order_management_module
+
+    @property
+    def testnet(self):
+        return self.__testnet_module
