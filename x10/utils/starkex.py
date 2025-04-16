@@ -1,9 +1,5 @@
-import math
 import random
-from datetime import datetime, timedelta
 from typing import Callable
-
-from x10.perpetual.amounts import ROUNDING_FEE_CONTEXT, StarkAmount, StarkOrderAmounts
 from x10.utils.log import get_logger
 
 LOGGER = get_logger(__name__)
@@ -371,41 +367,6 @@ def get_price_msg(
     second_number = (price << 32) + timestamp
 
     return hash_function(first_number, second_number)
-
-
-def hash_order(
-    amounts: StarkOrderAmounts,
-    is_buying_synthetic: bool,
-    nonce: int,
-    position_id: int,
-    expiration_timestamp: datetime,
-) -> int:
-    amount_synthetic: StarkAmount = amounts.synthetic_amount_internal.to_stark_amount(
-        rounding_context=amounts.rounding_context
-    )
-    amount_collateral: StarkAmount = amounts.collateral_amount_internal.to_stark_amount(
-        rounding_context=amounts.rounding_context
-    )
-    max_fee: StarkAmount = amounts.fee_amount_internal.to_stark_amount(rounding_context=ROUNDING_FEE_CONTEXT)
-    synthetic_asset = amount_synthetic.asset
-    collateral_asset = amount_collateral.asset
-
-    expire_time_with_buffer = expiration_timestamp + timedelta(days=14)
-    expire_time_with_buffer_as_hours = math.ceil(expire_time_with_buffer.timestamp() / SECONDS_IN_HOUR)
-
-    return get_limit_order_msg(
-        int(synthetic_asset.settlement_external_id, base=16),
-        int(collateral_asset.settlement_external_id, base=16),
-        1 if is_buying_synthetic else 0,
-        int(collateral_asset.settlement_external_id, base=16),
-        amount_synthetic.value,
-        amount_collateral.value,
-        max_fee.value,
-        nonce,
-        position_id,
-        expire_time_with_buffer_as_hours,
-        pedersen_hash,
-    )
 
 
 def generate_nonce():

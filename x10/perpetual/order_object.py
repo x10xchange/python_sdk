@@ -182,7 +182,6 @@ def hash_order(
 
     expire_time_with_buffer = expiration_timestamp + timedelta(days=14)
     expire_time_as_seconds = math.ceil(expire_time_with_buffer.timestamp())
-    print(f"expire_time_as_seconds: {expire_time_as_seconds}")
 
     return get_order_msg_hash(
         position_id=position_id,
