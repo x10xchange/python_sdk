@@ -34,7 +34,7 @@ TESTNET_CONFIG = EndpointConfig(
     asset_operations_contract="0xe42bb60Fab4EA4905832AEbDf0f001c784dA271b",
     collateral_asset_on_chain_id="0x31857064564ed0ff978e687456963cba09c2c6985d8f9300a1de4962fafa054",
     collateral_decimals=6,
-    collateral_asset_id="",
+    collateral_asset_id="0x1",
     starknet_domain=StarknetDomain(name="Perpetuals", version="v0", chain_id="SN_SEPOLIA", revision="1"),
 )
 
@@ -48,7 +48,7 @@ MAINNET_CONFIG = EndpointConfig(
     asset_operations_contract="0x1cE5D7f52A8aBd23551e91248151CA5A13353C65",
     collateral_asset_on_chain_id="0x2893294412a4c8f915f75892b395ebbf6859ec246ec365c3b1f56f47c3a0a5d",
     collateral_decimals=6,
-    collateral_asset_id="",
+    collateral_asset_id="0x1",
     starknet_domain=StarknetDomain(name="Perpetuals", version="v0", chain_id="SN_MAINNET", revision="1"),
 )
 
@@ -66,7 +66,7 @@ MAINNET_CONFIG_LEGACY_SIGNING_DOMAIN = EndpointConfig(
     asset_operations_contract="0x1cE5D7f52A8aBd23551e91248151CA5A13353C65",
     collateral_asset_on_chain_id="0x2893294412a4c8f915f75892b395ebbf6859ec246ec365c3b1f56f47c3a0a5d",
     collateral_decimals=6,
-    collateral_asset_id="",
+    collateral_asset_id="0x1",
     starknet_domain=StarknetDomain(name="Perpetuals", version="v0", chain_id="SN_MAINNET", revision="1"),
 )
 

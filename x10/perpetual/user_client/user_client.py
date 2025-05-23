@@ -11,10 +11,6 @@ from eth_account.signers.local import LocalAccount
 from x10.errors import X10Error
 from x10.perpetual.accounts import AccountModel, ApiKeyRequestModel, ApiKeyResponseModel
 from x10.perpetual.configuration import EndpointConfig
-from x10.perpetual.contract import (
-    call_stark_perpetual_withdraw,
-    call_stark_perpetual_withdraw_balance,
-)
 from x10.perpetual.user_client.onboarding import (
     OnboardedClientModel,
     StarkKeyPair,
@@ -202,9 +198,3 @@ class UserClient:
         if response_data is None:
             raise ValueError("No API key data returned from onboarding")
         return response_data.key
-
-    async def perform_l1_withdrawal(self) -> str:
-        return call_stark_perpetual_withdraw(config=self.__endpoint_config, get_eth_private_key=self.__l1_private_key)
-
-    async def available_l1_withdrawal_balance(self) -> Decimal:
-        return call_stark_perpetual_withdraw_balance(self.__l1_private_key, self.__endpoint_config)

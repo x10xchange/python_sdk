@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Callable, List, Optional
+from typing import List, Optional
 
 from x10.perpetual.accounts import AccountLeverage
 from x10.perpetual.assets import (
@@ -8,14 +8,13 @@ from x10.perpetual.assets import (
     AssetOperationType,
 )
 from x10.perpetual.balances import BalanceModel
-from x10.perpetual.contract import call_stark_perpetual_deposit
 from x10.perpetual.fees import TradingFeeModel
 from x10.perpetual.orders import OpenOrderModel, OrderSide, OrderType
 from x10.perpetual.positions import PositionHistoryModel, PositionModel, PositionSide
 from x10.perpetual.trades import AccountTradeModel, TradeType
 from x10.perpetual.trading_client.base_module import BaseModule
 from x10.perpetual.transfer_object import create_transfer_object
-from x10.perpetual.withdrawal_object import create_withdrawal_object
+from x10.perpetual.transfers import TransferResponseModel
 from x10.utils.http import (
     WrappedApiResponse,
     send_get_request,
@@ -150,26 +149,27 @@ class AccountModule(BaseModule):
     async def transfer(
         self,
         to_vault: int,
-        to_l2_key: str,
+        to_l2_key: int,
         amount: Decimal,
-    ) -> WrappedApiResponse[EmptyModel]:
+        nonce: Optional[int] = None,
+    ) -> WrappedApiResponse[TransferResponseModel]:
         from_vault = self._get_stark_account().vault
-        from_l2_key = self._get_stark_account().public_key
         url = self._get_url("/user/transfer/onchain")
         request_model = create_transfer_object(
             from_vault=from_vault,
-            from_l2_key=from_l2_key,
             to_vault=to_vault,
             to_l2_key=to_l2_key,
             amount=amount,
             config=self._get_endpoint_config(),
             stark_account=self._get_stark_account(),
+            starknet_domain=self._get_endpoint_config().starknet_domain,
+            nonce=nonce,
         )
 
         return await send_post_request(
             await self.get_session(),
             url,
-            EmptyModel,
+            TransferResponseModel,
             json=request_model.to_api_request_json(),
             api_key=self._get_api_key(),
         )
@@ -179,22 +179,7 @@ class AccountModule(BaseModule):
         amount: Decimal,
         eth_address: str,
     ) -> WrappedApiResponse[int]:
-        url = self._get_url("/user/withdrawal/onchain")
-        request_model = create_withdrawal_object(
-            amount=amount,
-            eth_address=eth_address,
-            stark_account=self._get_stark_account(),
-            config=self._get_endpoint_config(),
-        )
-
-        payload = request_model.to_api_request_json()
-        return await send_post_request(
-            await self.get_session(),
-            url,
-            int,
-            json=payload,
-            api_key=self._get_api_key(),
-        )
+        raise NotImplementedError("This function is not implemented yet.")
 
     async def asset_operations(
         self,
@@ -220,18 +205,4 @@ class AccountModule(BaseModule):
         )
         return await send_get_request(
             await self.get_session(), url, List[AssetOperationModel], api_key=self._get_api_key()
-        )
-
-    async def deposit(self, amount: Decimal, get_eth_private_key: Callable[[], str]) -> str:
-        stark_account = self.__stark_account
-
-        if not stark_account:
-            raise ValueError("Stark account is not set")
-
-        return call_stark_perpetual_deposit(
-            l2_vault=stark_account.vault,
-            l2_key=stark_account.public_key,
-            config=self._get_endpoint_config(),
-            human_readable_amount=amount,
-            get_eth_private_key=get_eth_private_key,
         )

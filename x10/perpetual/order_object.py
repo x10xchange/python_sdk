@@ -27,7 +27,7 @@ from x10.perpetual.orders import (
     TimeInForce,
 )
 from x10.utils.date import to_epoch_millis, utc_now
-from x10.utils.starkex import generate_nonce
+from x10.utils import generate_nonce
 
 
 def create_order_object(

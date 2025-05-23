@@ -9,8 +9,8 @@ from x10.perpetual.orders import OpenOrderModel
 from x10.perpetual.positions import PositionModel
 from x10.perpetual.trades import AccountTradeModel
 from x10.utils.model import X10BaseModel
-from x10.utils.starkex import sign
 from x10.utils.string import is_hex_string
+from fast_stark_crypto import sign
 
 
 class StarkPerpetualAccount:

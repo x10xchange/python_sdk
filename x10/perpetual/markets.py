@@ -1,4 +1,5 @@
-from decimal import ROUND_CEILING, Decimal
+import math
+from decimal import ROUND_CEILING, ROUND_FLOOR, ROUND_HALF_UP, Decimal
 from functools import cached_property
 from typing import List
 
@@ -60,6 +61,21 @@ class TradingConfigModel(X10BaseModel):
     def max_position_value_for_leverage(self, leverage: Decimal) -> Decimal:
         filtered = [x for x in self.risk_factor_config if x.max_leverage >= leverage]
         return filtered[-1].upper_bound if filtered else Decimal(0)
+
+    def round_order_size(self, order_size: Decimal, rounding_direction: str | None = None) -> Decimal:
+        if rounding_direction is None:
+            rounding_direction = ROUND_CEILING
+        order_size = (order_size / self.min_order_size_change).to_integral_exact(
+            rounding_direction
+        ) * self.min_order_size_change
+        return order_size
+
+    def calculate_order_size_from_value(self, order_value: Decimal, order_price: Decimal) -> Decimal:
+        order_size = order_value / order_price
+        if order_size > 0:
+            return self.round_order_size(order_size)
+        else:
+            return Decimal(0)
 
 
 class L2ConfigModel(X10BaseModel):
