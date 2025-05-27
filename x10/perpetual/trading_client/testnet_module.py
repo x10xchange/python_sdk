@@ -1,7 +1,6 @@
 from typing import List, Optional
 
 import tenacity
-from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.assets import AssetOperationModel, AssetOperationStatus
 from x10.perpetual.configuration import EndpointConfig
 from x10.perpetual.trading_client.account_module import AccountModule
