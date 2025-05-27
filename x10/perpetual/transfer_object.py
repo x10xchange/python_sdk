@@ -36,18 +36,14 @@ def create_transfer_object(
     amount: Decimal,
     config: EndpointConfig,
     stark_account: StarkPerpetualAccount,
-    starknet_domain: StarknetDomain,
     nonce: int | None = None,
 ) -> OnChainPerpetualTransferModel:
     expiration_timestamp = calc_expiration_timestamp()
     scaled_amount = amount.scaleb(config.collateral_decimals)
     stark_amount = scaled_amount.to_integral_exact()
-
+    starknet_domain: StarknetDomain = config.starknet_domain
     if nonce is None:
         nonce = generate_nonce()
-
-    print(f"Nonce: {hex(nonce)}")
-
     transfer_hash = get_transfer_msg_hash(
         recipient_position_id=to_vault,
         sender_position_id=from_vault,
@@ -62,10 +58,7 @@ def create_transfer_object(
         collateral_id=1,
     )
 
-    print(f"Transfer hash: {transfer_hash}")
-
     (transfer_signature_r, transfer_signature_s) = stark_account.sign(transfer_hash)
-
     settlement = StarkTransferSettlement(
         amount=int(stark_amount),
         asset_id=int(config.collateral_asset_id, base=16),

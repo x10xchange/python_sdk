@@ -151,7 +151,7 @@ class AccountModule(BaseModule):
         to_vault: int,
         to_l2_key: int,
         amount: Decimal,
-        nonce: Optional[int] = None,
+        nonce: int | None = None,
     ) -> WrappedApiResponse[TransferResponseModel]:
         from_vault = self._get_stark_account().vault
         url = self._get_url("/user/transfer/onchain")
@@ -162,7 +162,6 @@ class AccountModule(BaseModule):
             amount=amount,
             config=self._get_endpoint_config(),
             stark_account=self._get_stark_account(),
-            starknet_domain=self._get_endpoint_config().starknet_domain,
             nonce=nonce,
         )
 

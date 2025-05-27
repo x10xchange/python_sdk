@@ -153,7 +153,6 @@ async def send_post_request(
     request_headers: Optional[Dict[str, str]] = None,
     response_code_to_exception: Optional[Dict[int, Type[Exception]]] = None,
 ) -> WrappedApiResponse[ApiResponseType]:
-    # print(f"Sending POST {url} with json={json}")
     headers = __get_headers(api_key=api_key, request_headers=request_headers)
     LOGGER.debug("Sending POST %s, headers=%s", url, headers)
     async with session.post(url, json=json, headers=headers) as response:
