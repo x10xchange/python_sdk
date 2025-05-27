@@ -27,7 +27,6 @@ async def test_create_transfer(mocker: MockerFixture, create_trading_account, cr
         stark_account=trading_account,
         config=TESTNET_CONFIG,
         nonce=FROZEN_NONCE,
-        starknet_domain=TESTNET_CONFIG.starknet_domain,
     )
     assert_that(
         transfer_obj.to_api_request_json(),
