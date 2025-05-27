@@ -182,6 +182,7 @@ class AccountModule(BaseModule):
 
     async def asset_operations(
         self,
+        id: Optional[int] = None,
         operations_type: Optional[List[AssetOperationType]] = None,
         operations_status: Optional[List[AssetOperationStatus]] = None,
         start_time: Optional[int] = None,
@@ -200,6 +201,7 @@ class AccountModule(BaseModule):
                 "endTime": end_time,
                 "cursor": cursor,
                 "limit": limit,
+                "id": id if id is not None else None,
             },
         )
         return await send_get_request(

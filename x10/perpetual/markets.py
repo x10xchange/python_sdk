@@ -1,5 +1,4 @@
-import math
-from decimal import ROUND_CEILING, ROUND_FLOOR, ROUND_HALF_UP, Decimal
+from decimal import ROUND_CEILING, Decimal
 from functools import cached_property
 from typing import List
 
@@ -73,7 +72,7 @@ class TradingConfigModel(X10BaseModel):
     ) -> Decimal:
         order_size = order_value / order_price
         if order_size > 0:
-            return self.round_order_size(order_size)
+            return self.round_order_size(order_size, rounding_direction=rounding_direction)
         else:
             return Decimal(0)
 

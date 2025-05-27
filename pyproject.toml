@@ -22,16 +22,14 @@ classifiers = [
 packages = [{ include = "x10" }]
 
 [tool.poetry.dependencies]
-aiohttp = "==3.10.11"
-eth-account = "==0.11.2"
-eth_typing = "==4.4.0"
+aiohttp = ">=3.10.11"
+eth-account = ">=0.12.0"
 fast-stark-crypto = "==0.3.4a0"
-pydantic = "==2.5.3"
+pydantic = ">=2.9.0"
 python = "^3.10"
-pyyaml = "==6.0.1"
-sortedcontainers = "==2.4.0"
-web3 = "==6.20.1"
-websockets = "==12.0"
+pyyaml = ">=6.0.1"
+sortedcontainers = ">=2.4.0"
+websockets = ">=12.0,<14.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "==23.12.0"
@@ -49,10 +47,10 @@ pytest-cov = "==4.1.0"
 pytest-forked = "==1.6.0"
 pytest-mock = "==3.12.0"
 python-dotenv = "==1.0.1"
-safety = "==2.4.0b2"
+safety = "==3.5.1"
 tox = "==4.11.4"
 types-pyyaml = "==6.0.12.12"
-typing-extensions = "==4.9.0"
+typing-extensions = ">=4.9.0"
 
 
 [tool.mypy]

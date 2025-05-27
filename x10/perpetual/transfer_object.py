@@ -11,9 +11,9 @@ from x10.perpetual.transfers import (
     OnChainPerpetualTransferModel,
     StarkTransferSettlement,
 )
+from x10.utils import generate_nonce
 from x10.utils.date import utc_now
 from x10.utils.model import SettlementSignatureModel
-from x10.utils import generate_nonce
 
 ASSET_ID_FEE = 0
 
