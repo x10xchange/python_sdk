@@ -1,11 +1,11 @@
-import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from eth_account.messages import SignableMessage, encode_typed_data
 from eth_account.signers.local import LocalAccount
+from fast_stark_crypto import generate_keypair_from_eth_signature, pedersen_hash
+from fast_stark_crypto import sign as stark_sign
 
-from vendor.starkware.crypto import signature as stark_sign
 from x10.perpetual.accounts import AccountModel
 from x10.utils.model import X10BaseModel
 
@@ -165,12 +165,6 @@ def get_key_derivation_struct_to_sign(account_index: int, address: str, signing_
     return encode_typed_data(full_message=structured_data)
 
 
-def get_private_key_from_eth_signature(eth_signature: str) -> int:
-    eth_sig_truncated = re.sub("^0x", "", eth_signature)
-    r = eth_sig_truncated[:64]
-    return stark_sign.grind_key(int(r, 16), stark_sign.EC_ORDER)
-
-
 def get_l2_keys_from_l1_account(l1_account: LocalAccount, account_index: int, signing_domain: str) -> StarkKeyPair:
     struct = get_key_derivation_struct_to_sign(
         account_index=account_index,
@@ -178,8 +172,7 @@ def get_l2_keys_from_l1_account(l1_account: LocalAccount, account_index: int, si
         signing_domain=signing_domain,
     )
     s = l1_account.sign_message(struct)
-    private = get_private_key_from_eth_signature(s.signature.hex())
-    public = stark_sign.private_to_stark_key(private)
+    (private, public) = generate_keypair_from_eth_signature(s.signature.hex())
     return StarkKeyPair(private=private, public=public)
 
 
@@ -199,8 +192,9 @@ def get_onboarding_payload(
     l1_signature = account.sign_message(
         registration_payload.to_signable_message(signing_domain=signing_domain)
     ).signature.hex()
-    l2_message = stark_sign.pedersen_hash(int(account.address, 16), key_pair.public)
-    l2_r, l2_s = stark_sign.sign(msg_hash=l2_message, priv_key=key_pair.private)
+    l2_message = pedersen_hash(int(account.address, 16), key_pair.public)
+    l2_r, l2_s = stark_sign(msg_hash=l2_message, private_key=key_pair.private)
+
     onboarding_payload = OnboardingPayLoad(
         l1_signature=l1_signature,
         l2_key=key_pair.public,
@@ -225,8 +219,8 @@ def get_sub_account_creation_payload(
         action=sub_account_action,
     )
 
-    l2_message = stark_sign.pedersen_hash(int(l1_address, 16), key_pair.public)
-    l2_r, l2_s = stark_sign.sign(msg_hash=l2_message, priv_key=key_pair.private)
+    l2_message = pedersen_hash(int(l1_address, 16), key_pair.public)
+    l2_r, l2_s = stark_sign(msg_hash=l2_message, private_key=key_pair.private)
 
     return SubAccountOnboardingPayload(
         l2_key=key_pair.public,

@@ -100,7 +100,7 @@ class PerpetualTradingClient:
         self.__markets_info_module = MarketsInformationModule(endpoint_config, api_key=api_key)
         self.__account_module = AccountModule(endpoint_config, api_key=api_key, stark_account=stark_account)
         self.__order_management_module = OrderManagementModule(endpoint_config, api_key=api_key)
-        self.__testnet_module = TestnetModule(endpoint_config, api_key=api_key)
+        self.__testnet_module = TestnetModule(endpoint_config, api_key=api_key, account_module=self.__account_module)
         self.__config = endpoint_config
 
     @property

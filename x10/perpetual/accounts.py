@@ -1,6 +1,7 @@
 from decimal import Decimal
 from typing import Dict, List, Optional, Tuple
 
+from fast_stark_crypto import sign
 from pydantic import AliasChoices, Field
 
 from x10.perpetual.balances import BalanceModel
@@ -9,7 +10,6 @@ from x10.perpetual.orders import OpenOrderModel
 from x10.perpetual.positions import PositionModel
 from x10.perpetual.trades import AccountTradeModel
 from x10.utils.model import X10BaseModel
-from x10.utils.starkex import sign
 from x10.utils.string import is_hex_string
 
 

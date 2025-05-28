@@ -17,7 +17,7 @@ FROZEN_NONCE = 1473459052
 async def test_create_sell_order_with_default_expiration(
     mocker: MockerFixture, create_trading_account, create_btc_usd_market
 ):
-    mocker.patch("x10.utils.starkex.generate_nonce", return_value=FROZEN_NONCE)
+    mocker.patch("x10.utils.generate_nonce", return_value=FROZEN_NONCE)
     freezer = freeze_time("2024-01-05 01:08:56.860694")
     frozen_time = freezer.start()
     from x10.perpetual.order_object import create_order_object
@@ -38,7 +38,7 @@ async def test_create_sell_order_with_default_expiration(
         order_obj.to_api_request_json(),
         equal_to(
             {
-                "id": "1816088138733689297675871575031664925457547067944277429248232647353062668107",
+                "id": "529621978301228831750156704671293558063128025271079340676658105549022202327",
                 "market": "BTC-USD",
                 "type": "LIMIT",
                 "side": "SELL",
@@ -54,8 +54,8 @@ async def test_create_sell_order_with_default_expiration(
                 "cancelId": None,
                 "settlement": {
                     "signature": {
-                        "r": "0x5d1dc0d8759cd6321780fc5728ebf4e78312ab25c760ba5c66b8eaadcb787bc",
-                        "s": "0x1ae0482359314376d0ba8d3aaff68891daf4680fb1d436f03005bf413c7f3bf",
+                        "r": "0x3d17d8b9652e5f60d40d079653cfa92b1065ea8cf159609a3c390070dcd44f7",
+                        "s": "0x76a6deccbc84ac324f695cfbde80e0ed62443e95f5dcd8722d12650ccc122e5",
                     },
                     "starkKey": "0x61c5e7e8339b7d56f197f54ea91b776776690e3232313de0f2ecbd0ef76f466",
                     "collateralPosition": "10002",
@@ -73,7 +73,7 @@ async def test_create_sell_order_with_default_expiration(
 @freeze_time("2024-01-05 01:08:56.860694")
 @pytest.mark.asyncio
 async def test_create_sell_order(mocker: MockerFixture, create_trading_account, create_btc_usd_market):
-    mocker.patch("x10.utils.starkex.generate_nonce", return_value=FROZEN_NONCE)
+    mocker.patch("x10.utils.generate_nonce", return_value=FROZEN_NONCE)
 
     from x10.perpetual.order_object import create_order_object
 
@@ -94,7 +94,7 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
         order_obj.to_api_request_json(),
         equal_to(
             {
-                "id": "2330101804363196154981139285475973169667384614154965862650426761344411040814",
+                "id": "2969335148777495210033041829700798003994871688044444919524700744667647811801",
                 "market": "BTC-USD",
                 "type": "LIMIT",
                 "side": "SELL",
@@ -110,8 +110,8 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
                 "cancelId": None,
                 "settlement": {
                     "signature": {
-                        "r": "0x4722654f795909596cfbdc1ea21b8a668cb64f0a57d0c5440cfff4aa7931bd3",
-                        "s": "0x4cdbc5865ee46334a64b574ab3d06cdbc20ba654abd3321c50180a011123505",
+                        "r": "0x604ef07147d4251385eaaa630e6a71db8f0a8c7cb33021c98698047db80edfa",
+                        "s": "0x6c707d9a06604d3f8ffd34378bf4fce7c0aaf50cba4cf37c3525c323106cda5",
                     },
                     "starkKey": "0x61c5e7e8339b7d56f197f54ea91b776776690e3232313de0f2ecbd0ef76f466",
                     "collateralPosition": "10002",
@@ -129,7 +129,7 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
 @freeze_time("2024-01-05 01:08:56.860694")
 @pytest.mark.asyncio
 async def test_create_buy_order(mocker: MockerFixture, create_trading_account, create_btc_usd_market):
-    mocker.patch("x10.utils.starkex.generate_nonce", return_value=FROZEN_NONCE)
+    mocker.patch("x10.utils.generate_nonce", return_value=FROZEN_NONCE)
 
     from x10.perpetual.order_object import create_order_object
 
@@ -150,7 +150,7 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
         order_obj.to_api_request_json(),
         equal_to(
             {
-                "id": "654658124396932115680058168732265986796695452956187015498175725004749638680",
+                "id": "2495374044666992118771096772295242242651427695217815113349321039194683172848",
                 "market": "BTC-USD",
                 "type": "LIMIT",
                 "side": "BUY",
@@ -166,8 +166,8 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
                 "cancelId": None,
                 "settlement": {
                     "signature": {
-                        "r": "0x503c2a1f342a341abbce1ffdd353b60f78618aecd96d1ca4b408de1cdeb1a25",
-                        "s": "0x4eef63c6fa034ba665d833c12918cd2888cb11812af5ac811b3ad46cdf6a531",
+                        "r": "0xa55625c7d5f1b85bed22556fc805224b8363074979cf918091d9ddb1403e13",
+                        "s": "0x504caf634d859e643569743642ccf244434322859b2421d76f853af43ae7a46",
                     },
                     "starkKey": "0x61c5e7e8339b7d56f197f54ea91b776776690e3232313de0f2ecbd0ef76f466",
                     "collateralPosition": "10002",
@@ -185,7 +185,7 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
 @freeze_time("2024-01-05 01:08:56.860694")
 @pytest.mark.asyncio
 async def test_cancel_previous_order(mocker: MockerFixture, create_trading_account, create_btc_usd_market):
-    mocker.patch("x10.utils.starkex.generate_nonce", return_value=FROZEN_NONCE)
+    mocker.patch("x10.utils.generate_nonce", return_value=FROZEN_NONCE)
 
     from x10.perpetual.order_object import create_order_object
 
@@ -215,7 +215,7 @@ async def test_cancel_previous_order(mocker: MockerFixture, create_trading_accou
 @freeze_time("2024-01-05 01:08:56.860694")
 @pytest.mark.asyncio
 async def test_external_order_id(mocker: MockerFixture, create_trading_account, create_btc_usd_market):
-    mocker.patch("x10.utils.starkex.generate_nonce", return_value=FROZEN_NONCE)
+    mocker.patch("x10.utils.generate_nonce", return_value=FROZEN_NONCE)
 
     from x10.perpetual.order_object import create_order_object
 
