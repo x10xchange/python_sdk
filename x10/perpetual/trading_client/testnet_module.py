@@ -51,7 +51,7 @@ class TestnetModule(BaseModule):
                         and (
                             asset_ops[0].status
                             == AssetOperationStatus.COMPLETED.value
-                            # or asset_ops[0].status == AssetOperationStatus.REJECTED.value
+                            or asset_ops[0].status == AssetOperationStatus.REJECTED.value
                         )
                     )
                 ),

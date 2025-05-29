@@ -80,7 +80,6 @@ class PerpetualTradingClient:
             self_trade_protection_level=self_trade_protection_level,
             starknet_domain=self.__config.starknet_domain,
         )
-
         return await self.__order_management_module.place_order(order)
 
     async def close(self):
