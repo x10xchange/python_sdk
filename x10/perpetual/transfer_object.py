@@ -55,7 +55,7 @@ def create_transfer_object(
         domain_version=starknet_domain.version,
         domain_chain_id=starknet_domain.chain_id,
         domain_revision=starknet_domain.revision,
-        collateral_id=1,
+        collateral_id=int(config.collateral_asset_on_chain_id, base=16),
     )
 
     (transfer_signature_r, transfer_signature_s) = stark_account.sign(transfer_hash)
