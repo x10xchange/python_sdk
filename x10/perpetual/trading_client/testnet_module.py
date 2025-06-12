@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 import tenacity
+
 from x10.perpetual.assets import AssetOperationModel, AssetOperationStatus
 from x10.perpetual.configuration import EndpointConfig
 from x10.perpetual.trading_client.account_module import AccountModule
@@ -49,8 +50,7 @@ class TestnetModule(BaseModule):
                         asset_ops
                         and len(asset_ops) > 0
                         and (
-                            asset_ops[0].status
-                            == AssetOperationStatus.COMPLETED.value
+                            asset_ops[0].status == AssetOperationStatus.COMPLETED.value
                             or asset_ops[0].status == AssetOperationStatus.REJECTED.value
                         )
                     )
