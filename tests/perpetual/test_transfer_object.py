@@ -38,7 +38,7 @@ async def test_create_transfer(mocker: MockerFixture, create_trading_account, cr
                 "transferredAsset": "0x1",
                 "settlement": {
                     "amount": 1100000,
-                    "assetId": "0x1",
+                    "assetId": "0x31857064564ed0ff978e687456963cba09c2c6985d8f9300a1de4962fafa054",
                     "expirationTimestamp": 1706231337,
                     "nonce": 1473459052,
                     "receiverPositionId": int(accounts[1].l2_vault),
