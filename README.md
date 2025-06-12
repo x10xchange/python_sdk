@@ -19,7 +19,7 @@ Our SDK makes use of a [Rust Library](https://github.com/x10xchange/stark-crypto
 | linux (glibc) - arm64 |   ✅   |   ✅   |   ✅   |   ✅   |
 | linux (musl) - arm64  |   ✅   |   ✅   |   ✅   |   ✅   |
 | OSX - arm64           |   ✅   |   ✅   |   ✅   |   ✅   |
-| windows - x86         |   ⚠️   |   ⚠️   |   ⚠️   |   ⚠️   |
+| windows - x86         |   ✅   |   ✅   |   ✅   |   ✅   |
 | windows - arm64       |   ⚠️   |   ⚠️   |   ⚠️   |   ⚠️   |
 
 

@@ -105,7 +105,9 @@ async def place_order(
     price = Decimal("0.660") - Decimal("0.00" + str(i)) if should_buy else Decimal("0.6601") + Decimal("0.00" + str(i))
     order_side = OrderSide.BUY if should_buy else OrderSide.SELL
     market = markets_cache[ADA_USD_MARKET]
-    new_order = create_order_object(stark_account, market, Decimal("100"), price, order_side)
+    new_order = create_order_object(
+        stark_account, market, Decimal("100"), price, order_side, starknet_domain=TESTNET_CONFIG.starknet_domain
+    )
     order_condtions[new_order.id] = asyncio.Condition()
     return new_order.id, await trading_client.orders.place_order(order=new_order)
 

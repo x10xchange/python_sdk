@@ -30,3 +30,10 @@ class OnChainPerpetualTransferModel(X10BaseModel):
     amount: Decimal
     settlement: StarkTransferSettlement
     transferred_asset: str
+
+
+class TransferResponseModel(X10BaseModel):
+    valid_signature: bool
+    id: int | None = None
+    hash_calculated: str | None = None
+    stark_ex_representation: dict | None = None

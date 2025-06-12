@@ -42,6 +42,7 @@ class ResponseStatus(Enum):
 class ResponseError(X10BaseModel):
     code: int
     message: str
+    debug_info: Optional[str] = None
 
 
 class Pagination(X10BaseModel):

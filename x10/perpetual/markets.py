@@ -61,6 +61,21 @@ class TradingConfigModel(X10BaseModel):
         filtered = [x for x in self.risk_factor_config if x.max_leverage >= leverage]
         return filtered[-1].upper_bound if filtered else Decimal(0)
 
+    def round_order_size(self, order_size: Decimal, rounding_direction: str = ROUND_CEILING) -> Decimal:
+        order_size = (order_size / self.min_order_size_change).to_integral_exact(
+            rounding_direction
+        ) * self.min_order_size_change
+        return order_size
+
+    def calculate_order_size_from_value(
+        self, order_value: Decimal, order_price: Decimal, rounding_direction: str = ROUND_CEILING
+    ) -> Decimal:
+        order_size = order_value / order_price
+        if order_size > 0:
+            return self.round_order_size(order_size, rounding_direction=rounding_direction)
+        else:
+            return Decimal(0)
+
 
 class L2ConfigModel(X10BaseModel):
     type: str

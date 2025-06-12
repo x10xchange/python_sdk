@@ -192,6 +192,7 @@ class BlockingTradingClient:
             side=side,
             post_only=post_only,
             previous_order_id=previous_order_id,
+            starknet_domain=self.__endpoint_config.starknet_domain,
         )
 
         if order.id in self.__order_waiters:
