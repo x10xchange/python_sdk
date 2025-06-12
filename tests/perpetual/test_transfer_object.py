@@ -46,8 +46,8 @@ async def test_create_transfer(mocker: MockerFixture, create_trading_account, cr
                     "senderPositionId": trading_account.vault,
                     "senderPublicKey": f"{hex(trading_account.public_key)}",
                     "signature": {
-                        "r": "0x21f353080b04ab862474d0d2985f4d223087a89193a3a8bdea3de320f845cf8",
-                        "s": "0x6f70daa9e65037d97ccf0667cc6f1368b7b01a93d0ededf929b53be3f177d96",
+                        "r": "0x23d69eafa600b088844ecd6d413f0858a9f66ce5521a5de2836d97809521af2",
+                        "s": "0x67eb0ec88db83455721e8a628fa6fca23085ea42e5d00a6cd2260f8fa5d1ce",
                     },
                 },
             }
