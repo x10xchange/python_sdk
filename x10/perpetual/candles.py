@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Literal
+from typing import Literal, Optional
 
 from pydantic import AliasChoices, Field
 
@@ -14,5 +14,7 @@ class CandleModel(X10BaseModel):
     low: Decimal = Field(validation_alias=AliasChoices("low", "l"), serialization_alias="l")
     high: Decimal = Field(validation_alias=AliasChoices("high", "h"), serialization_alias="h")
     close: Decimal = Field(validation_alias=AliasChoices("close", "c"), serialization_alias="c")
-    volume: Decimal = Field(validation_alias=AliasChoices("volume", "v"), serialization_alias="v")
+    volume: Optional[Decimal] = Field(
+        validation_alias=AliasChoices("volume", "v"), serialization_alias="v", default=None
+    )
     timestamp: int = Field(validation_alias=AliasChoices("timestamp", "T"), serialization_alias="T")
