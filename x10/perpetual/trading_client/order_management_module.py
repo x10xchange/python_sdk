@@ -10,10 +10,10 @@ LOGGER = get_logger(__name__)
 
 
 class _MassCancelRequestModel(X10BaseModel):
-    order_ids: Optional[List[int]]
-    external_order_ids: Optional[List[str]]
-    markets: Optional[List[str]]
-    cancel_all: Optional[bool]
+    order_ids: Optional[List[int]] = None
+    external_order_ids: Optional[List[str]] = None
+    markets: Optional[List[str]] = None
+    cancel_all: Optional[bool] = None
 
 
 class OrderManagementModule(BaseModule):
