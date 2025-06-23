@@ -44,8 +44,8 @@ class PositionHistoryModel(X10BaseModel):
     leverage: Decimal
     size: Decimal
     open_price: Decimal
-    exit_type: Optional[ExitType]
-    exit_price: Optional[Decimal]
+    exit_type: Optional[ExitType] = None
+    exit_price: Optional[Decimal] = None
     realised_pnl: Decimal
     created_time: int
-    closed_time: Optional[int]
+    closed_time: Optional[int] = None
