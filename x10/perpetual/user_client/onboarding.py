@@ -39,6 +39,7 @@ class AccountRegistration:
     tos_accepted: bool
     time: datetime
     action: str
+    host: str
 
     def __post_init__(self):
         self.time_string = self.time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -52,6 +53,7 @@ class AccountRegistration:
             "tosAccepted": self.tos_accepted,
             "time": self.time_string,
             "action": self.action,
+            "host": self.host,
         }
         types = {
             "EIP712Domain": [
@@ -63,6 +65,7 @@ class AccountRegistration:
                 {"name": "tosAccepted", "type": "bool"},
                 {"name": "time", "type": "string"},
                 {"name": "action", "type": "string"},
+                {"name": "host", "type": "string"},
             ],
         }
         primary_type = "AccountRegistration"
@@ -81,6 +84,7 @@ class AccountRegistration:
             "tosAccepted": self.tos_accepted,
             "time": self.time_string,
             "action": self.action,
+            "host": self.host,
         }
 
 
@@ -127,7 +131,7 @@ class OnboardingPayLoad:
 
 
 def get_registration_struct_to_sign(
-    account_index: int, address: str, timestamp: datetime, action: str
+    account_index: int, address: str, timestamp: datetime, action: str, host: str
 ) -> AccountRegistration:
     return AccountRegistration(
         account_index=account_index,
@@ -135,6 +139,7 @@ def get_registration_struct_to_sign(
         tos_accepted=True,
         time=timestamp,
         action=action,
+        host=host,
     )
 
 
@@ -180,6 +185,7 @@ def get_onboarding_payload(
     account: LocalAccount,
     signing_domain: str,
     key_pair: StarkKeyPair,
+    host: str,
     time: datetime | None = None,
     referral_code: str | None = None,
 ) -> OnboardingPayLoad:
@@ -187,11 +193,11 @@ def get_onboarding_payload(
         time = datetime.now(timezone.utc)
 
     registration_payload = get_registration_struct_to_sign(
-        account_index=0, address=account.address, timestamp=time, action=register_action
+        account_index=0, address=account.address, timestamp=time, action=register_action, host=host
     )
-    l1_signature = account.sign_message(
-        registration_payload.to_signable_message(signing_domain=signing_domain)
-    ).signature.hex()
+    payload = registration_payload.to_signable_message(signing_domain=signing_domain)
+    l1_signature = account.sign_message(payload).signature.hex()
+
     l2_message = pedersen_hash(int(account.address, 16), key_pair.public)
     l2_r, l2_s = stark_sign(msg_hash=l2_message, private_key=key_pair.private)
 
@@ -207,16 +213,18 @@ def get_onboarding_payload(
 
 
 def get_sub_account_creation_payload(
-    account_index: int, l1_address: str, key_pair: StarkKeyPair, description: str, time: datetime | None = None
+    account_index: int,
+    l1_address: str,
+    key_pair: StarkKeyPair,
+    description: str,
+    host: str,
+    time: datetime | None = None,
 ):
     if time is None:
         time = datetime.now(timezone.utc)
 
     registration_payload = get_registration_struct_to_sign(
-        account_index=account_index,
-        address=l1_address,
-        timestamp=time,
-        action=sub_account_action,
+        account_index=account_index, address=l1_address, timestamp=time, action=sub_account_action, host=host
     )
 
     l2_message = pedersen_hash(int(l1_address, 16), key_pair.public)

@@ -24,12 +24,12 @@ class PerpetualStreamClient:
 
         self.__api_url = api_url
 
-    def subscribe_to_orderbooks(self, market_name: Optional[str] = None):
+    def subscribe_to_orderbooks(self, market_name: Optional[str] = None, depth: int | None = None):
         """
         https://api.docs.extended.exchange/#orderbooks-stream
         """
 
-        url = self.__get_url("/orderbooks/<market?>", market=market_name)
+        url = self.__get_url("/orderbooks/<market?>" + (f"?depth={depth}" if depth else ""), market=market_name)
         return self.__connect(url, WrappedStreamResponse[OrderbookUpdateModel])
 
     def subscribe_to_public_trades(self, market_name: Optional[str] = None):

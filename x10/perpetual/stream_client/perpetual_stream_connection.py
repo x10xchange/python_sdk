@@ -43,10 +43,8 @@ class PerpetualStreamConnection(Generic[StreamMsgResponseType]):
 
     async def close(self):
         assert self.__websocket is not None
-        assert not self.__websocket.closed
-
-        await self.__websocket.close()
-
+        if not self.__websocket.closed:
+            await self.__websocket.close()
         LOGGER.debug("Stream closed: %s", self.__stream_url)
 
     @property
@@ -67,8 +65,10 @@ class PerpetualStreamConnection(Generic[StreamMsgResponseType]):
 
         if self.__websocket.closed:
             raise StopAsyncIteration
-
-        return await self.__receive()
+        try:
+            return await self.__receive()
+        except websockets.ConnectionClosed:
+            raise StopAsyncIteration from None
 
     async def __receive(self) -> StreamMsgResponseType:
         assert self.__websocket is not None

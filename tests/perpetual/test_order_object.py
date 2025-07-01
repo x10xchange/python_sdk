@@ -198,7 +198,7 @@ async def test_cancel_previous_order(mocker: MockerFixture, create_trading_accou
         price=Decimal("43445.11680000"),
         side=OrderSide.BUY,
         expire_time=utc_now() + timedelta(days=14),
-        previous_order_id="previous_custom_id",
+        previous_order_external_id="previous_custom_id",
         starknet_domain=STARKNET_TESTNET_CONFIG.starknet_domain,
     )
 

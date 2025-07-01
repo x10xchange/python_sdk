@@ -31,9 +31,10 @@ class OrderBook:
     async def create(
         endpoint_config: EndpointConfig,
         market_name: str,
-        best_ask_change_callback: Callable[[OrderBookEntry], None] | None = None,
-        best_bid_change_callback: Callable[[OrderBookEntry], None] | None = None,
+        best_ask_change_callback: Callable[[OrderBookEntry | None], None] | None = None,
+        best_bid_change_callback: Callable[[OrderBookEntry | None], None] | None = None,
         start=False,
+        depth_1: bool = False,
     ) -> "OrderBook":
         ob = OrderBook(
             endpoint_config,
@@ -49,8 +50,8 @@ class OrderBook:
         self,
         endpoint_config: EndpointConfig,
         market_name: str,
-        best_ask_change_callback: Callable[[OrderBookEntry], None] | None = None,
-        best_bid_change_callback: Callable[[OrderBookEntry], None] | None = None,
+        best_ask_change_callback: Callable[[OrderBookEntry | None], None] | None = None,
+        best_bid_change_callback: Callable[[OrderBookEntry | None], None] | None = None,
     ) -> None:
         self.__stream_client = PerpetualStreamClient(api_url=endpoint_config.stream_url)
         self.__market_name = market_name
@@ -64,7 +65,7 @@ class OrderBook:
         best_bid_before_update = self.best_bid()
         for bid in data.bid:
             if bid.price in self._bid_prices:
-                existing_bid_entry: OrderBookEntry = self._bid_prices.get(bid.price)
+                existing_bid_entry: OrderBookEntry = self._bid_prices[bid.price]
                 existing_bid_entry.amount = existing_bid_entry.amount + bid.qty
                 if existing_bid_entry.amount == 0:
                     del self._bid_prices[bid.price]
@@ -74,14 +75,14 @@ class OrderBook:
                     amount=bid.qty,
                 )
         now_best_bid = self.best_bid()
-        if now_best_bid and best_bid_before_update != now_best_bid:
+        if best_bid_before_update != now_best_bid:
             if self.best_bid_change_callback:
                 self.best_bid_change_callback(now_best_bid)
 
         best_ask_before_update = self.best_ask()
         for ask in data.ask:
             if ask.price in self._ask_prices:
-                existing_ask_entry: OrderBookEntry = self._ask_prices.get(ask.price)
+                existing_ask_entry: OrderBookEntry = self._ask_prices[ask.price]
                 existing_ask_entry.amount = existing_ask_entry.amount + ask.qty
                 if existing_ask_entry.amount == 0:
                     del self._ask_prices[ask.price]
@@ -91,7 +92,7 @@ class OrderBook:
                     amount=ask.qty,
                 )
         now_best_ask = self.best_ask()
-        if now_best_ask and best_ask_before_update != now_best_ask:
+        if best_ask_before_update != now_best_ask:
             if self.best_ask_change_callback:
                 self.best_ask_change_callback(now_best_ask)
 
@@ -111,12 +112,20 @@ class OrderBook:
         loop = asyncio.get_running_loop()
 
         async def inner():
-            async with self.__stream_client.subscribe_to_orderbooks(self.__market_name) as stream:
-                async for event in stream:
-                    if event.type == StreamDataType.SNAPSHOT.value:
-                        self.init_orderbook(event.data)
-                    elif event.type == StreamDataType.DELTA.value:
-                        self.update_orderbook(event.data)
+            while True:
+                print(f"Connecting to orderbook stream for market: {self.__market_name}")
+                async with self.__stream_client.subscribe_to_orderbooks(self.__market_name) as stream:
+                    async for event in stream:
+                        if event.type == StreamDataType.SNAPSHOT.value:
+                            if not event.data:
+                                continue
+                            self.init_orderbook(event.data)
+                        elif event.type == StreamDataType.DELTA.value:
+                            if not event.data:
+                                continue
+                            self.update_orderbook(event.data)
+                print("Orderbook stream disconnected, reconnecting...")
+                await asyncio.sleep(1)
 
         self.__task = loop.create_task(inner())
         return self.__task
