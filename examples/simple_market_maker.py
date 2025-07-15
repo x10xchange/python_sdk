@@ -31,7 +31,7 @@ async def on_board_example():
     root_account = await onboarding_client.onboard()
     trading_key = await onboarding_client.create_account_api_key(root_account.account, "trading_key")
 
-    root_trading_client = await BlockingTradingClient(
+    root_trading_client = await BlockingTradingClient.create(
         environment_config,
         StarkPerpetualAccount(
             vault=root_account.account.l2_vault,

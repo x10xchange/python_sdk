@@ -25,30 +25,6 @@ from x10.perpetual.trading_client.order_management_module import OrderManagement
 from x10.utils.http import WrappedStreamResponse
 
 
-class AsyncMixin:
-    def __init__(self, *args, **kwargs):
-        """
-        Standard constructor used for arguments pass
-        Do not override. Use __ainit__ instead
-        """
-        self.__storedargs = args, kwargs
-        self.async_initialized = False
-
-    async def __ainit__(self, *args, **kwargs):
-        """Async constructor, you should implement this"""
-
-    async def __initobj(self):
-        """Crutch used for __await__ after spawning"""
-        assert not self.async_initialized
-        self.async_initialized = True
-        # pass the parameters to __ainit__ that passed to __init__
-        await self.__ainit__(*self.__storedargs[0], **self.__storedargs[1])
-        return self
-
-    def __await__(self):
-        return self.__initobj().__await__()
-
-
 def condition_to_awaitable(condition: asyncio.Condition) -> Awaitable:
     async def __inner():
         async with condition:
@@ -96,8 +72,12 @@ class CancelWaiter:
     end_nanos: int | None
 
 
-class BlockingTradingClient(AsyncMixin):
-    async def __ainit__(self, endpoint_config: EndpointConfig, account: StarkPerpetualAccount):
+class BlockingTradingClient:
+    def __init__(self, endpoint_config: EndpointConfig, account: StarkPerpetualAccount):
+        if not asyncio.get_event_loop().is_running():
+            raise RuntimeError(
+                "BlockingTradingClient must be initialized from an async function, use BlockingTradingClient.create()"
+            )
         self.__endpoint_config = endpoint_config
         self.__account = account
         self.__market_module = MarketsInformationModule(endpoint_config, api_key=account.api_key)
@@ -111,6 +91,12 @@ class BlockingTradingClient(AsyncMixin):
         self.__order_waiters: Dict[str, OrderWaiter] = {}
         self.__cancel_waiters: Dict[str, CancelWaiter] = {}
         self.__stream_task = asyncio.create_task(self.___order_stream())
+
+    @staticmethod
+    async def create(endpoint_config: EndpointConfig, account: StarkPerpetualAccount) -> "BlockingTradingClient":
+        client = BlockingTradingClient(endpoint_config, account)
+        await client.__stream_client.subscribe_to_account_updates(account.api_key)
+        return client
 
     async def __handle_cancel(self, order_external_id: str):
         if order_external_id not in self.__cancel_waiters:
@@ -188,7 +174,10 @@ class BlockingTradingClient(AsyncMixin):
     async def get_markets(self) -> Dict[str, MarketModel]:
         if not self.__markets:
             markets = await self.__market_module.get_markets()
-            self.__markets = {m.name: m for m in markets.data}
+            market_data = markets.data
+            if not market_data:
+                raise ValueError("Core market data is empty, check your connection or API key.")
+            self.__markets = {m.name: m for m in market_data}
         return self.__markets
 
     async def mass_cancel(
