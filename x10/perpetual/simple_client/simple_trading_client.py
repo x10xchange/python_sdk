@@ -25,12 +25,12 @@ from x10.perpetual.trading_client.order_management_module import OrderManagement
 from x10.utils.http import WrappedStreamResponse
 
 
-async def condition_to_awaitable(condition: asyncio.Condition) -> Awaitable:
+def condition_to_awaitable(condition: asyncio.Condition) -> Awaitable:
     async def __inner():
         async with condition:
             await condition.wait()
 
-    return await __inner()
+    return __inner()
 
 
 class TimedOpenOrderModel(OpenOrderModel):
@@ -74,6 +74,10 @@ class CancelWaiter:
 
 class BlockingTradingClient:
     def __init__(self, endpoint_config: EndpointConfig, account: StarkPerpetualAccount):
+        if not asyncio.get_event_loop().is_running():
+            raise RuntimeError(
+                "BlockingTradingClient must be initialized from an async function, use BlockingTradingClient.create()"
+            )
         self.__endpoint_config = endpoint_config
         self.__account = account
         self.__market_module = MarketsInformationModule(endpoint_config, api_key=account.api_key)
@@ -85,14 +89,19 @@ class BlockingTradingClient:
             PerpetualStreamConnection[WrappedStreamResponse[AccountStreamDataModel]],
         ] = None
         self.__order_waiters: Dict[str, OrderWaiter] = {}
-        self.__cancel_waiters: Dict[int, CancelWaiter] = {}
-        self.__orders_task: Union[None, asyncio.Task] = None
-        self.__stream_lock = asyncio.Lock()
+        self.__cancel_waiters: Dict[str, CancelWaiter] = {}
+        self.__stream_task = asyncio.create_task(self.___order_stream())
 
-    async def handle_cancel(self, order_id: int):
-        if order_id not in self.__cancel_waiters:
+    @staticmethod
+    async def create(endpoint_config: EndpointConfig, account: StarkPerpetualAccount) -> "BlockingTradingClient":
+        client = BlockingTradingClient(endpoint_config, account)
+        await client.__stream_client.subscribe_to_account_updates(account.api_key)
+        return client
+
+    async def __handle_cancel(self, order_external_id: str):
+        if order_external_id not in self.__cancel_waiters:
             return
-        cancel_waiter = self.__cancel_waiters.get(order_id)
+        cancel_waiter = self.__cancel_waiters.get(order_external_id)
         if not cancel_waiter:
             return
         if cancel_waiter.condition:
@@ -100,57 +109,61 @@ class BlockingTradingClient:
                 cancel_waiter.end_nanos = time.time_ns()
                 cancel_waiter.condition.notify_all()
 
-    async def handle_update(self, order: OpenOrderModel):
-        if order.external_id not in self.__order_waiters:
-            return
-        order_waiter = self.__order_waiters.get(order.external_id)
-        if not order_waiter:
-            return
-        if order_waiter.condition:
-            async with order_waiter.condition:
-                order_waiter.open_order = TimedOpenOrderModel(
-                    start_nanos=order_waiter.start_nanos,
-                    end_nanos=time.time_ns(),
-                    open_order=order,
-                )
-                order_waiter.condition.notify_all()
+    async def __handle_update(self, order: OpenOrderModel):
+        if order.status == OrderStatus.NEW.value:
+            if order.external_id not in self.__order_waiters:
+                return
+            order_waiter = self.__order_waiters.get(order.external_id)
+            if not order_waiter:
+                return
+            if order_waiter.condition:
+                async with order_waiter.condition:
+                    order_waiter.open_order = TimedOpenOrderModel(
+                        start_nanos=order_waiter.start_nanos,
+                        end_nanos=time.time_ns(),
+                        open_order=order,
+                    )
+                    order_waiter.condition.notify_all()
 
-    async def handle_order(self, order: OpenOrderModel):
+    async def __handle_order(self, order: OpenOrderModel):
         if order.status == OrderStatus.CANCELLED.value:
-            await self.handle_cancel(order.id)
+            await self.__handle_cancel(order.external_id)
         else:
-            await self.handle_update(order)
+            await self.__handle_update(order)
 
     async def ___order_stream(self):
+        self.__account_stream = await self.__stream_client.subscribe_to_account_updates(self.__account.api_key)
         async for event in self.__account_stream:
             if not (event.data and event.data.orders):
                 continue
             for order in event.data.orders:
-                await self.handle_order(order)
+                await self.__handle_order(order)
+        print("Order stream closed, reconnecting...")
+        await self.___order_stream()
 
-    async def cancel_order(self, order_id: int) -> TimedCancel:
+    async def cancel_order(self, order_external_id: str) -> TimedCancel:
         awaitable: Awaitable
-        if order_id in self.__cancel_waiters:
-            awaitable = condition_to_awaitable(self.__cancel_waiters[order_id].condition)
+        if order_external_id in self.__cancel_waiters:
+            awaitable = condition_to_awaitable(self.__cancel_waiters[order_external_id].condition)
         else:
-            self.__cancel_waiters[order_id] = CancelWaiter(
+            self.__cancel_waiters[order_external_id] = CancelWaiter(
                 asyncio.Condition(), start_nanos=time.time_ns(), end_nanos=None
             )
-            cancel_task = asyncio.create_task(self.__orders_module.cancel_order(order_id))
+            cancel_task = asyncio.create_task(self.__orders_module.cancel_order_by_external_id(order_external_id))
             awaitable = asyncio.gather(
                 cancel_task,
-                asyncio.wait_for(condition_to_awaitable(self.__cancel_waiters[order_id].condition), 5),
+                asyncio.wait_for(condition_to_awaitable(self.__cancel_waiters[order_external_id].condition), 5),
                 return_exceptions=False,
             )
 
-        cancel_waiter = self.__cancel_waiters[order_id]
+        cancel_waiter = self.__cancel_waiters[order_external_id]
         end_nanos = None
         if cancel_waiter.end_nanos:
             end_nanos = cancel_waiter.end_nanos
         else:
             await awaitable
-            end_nanos = self.__cancel_waiters[order_id].end_nanos
-        del self.__cancel_waiters[order_id]
+            end_nanos = self.__cancel_waiters[order_external_id].end_nanos
+        del self.__cancel_waiters[order_external_id]
         end_nanos = cast(int, end_nanos)
         return TimedCancel(
             start_nanos=cancel_waiter.start_nanos,
@@ -161,8 +174,25 @@ class BlockingTradingClient:
     async def get_markets(self) -> Dict[str, MarketModel]:
         if not self.__markets:
             markets = await self.__market_module.get_markets()
-            self.__markets = {m.name: m for m in markets.data}
+            market_data = markets.data
+            if not market_data:
+                raise ValueError("Core market data is empty, check your connection or API key.")
+            self.__markets = {m.name: m for m in market_data}
         return self.__markets
+
+    async def mass_cancel(
+        self,
+        order_ids: list[int] | None = None,
+        external_order_ids: list[str] | None = None,
+        markets: list[str] | None = None,
+        cancel_all: bool = False,
+    ) -> None:
+        await self.__orders_module.mass_cancel(
+            order_ids=order_ids,
+            external_order_ids=external_order_ids,
+            markets=markets,
+            cancel_all=cancel_all,
+        )
 
     async def create_and_place_order(
         self,
@@ -171,18 +201,12 @@ class BlockingTradingClient:
         price: Decimal,
         side: OrderSide,
         post_only: bool = False,
-        previous_order_id: str | None = None,
+        previous_order_external_id: str | None = None,
+        external_id: str | None = None,
     ) -> TimedOpenOrderModel:
         market = (await self.get_markets()).get(market_name)
         if not market:
             raise ValueError(f"Market '{market_name}' not found.")
-
-        if not self.__account_stream:
-            await self.__stream_lock.acquire()
-            if not self.__account_stream:
-                self.__account_stream = await self.__stream_client.subscribe_to_account_updates(self.__account.api_key)
-                self.__orders_task = asyncio.create_task(self.___order_stream())
-            self.__stream_lock.release()
 
         order: PerpetualOrderModel = create_order_object(
             account=self.__account,
@@ -191,8 +215,9 @@ class BlockingTradingClient:
             price=price,
             side=side,
             post_only=post_only,
-            previous_order_id=previous_order_id,
+            previous_order_external_id=previous_order_external_id,
             starknet_domain=self.__endpoint_config.starknet_domain,
+            order_external_id=external_id,
         )
 
         if order.id in self.__order_waiters:

@@ -78,6 +78,7 @@ class UserClient:
             signing_domain=self.__endpoint_config.signing_domain,
             key_pair=key_pair,
             referral_code=referral_code,
+            host=self.__endpoint_config.onboarding_url,
         )
         url = self._get_url(self.__endpoint_config.onboarding_url, path="/auth/onboard")
         onboarding_response = await send_post_request(
@@ -111,6 +112,7 @@ class UserClient:
             l1_address=signing_account.address,
             key_pair=key_pair,
             description=description,
+            host=self.__endpoint_config.onboarding_url,
         )
         headers = {
             L1_AUTH_SIGNATURE_HEADER: l1_signature.signature.hex(),

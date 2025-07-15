@@ -19,9 +19,9 @@ async def build_markets_cache(trading_client: PerpetualTradingClient):
 
 
 # flake8: noqa
-async def stupid_market_maker_example():
+async def on_board_example():
     environment_config = STARKNET_TESTNET_CONFIG
-    eth_account_1: LocalAccount = Account.from_key("<you_eth_private_key>")  # Replace with your actual private key
+    eth_account_1: LocalAccount = Account.from_key("<YOUR_ETH_PRIVATE_KEY>")
     onboarding_client = UserClient(endpoint_config=environment_config, l1_private_key=eth_account_1.key.hex)
     root_account = await onboarding_client.onboard()
 
@@ -51,8 +51,8 @@ async def stupid_market_maker_example():
                     markets=[market.name],
                 )
 
-                if "SOL" in market.name:
-                    print("Skipping SOL market")
+                if "BTC" not in market.name:  # Example for a specific market
+                    print(f"Skipping {market.name} market")
                     continue
 
                 mark_price = market.market_stats.mark_price
@@ -109,8 +109,9 @@ async def stupid_market_maker_example():
                         )
                     except Exception as e:
                         print(f"Error: {e}")
+                await asyncio.sleep(30)
         except Exception as e:
             print(f"Error: {e}")
 
 
-asyncio.run(stupid_market_maker_example())
+asyncio.run(on_board_example())
