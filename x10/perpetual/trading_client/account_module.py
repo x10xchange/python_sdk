@@ -1,13 +1,14 @@
 from decimal import Decimal
 from typing import List, Optional
 
-from x10.perpetual.accounts import AccountLeverage
+from x10.perpetual.accounts import AccountLeverage, AccountModel
 from x10.perpetual.assets import (
     AssetOperationModel,
     AssetOperationStatus,
     AssetOperationType,
 )
 from x10.perpetual.balances import BalanceModel
+from x10.perpetual.bridges import BridgesConfig, Quote
 from x10.perpetual.fees import TradingFeeModel
 from x10.perpetual.orders import OpenOrderModel, OrderSide, OrderType
 from x10.perpetual.positions import PositionHistoryModel, PositionModel, PositionSide
@@ -26,6 +27,13 @@ from x10.utils.model import EmptyModel
 
 
 class AccountModule(BaseModule):
+    async def get_account(self) -> WrappedApiResponse[AccountModel]:
+        """
+        https://api.docs.extended.exchange/#get-balance
+        """
+
+        url = self._get_url("/user/account/info")
+        return await send_get_request(await self.get_session(), url, AccountModel, api_key=self._get_api_key())
     async def get_balance(self) -> WrappedApiResponse[BalanceModel]:
         """
         https://api.docs.extended.exchange/#get-balance
@@ -149,6 +157,24 @@ class AccountModule(BaseModule):
             json=request_model.to_api_request_json(),
             api_key=self._get_api_key(),
         )
+
+    async def get_bridge_config(self) -> WrappedApiResponse[BridgesConfig]:
+        url = self._get_url("/user/bridge/config")
+        return await send_get_request(await self.get_session(), url, BridgesConfig, api_key=self._get_api_key())
+
+    async def get_bridge_quote(self, chain_in: str, chain_out: str, amount: Decimal) -> WrappedApiResponse[Quote]:
+        url = self._get_url("/user/bridge/quote", query={
+            "chainIn": chain_in,
+            "chainOut": chain_out,
+            "amount": amount,
+        })
+        return await send_get_request(await self.get_session(), url, Quote, api_key=self._get_api_key())
+
+    async def commit_bridge_quote(self, id: str):
+        url = self._get_url("/user/bridge/quote", query={
+            "id": id,
+        })
+        await send_post_request(await self.get_session(), url, EmptyModel, api_key=self._get_api_key())
 
     async def transfer(
         self,
