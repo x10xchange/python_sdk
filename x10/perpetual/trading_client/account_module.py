@@ -9,6 +9,7 @@ from x10.perpetual.assets import (
 )
 from x10.perpetual.balances import BalanceModel
 from x10.perpetual.bridges import BridgesConfig, Quote
+from x10.perpetual.clients import ClientModel
 from x10.perpetual.fees import TradingFeeModel
 from x10.perpetual.orders import OpenOrderModel, OrderSide, OrderType
 from x10.perpetual.positions import PositionHistoryModel, PositionModel, PositionSide
@@ -28,12 +29,13 @@ from x10.utils.model import EmptyModel
 
 class AccountModule(BaseModule):
     async def get_account(self) -> WrappedApiResponse[AccountModel]:
-        """
-        https://api.docs.extended.exchange/#get-balance
-        """
-
         url = self._get_url("/user/account/info")
         return await send_get_request(await self.get_session(), url, AccountModel, api_key=self._get_api_key())
+
+    async def get_client(self) -> WrappedApiResponse[ClientModel]:
+        url = self._get_url("/user/client/info")
+        return await send_get_request(await self.get_session(), url, ClientModel, api_key=self._get_api_key())
+
     async def get_balance(self) -> WrappedApiResponse[BalanceModel]:
         """
         https://api.docs.extended.exchange/#get-balance
@@ -207,6 +209,7 @@ class AccountModule(BaseModule):
             api_key=self._get_api_key(),
         )
 
+     # deprecated
     async def withdraw(
         self,
         amount: Decimal,
@@ -228,6 +231,53 @@ class AccountModule(BaseModule):
             json=request_model.to_api_request_json(),
             api_key=self._get_api_key(),
         )
+
+    async def withdraw(
+            self,
+            amount: Decimal,
+            chain_id: str,
+            stark_address: str | None = None,
+            nonce: int | None = None,
+            quote_id: str | None = None,
+    ) -> WrappedApiResponse[int]:
+        url = self._get_url("/user/withdrawal")
+        account = (await self.get_account()).data
+        if quote_id is None and chain_id != "STRK":
+            raise ValueError("quote_id is required for EVM withdrawals")
+
+        recipient_stark_address = None
+        if stark_address is None:
+            if chain_id == "STRK":
+                client = (await self.get_client()).data
+                if client.starknet_wallet_address is None:
+                    raise ValueError("Client does not have attached starknet_wallet_address. Can't determine withdrawal address.")
+                else:
+                    recipient_stark_address = client.starknet_wallet_address
+            else:
+                recipient_stark_address = account.bridgeStarknetAddress
+        else:
+            recipient_stark_address = stark_address
+
+
+        request_model = create_withdrawal_object(
+            amount=amount,
+            recipient_stark_address= recipient_stark_address,
+            stark_account=self._get_stark_account(),
+            config=self._get_endpoint_config(),
+            account_id= account.id,
+            chain_id = chain_id,
+            quote_id = quote_id,
+            nonce=nonce,
+        )
+        return await send_post_request(
+            await self.get_session(),
+            url,
+            int,
+            json=request_model.to_api_request_json(),
+            api_key=self._get_api_key(),
+        )
+
+
 
     async def asset_operations(
         self,
