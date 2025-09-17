@@ -209,33 +209,10 @@ class AccountModule(BaseModule):
             api_key=self._get_api_key(),
         )
 
-     # deprecated
-    async def withdraw(
-        self,
-        amount: Decimal,
-        stark_address: str,
-        nonce: int | None = None,
-    ) -> WrappedApiResponse[int]:
-        url = self._get_url("/user/withdrawal/onchain")
-        request_model = create_withdrawal_object(
-            amount=amount,
-            recipient_stark_address=stark_address,
-            stark_account=self._get_stark_account(),
-            config=self._get_endpoint_config(),
-            nonce=nonce,
-        )
-        return await send_post_request(
-            await self.get_session(),
-            url,
-            int,
-            json=request_model.to_api_request_json(),
-            api_key=self._get_api_key(),
-        )
-
     async def withdraw(
             self,
             amount: Decimal,
-            chain_id: str,
+            chain_id: str = "STRK",
             stark_address: str | None = None,
             nonce: int | None = None,
             quote_id: str | None = None,

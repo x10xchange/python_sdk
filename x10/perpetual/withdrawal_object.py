@@ -22,58 +22,6 @@ def calc_expiration_timestamp():
     expire_time_with_buffer_seconds = math.ceil(expire_time_with_buffer.timestamp())
     return expire_time_with_buffer_seconds
 
-# deprecated
-def create_withdrawal_object(
-    amount: Decimal,
-    recipient_stark_address: str,
-    stark_account: StarkPerpetualAccount,
-    config: EndpointConfig,
-    description: str | None = None,
-    nonce: int | None = None,
-) -> PerpetualWithdrawal:
-    expiration_timestamp = calc_expiration_timestamp()
-    scaled_amount = amount.scaleb(config.collateral_decimals)
-    stark_amount = scaled_amount.to_integral_exact()
-    starknet_domain: StarknetDomain = config.starknet_domain
-    if nonce is None:
-        nonce = generate_nonce()
-
-    withdrawal_hash = get_withdrawal_msg_hash(
-        recipient_hex=recipient_stark_address,
-        position_id=stark_account.vault,
-        amount=int(stark_amount),
-        expiration=expiration_timestamp,
-        salt=nonce,
-        user_public_key=stark_account.public_key,
-        domain_name=starknet_domain.name,
-        domain_version=starknet_domain.version,
-        domain_chain_id=starknet_domain.chain_id,
-        domain_revision=starknet_domain.revision,
-        collateral_id=int(config.collateral_asset_on_chain_id, base=16),
-    )
-
-    (transfer_signature_r, transfer_signature_s) = stark_account.sign(withdrawal_hash)
-
-    settlement = StarkWithdrawalSettlement(
-        recipient=int(recipient_stark_address, 16),
-        position_id=stark_account.vault,
-        collateral_id=int(config.collateral_asset_on_chain_id, base=16),
-        amount=int(stark_amount),
-        expiration=Timestamp(seconds=expiration_timestamp),
-        salt=nonce,
-        signature=SettlementSignatureModel(
-            r=transfer_signature_r,
-            s=transfer_signature_s,
-        ),
-    )
-
-    return PerpetualWithdrawal(
-        amount=amount,
-        settlement=settlement,
-        description=description,
-    )
-
-
 def create_withdrawal_object(
         amount: Decimal,
         recipient_stark_address: str,
