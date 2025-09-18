@@ -7,7 +7,6 @@ from fast_stark_crypto import get_withdrawal_msg_hash
 from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.configuration import EndpointConfig, StarknetDomain
 from x10.perpetual.withdrawals import (
-    PerpetualWithdrawal,
     StarkWithdrawalSettlement,
     Timestamp,
     WithdrawalRequest,
