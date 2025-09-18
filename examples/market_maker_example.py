@@ -6,7 +6,7 @@ from eth_account import Account
 from eth_account.signers.local import LocalAccount
 
 from x10.perpetual.accounts import StarkPerpetualAccount
-from x10.perpetual.configuration import STARKNET_TESTNET_CONFIG
+from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.orders import OrderSide
 from x10.perpetual.trading_client.trading_client import PerpetualTradingClient
 from x10.perpetual.user_client.user_client import UserClient
@@ -20,7 +20,7 @@ async def build_markets_cache(trading_client: PerpetualTradingClient):
 
 # flake8: noqa
 async def on_board_example():
-    environment_config = STARKNET_TESTNET_CONFIG
+    environment_config = TESTNET_CONFIG
     eth_account_1: LocalAccount = Account.from_key("<YOUR_ETH_PRIVATE_KEY>")
     onboarding_client = UserClient(endpoint_config=environment_config, l1_private_key=eth_account_1.key.hex)
     root_account = await onboarding_client.onboard()
