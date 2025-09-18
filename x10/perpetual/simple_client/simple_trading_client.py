@@ -2,7 +2,7 @@ import asyncio
 import dataclasses
 import time
 from decimal import Decimal
-from typing import Awaitable, Dict, Optional, Union, cast
+from typing import Awaitable, Dict, Union, cast
 
 from x10.perpetual.accounts import AccountStreamDataModel, StarkPerpetualAccount
 from x10.perpetual.configuration import EndpointConfig
