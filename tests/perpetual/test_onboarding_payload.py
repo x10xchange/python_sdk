@@ -26,6 +26,7 @@ def test_onboarding_object_generation():
             second=2,
             tzinfo=datetime.timezone.utc,
         ),
+        host="host",
         key_pair=key_pair,
         signing_domain="x10.exchange",
     ).to_json()
