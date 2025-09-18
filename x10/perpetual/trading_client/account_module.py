@@ -230,6 +230,8 @@ class AccountModule(BaseModule):
     ) -> WrappedApiResponse[int]:
         url = self._get_url("/user/withdrawal")
         account = (await self.get_account()).data
+        if account is None:
+            raise ValueError("Account not found")
         if quote_id is None and chain_id != "STRK":
             raise ValueError("quote_id is required for EVM withdrawals")
 
@@ -237,6 +239,8 @@ class AccountModule(BaseModule):
         if stark_address is None:
             if chain_id == "STRK":
                 client = (await self.get_client()).data
+                if client is None:
+                    raise ValueError("Client not found")
                 if client.starknet_wallet_address is None:
                     raise ValueError(
                         "Client does not have attached starknet_wallet_address. Can't determine withdrawal address."
