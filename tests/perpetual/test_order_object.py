@@ -163,7 +163,7 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
                 "reduceOnly": False,
                 "postOnly": False,
                 "timeInForce": "GTT",
-                "expiryEpochMillis": 1705626536860,
+                "expiryEpochMillis": 1705626536861,
                 "fee": "0.0005",
                 "nonce": "1473459052",
                 "selfTradeProtectionLevel": "CLIENT",
