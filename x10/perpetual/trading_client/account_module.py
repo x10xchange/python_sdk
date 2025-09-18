@@ -248,7 +248,9 @@ class AccountModule(BaseModule):
                 else:
                     recipient_stark_address = client.starknet_wallet_address
             else:
-                recipient_stark_address = account.bridgeStarknetAddress
+                if account.bridge_starknet_address is None:
+                    raise ValueError("Account bridge_starknet_address not found")
+                recipient_stark_address = account.bridge_starknet_address
         else:
             recipient_stark_address = stark_address
 
