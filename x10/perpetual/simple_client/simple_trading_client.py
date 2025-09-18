@@ -203,8 +203,8 @@ class BlockingTradingClient:
         post_only: bool = False,
         previous_order_external_id: str | None = None,
         external_id: str | None = None,
-        builder_fee: str | None = None,
-        builder_id: str | None = None,
+        builder_fee: Decimal | None = None,
+        builder_id: int | None = None,
     ) -> TimedOpenOrderModel:
         market = (await self.get_markets()).get(market_name)
         if not market:
