@@ -126,15 +126,20 @@ class AccountModule(BaseModule):
             await self.get_session(), url, List[AccountTradeModel], api_key=self._get_api_key()
         )
 
-    async def get_fees(self, *, market_names: List[str], builder_id: Optional[int] = None) -> WrappedApiResponse[List[TradingFeeModel]]:
+    async def get_fees(
+        self, *, market_names: List[str], builder_id: Optional[int] = None
+    ) -> WrappedApiResponse[List[TradingFeeModel]]:
         """
         https://api.docs.extended.exchange/#get-fees
         """
 
-        url = self._get_url("/user/fees", query={
-            "market": market_names,
-            "builderId": builder_id,
-        })
+        url = self._get_url(
+            "/user/fees",
+            query={
+                "market": market_names,
+                "builderId": builder_id,
+            },
+        )
         return await send_get_request(await self.get_session(), url, List[TradingFeeModel], api_key=self._get_api_key())
 
     async def get_leverage(self, market_names: List[str]) -> WrappedApiResponse[List[AccountLeverage]]:
@@ -165,17 +170,23 @@ class AccountModule(BaseModule):
         return await send_get_request(await self.get_session(), url, BridgesConfig, api_key=self._get_api_key())
 
     async def get_bridge_quote(self, chain_in: str, chain_out: str, amount: Decimal) -> WrappedApiResponse[Quote]:
-        url = self._get_url("/user/bridge/quote", query={
-            "chainIn": chain_in,
-            "chainOut": chain_out,
-            "amount": amount,
-        })
+        url = self._get_url(
+            "/user/bridge/quote",
+            query={
+                "chainIn": chain_in,
+                "chainOut": chain_out,
+                "amount": amount,
+            },
+        )
         return await send_get_request(await self.get_session(), url, Quote, api_key=self._get_api_key())
 
     async def commit_bridge_quote(self, id: str):
-        url = self._get_url("/user/bridge/quote", query={
-            "id": id,
-        })
+        url = self._get_url(
+            "/user/bridge/quote",
+            query={
+                "id": id,
+            },
+        )
         await send_post_request(await self.get_session(), url, EmptyModel, api_key=self._get_api_key())
 
     async def transfer(
@@ -210,12 +221,12 @@ class AccountModule(BaseModule):
         )
 
     async def withdraw(
-            self,
-            amount: Decimal,
-            chain_id: str = "STRK",
-            stark_address: str | None = None,
-            nonce: int | None = None,
-            quote_id: str | None = None,
+        self,
+        amount: Decimal,
+        chain_id: str = "STRK",
+        stark_address: str | None = None,
+        nonce: int | None = None,
+        quote_id: str | None = None,
     ) -> WrappedApiResponse[int]:
         url = self._get_url("/user/withdrawal")
         account = (await self.get_account()).data
@@ -227,7 +238,9 @@ class AccountModule(BaseModule):
             if chain_id == "STRK":
                 client = (await self.get_client()).data
                 if client.starknet_wallet_address is None:
-                    raise ValueError("Client does not have attached starknet_wallet_address. Can't determine withdrawal address.")
+                    raise ValueError(
+                        "Client does not have attached starknet_wallet_address. Can't determine withdrawal address."
+                    )
                 else:
                     recipient_stark_address = client.starknet_wallet_address
             else:
@@ -235,15 +248,14 @@ class AccountModule(BaseModule):
         else:
             recipient_stark_address = stark_address
 
-
         request_model = create_withdrawal_object(
             amount=amount,
-            recipient_stark_address= recipient_stark_address,
+            recipient_stark_address=recipient_stark_address,
             stark_account=self._get_stark_account(),
             config=self._get_endpoint_config(),
-            account_id= account.id,
-            chain_id = chain_id,
-            quote_id = quote_id,
+            account_id=account.id,
+            chain_id=chain_id,
+            quote_id=quote_id,
             nonce=nonce,
         )
         return await send_post_request(
@@ -253,8 +265,6 @@ class AccountModule(BaseModule):
             json=request_model.to_api_request_json(),
             api_key=self._get_api_key(),
         )
-
-
 
     async def asset_operations(
         self,

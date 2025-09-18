@@ -16,11 +16,13 @@ class StarkWithdrawalSettlement(X10BaseModel):
     salt: int
     signature: SettlementSignatureModel
 
+
 # Deprecated
 class PerpetualWithdrawal(X10BaseModel):
     amount: Decimal
     settlement: StarkWithdrawalSettlement
     description: str | None
+
 
 class WithdrawalRequest(X10BaseModel):
     account_id: int

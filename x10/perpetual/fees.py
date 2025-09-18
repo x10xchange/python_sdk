@@ -9,6 +9,7 @@ class TradingFeeModel(X10BaseModel):
     taker_fee_rate: Decimal
     builder_fee_rate: Decimal
 
+
 DEFAULT_FEES = TradingFeeModel(
     market="BTC-USD",
     maker_fee_rate=(Decimal("2") / Decimal("10000")),

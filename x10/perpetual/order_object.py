@@ -75,7 +75,7 @@ def create_order_object(
         starknet_domain=starknet_domain,
         nonce=nonce,
         builder_fee=builder_fee,
-        builder_id=builder_id
+        builder_id=builder_id,
     )
 
 

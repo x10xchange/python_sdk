@@ -9,7 +9,8 @@ from x10.perpetual.configuration import EndpointConfig, StarknetDomain
 from x10.perpetual.withdrawals import (
     PerpetualWithdrawal,
     StarkWithdrawalSettlement,
-    Timestamp, WithdrawalRequest,
+    Timestamp,
+    WithdrawalRequest,
 )
 from x10.utils.date import utc_now
 from x10.utils.model import SettlementSignatureModel
@@ -22,16 +23,17 @@ def calc_expiration_timestamp():
     expire_time_with_buffer_seconds = math.ceil(expire_time_with_buffer.timestamp())
     return expire_time_with_buffer_seconds
 
+
 def create_withdrawal_object(
-        amount: Decimal,
-        recipient_stark_address: str,
-        stark_account: StarkPerpetualAccount,
-        config: EndpointConfig,
-        account_id: int,
-        chain_id: str,
-        description: str | None = None,
-        nonce: int | None = None,
-        quote_id: str | None = None,
+    amount: Decimal,
+    recipient_stark_address: str,
+    stark_account: StarkPerpetualAccount,
+    config: EndpointConfig,
+    account_id: int,
+    chain_id: str,
+    description: str | None = None,
+    nonce: int | None = None,
+    quote_id: str | None = None,
 ) -> WithdrawalRequest:
     expiration_timestamp = calc_expiration_timestamp()
     scaled_amount = amount.scaleb(config.collateral_decimals)
@@ -70,11 +72,11 @@ def create_withdrawal_object(
     )
 
     return WithdrawalRequest(
-        account_id = account_id,
+        account_id=account_id,
         amount=amount,
         description=description,
         settlement=settlement,
-        chain_id= chain_id,
-        quote_id = quote_id,
-        asset = "USD"
+        chain_id=chain_id,
+        quote_id=quote_id,
+        asset="USD",
     )

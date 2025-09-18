@@ -2,7 +2,7 @@ import asyncio
 import dataclasses
 import time
 from decimal import Decimal
-from typing import Awaitable, Dict, Union, cast, Optional
+from typing import Awaitable, Dict, Optional, Union, cast
 
 from x10.perpetual.accounts import AccountStreamDataModel, StarkPerpetualAccount
 from x10.perpetual.configuration import EndpointConfig
@@ -221,7 +221,7 @@ class BlockingTradingClient:
             starknet_domain=self.__endpoint_config.starknet_domain,
             order_external_id=external_id,
             builder_fee=builder_fee,
-            builder_id=builder_id
+            builder_id=builder_id,
         )
 
         if order.id in self.__order_waiters:
