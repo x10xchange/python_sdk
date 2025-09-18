@@ -32,7 +32,7 @@ TESTNET_CONFIG = EndpointConfig(
     signing_domain="starknet.sepolia.extended.exchange",
     collateral_asset_contract="0x31857064564ed0ff978e687456963cba09c2c6985d8f9300a1de4962fafa054",
     asset_operations_contract="",
-    collateral_asset_on_chain_id="",
+    collateral_asset_on_chain_id="0x1",
     collateral_decimals=6,
     starknet_domain=StarknetDomain(name="Perpetuals", version="v0", chain_id="SN_SEPOLIA", revision="1"),
     collateral_asset_id="0x1",

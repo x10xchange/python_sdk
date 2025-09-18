@@ -33,7 +33,7 @@ def test_onboarding_object_generation():
 
     assert (
         "0x" + payload["l1Signature"]
-        == "0x4b093c2a0206dfa8bc2d09832947a4a567d80a4bfcec14c9874ac2aefcdcf60526c4973007696f26395e75af2383a89fbabe76c5a7a787b5a765f92a4067c58b1c"  # noqa: E501
+        == "0x9a59eb699eb58f2ec975455f33dd7205c8a569f7b6d7647c25b71e7ab7eec3d30f2b8c9038f06f077167eb90e0c002602e4ecbab180fad4b2c91d2259883e6571c"  # noqa: E501
     )
 
     assert payload["l2Key"] == known_l2_public_key
