@@ -293,4 +293,3 @@ class AccountModule(BaseModule):
         return await send_get_request(
             await self.get_session(), url, List[AssetOperationModel], api_key=self._get_api_key()
         )
-        
