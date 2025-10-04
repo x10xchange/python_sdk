@@ -1,6 +1,6 @@
 import itertools
 import re
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Dict, Generic, List, Optional, Sequence, Type, TypeVar, Union
 
 import aiohttp
@@ -27,14 +27,14 @@ class NotAuthorizedException(X10Error):
     pass
 
 
-class RequestHeader(Enum):
+class RequestHeader(StrEnum):
     ACCEPT = "Accept"
     API_KEY = "X-Api-Key"
     CONTENT_TYPE = "Content-Type"
     USER_AGENT = "User-Agent"
 
 
-class ResponseStatus(Enum):
+class ResponseStatus(StrEnum):
     OK = "OK"
     ERROR = "ERROR"
 
@@ -57,7 +57,7 @@ class WrappedApiResponse(X10BaseModel, Generic[ApiResponseType]):
     pagination: Optional[Pagination] = None
 
 
-class StreamDataType(Enum):
+class StreamDataType(StrEnum):
     # Technical status
     UNKNOWN = "UNKNOWN"
 
@@ -106,8 +106,8 @@ def get_url(template: str, *, query: Optional[Dict[str, str | List[str]]] = None
             return itertools.chain.from_iterable(
                 [serialize_query_param(param_key, item) for item in param_value if item is not None]
             )
-        elif isinstance(param_value, Enum):
-            return [f"{param_key}={param_value.value}"]
+        elif isinstance(param_value, StrEnum):
+            return [f"{param_key}={param_value}"]
         elif param_value is not None:
             return [f"{param_key}={param_value}"]
         else:
@@ -160,7 +160,7 @@ async def send_post_request(
         response_text = await response.text()
         handle_known_errors(url, response_code_to_exception, response, response_text)
         response_model = parse_response_to_model(response_text, model_class)
-        if (response_model.status != ResponseStatus.OK.value) or (response_model.error is not None):
+        if (response_model.status != ResponseStatus.OK) or (response_model.error is not None):
             LOGGER.error("Error response from POST %s: %s", url, response_model.error)
             raise ValueError(f"Error response from POST {url}: {response_model.error}")
         return response_model
@@ -224,14 +224,14 @@ def handle_known_errors(
 
 
 def __get_headers(*, api_key: Optional[str] = None, request_headers: Optional[Dict[str, str]] = None) -> Dict[str, str]:
-    headers = {
-        RequestHeader.ACCEPT.value: "application/json",
-        RequestHeader.CONTENT_TYPE.value: "application/json",
-        RequestHeader.USER_AGENT.value: USER_AGENT,
+    headers: dict[str, str] = {
+        RequestHeader.ACCEPT: "application/json",
+        RequestHeader.CONTENT_TYPE: "application/json",
+        RequestHeader.USER_AGENT: USER_AGENT,
     }
 
     if api_key:
-        headers[RequestHeader.API_KEY.value] = api_key
+        headers[RequestHeader.API_KEY] = api_key
 
     if request_headers:
         headers.update(request_headers)

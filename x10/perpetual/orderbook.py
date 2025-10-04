@@ -127,11 +127,11 @@ class OrderBook:
             while True:
                 async with self.__stream_client.subscribe_to_orderbooks(self.__market_name, depth=self.depth) as stream:
                     async for event in stream:
-                        if event.type == StreamDataType.SNAPSHOT.value:
+                        if event.type == StreamDataType.SNAPSHOT:
                             if not event.data:
                                 continue
                             await self.init_orderbook(event.data)
-                        elif event.type == StreamDataType.DELTA.value:
+                        elif event.type == StreamDataType.DELTA:
                             if not event.data:
                                 continue
                             await self.update_orderbook(event.data)

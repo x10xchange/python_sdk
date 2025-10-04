@@ -23,14 +23,15 @@ packages = [{ include = "x10" }]
 
 [tool.poetry.dependencies]
 aiohttp = ">=3.10.11"
-eth-account = ">=0.12.0"
+eth-account = ">=0.13.7"
+eth-typing = ">=4.0.0,<5.0.0"
 fast-stark-crypto = "==0.3.7"
 pydantic = ">=2.9.0"
 python = "^3.10"
 pyyaml = ">=6.0.1"
 sortedcontainers = ">=2.4.0"
-websockets = ">=12.0,<14.0"
 tenacity = "^9.1.2"
+websockets = ">=12.0,<14.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "==23.12.0"

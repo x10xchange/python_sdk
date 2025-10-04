@@ -1,17 +1,17 @@
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 from typing import Optional
 
 from x10.utils.model import X10BaseModel
 
 
-class ExitType(Enum):
+class ExitType(StrEnum):
     TRADE = "TRADE"
     LIQUIDATION = "LIQUIDATION"
     ADL = "ADL"
 
 
-class PositionSide(Enum):
+class PositionSide(StrEnum):
     LONG = "LONG"
     SHORT = "SHORT"
 

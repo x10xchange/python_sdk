@@ -50,8 +50,8 @@ class TestnetModule(BaseModule):
                         asset_ops
                         and len(asset_ops) > 0
                         and (
-                            asset_ops[0].status == AssetOperationStatus.COMPLETED.value
-                            or asset_ops[0].status == AssetOperationStatus.REJECTED.value
+                            asset_ops[0].status == AssetOperationStatus.COMPLETED
+                            or asset_ops[0].status == AssetOperationStatus.REJECTED
                         )
                     )
                 ),

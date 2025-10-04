@@ -1,34 +1,34 @@
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 from typing import Optional
 
 from x10.utils.model import HexValue, SettlementSignatureModel, X10BaseModel
 
 
-class TimeInForce(Enum):
+class TimeInForce(StrEnum):
     GTT = "GTT"
     IOC = "IOC"
     FOK = "FOK"
 
 
-class OrderSide(Enum):
+class OrderSide(StrEnum):
     BUY = "BUY"
     SELL = "SELL"
 
 
-class OrderType(Enum):
+class OrderType(StrEnum):
     LIMIT = "LIMIT"
     CONDITIONAL = "CONDITIONAL"
     MARKET = "MARKET"
     TPSL = "TPSL"
 
 
-class OrderTpslType(Enum):
+class OrderTpslType(StrEnum):
     ORDER = "ORDER"
     POSITION = "POSITION"
 
 
-class OrderStatus(Enum):
+class OrderStatus(StrEnum):
     # Technical status
     UNKNOWN = "UNKNOWN"
 
@@ -41,7 +41,7 @@ class OrderStatus(Enum):
     REJECTED = "REJECTED"
 
 
-class OrderStatusReason(Enum):
+class OrderStatusReason(StrEnum):
     # Technical status
     UNKNOWN = "UNKNOWN"
 
@@ -71,7 +71,7 @@ class OrderStatusReason(Enum):
     TRADING_OFF_MODE = "TRADING_OFF_MODE"
 
 
-class OrderTriggerPriceType(Enum):
+class OrderTriggerPriceType(StrEnum):
     # Technical status
     UNKNOWN = "UNKNOWN"
 
@@ -80,7 +80,7 @@ class OrderTriggerPriceType(Enum):
     LAST = "LAST"
 
 
-class OrderTriggerDirection(Enum):
+class OrderTriggerDirection(StrEnum):
     # Technical status
     UNKNOWN = "UNKNOWN"
 
@@ -88,7 +88,7 @@ class OrderTriggerDirection(Enum):
     DOWN = "DOWN"
 
 
-class OrderPriceType(Enum):
+class OrderPriceType(StrEnum):
     # Technical status
     UNKNOWN = "UNKNOWN"
 
@@ -96,7 +96,7 @@ class OrderPriceType(Enum):
     LIMIT = "LIMIT"
 
 
-class SelfTradeProtectionLevel(Enum):
+class SelfTradeProtectionLevel(StrEnum):
     DISABLED = "DISABLED"
     ACCOUNT = "ACCOUNT"
     CLIENT = "CLIENT"

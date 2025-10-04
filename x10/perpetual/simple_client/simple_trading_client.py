@@ -123,7 +123,7 @@ class BlockingTradingClient:
             order_waiter.condition.notify_all()
 
     async def __handle_order(self, order: OpenOrderModel):
-        if order.status == OrderStatus.CANCELLED.value:
+        if order.status == OrderStatus.CANCELLED:
             await self.__handle_cancel(order.external_id)
         else:
             await self.__handle_update(order)
