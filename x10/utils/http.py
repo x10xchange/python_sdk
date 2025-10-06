@@ -1,12 +1,12 @@
 import itertools
 import re
-from enum import StrEnum
 from typing import Any, Dict, Generic, List, Optional, Sequence, Type, TypeVar, Union
 
 import aiohttp
 from aiohttp import ClientResponse, ClientTimeout
 from pydantic import GetCoreSchemaHandler
 from pydantic_core import CoreSchema, core_schema
+from strenum import StrEnum
 
 from x10.config import DEFAULT_REQUEST_TIMEOUT_SECONDS, USER_AGENT
 from x10.errors import X10Error

@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from decimal import Context, Decimal
-from enum import StrEnum
 from typing import Optional
+
+from strenum import StrEnum
 
 from x10.utils.model import HexValue, X10BaseModel
 

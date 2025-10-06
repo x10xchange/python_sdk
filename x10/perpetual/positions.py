@@ -1,6 +1,7 @@
 from decimal import Decimal
-from enum import StrEnum
 from typing import Optional
+
+from strenum import StrEnum
 
 from x10.utils.model import X10BaseModel
 
