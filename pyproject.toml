@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "x10-python-trading-starknet"
-version = "0.0.9"
+version = "0.0.10"
 description = "Python client for X10 API"
 authors = ["X10 <tech@ex10.org>"]
 repository = "https://github.com/x10xchange/python_sdk"
@@ -25,7 +25,7 @@ packages = [{ include = "x10" }]
 aiohttp = ">=3.10.11"
 eth-account = ">=0.13.7"
 eth-typing = ">=4.0.0,<5.0.0"
-fast-stark-crypto = "==0.3.7"
+fast-stark-crypto = "==0.3.8"
 pydantic = ">=2.9.0"
 python = "^3.10"
 pyyaml = ">=6.0.1"
