@@ -1,4 +1,4 @@
-from enum import StrEnum
+from strenum import StrEnum
 
 from hamcrest import assert_that, equal_to, raises
 
