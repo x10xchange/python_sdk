@@ -1,7 +1,7 @@
 from decimal import Decimal
-from enum import StrEnum
 
 from pydantic import AliasChoices, Field
+from strenum import StrEnum
 
 from x10.perpetual.orders import OrderSide
 from x10.utils.model import X10BaseModel
