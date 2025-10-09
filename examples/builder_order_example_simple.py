@@ -1,17 +1,15 @@
-import asyncio
+import logging
 import logging
 import logging.config
 import logging.handlers
 import os
-import random
 from asyncio import run
 from decimal import Decimal
 
 from dotenv import load_dotenv
 
 from x10.perpetual.accounts import StarkPerpetualAccount
-from x10.perpetual.configuration import STARKNET_MAINNET_CONFIG, TESTNET_CONFIG
-from x10.perpetual.orderbook import OrderBook
+from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.orders import OrderSide
 from x10.perpetual.simple_client.simple_trading_client import BlockingTradingClient
 from x10.perpetual.trading_client import PerpetualTradingClient
