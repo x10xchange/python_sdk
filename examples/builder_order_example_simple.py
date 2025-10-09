@@ -48,10 +48,11 @@ async def setup_and_run():
         stark_account=stark_account,
     )
     builder_id = 2001
-    builder_fee = (await trading_client.account.get_fees(
-        market_names=["BTC-USD"],
-        builder_id=builder_id)
-                   ).data[0].builder_fee_rate
+    builder_fee = (
+        (await trading_client.account.get_fees(market_names=["BTC-USD"], builder_id=builder_id))
+        .data[0]
+        .builder_fee_rate
+    )
 
     positions = await trading_client.account.get_positions()
     for position in positions.data:
@@ -72,7 +73,7 @@ async def setup_and_run():
         post_only=False,
         external_id="0x123",
         builder_id=builder_id,
-        builder_fee=builder_fee
+        builder_fee=builder_fee,
     )
 
 
