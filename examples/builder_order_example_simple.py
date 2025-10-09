@@ -25,6 +25,7 @@ PUBLIC_KEY = os.getenv("X10_PUBLIC_KEY")
 PRIVATE_KEY = os.getenv("X10_PRIVATE_KEY")
 VAULT_ID = int(os.environ["X10_VAULT_ID"])
 
+
 async def clean_it(trading_client: PerpetualTradingClient):
     logger = logging.getLogger("placed_order_example")
     positions = await trading_client.account.get_positions()
@@ -50,7 +51,7 @@ async def setup_and_run():
     builder_fee = (await trading_client.account.get_fees(
         market_names=["BTC-USD"],
         builder_id=builder_id)
-                    ).data[0].builder_fee_rate
+                   ).data[0].builder_fee_rate
 
     positions = await trading_client.account.get_positions()
     for position in positions.data:
@@ -63,7 +64,6 @@ async def setup_and_run():
         account=stark_account,
     )
 
-
     await blocking_client.create_and_place_order(
         amount_of_synthetic=Decimal("0.1"),
         price=Decimal("122001"),
@@ -71,8 +71,8 @@ async def setup_and_run():
         side=OrderSide.BUY,
         post_only=False,
         external_id="0x123",
-        builder_id= builder_id,
-        builder_fee = builder_fee
+        builder_id=builder_id,
+        builder_fee=builder_fee
     )
 
 
