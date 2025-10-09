@@ -17,10 +17,16 @@ class PositionSide(StrEnum):
     SHORT = "SHORT"
 
 
+class PositionStatus(StrEnum):
+    OPENED = "OPENED"
+    CLOSED = "CLOSED"
+
+
 class PositionModel(X10BaseModel):
     id: int
     account_id: int
     market: str
+    status: PositionStatus
     side: PositionSide
     leverage: Decimal
     size: Decimal
