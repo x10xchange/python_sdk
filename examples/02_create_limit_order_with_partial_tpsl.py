@@ -18,14 +18,6 @@ from examples.init_env import init_env
 
 LOGGER = logging.getLogger()
 SDK_CONFIG = TESTNET_CONFIG
-ETH_USD_MARKET = "ETH-USD"
-
-
-# FIXME: Move to utils
-async def build_markets_cache(trading_client: PerpetualTradingClient):
-    markets = await trading_client.markets_info.get_markets()
-    assert markets.data is not None
-    return {m.name: m for m in markets.data}
 
 
 async def run_example():
