@@ -1,4 +1,5 @@
 import math
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Callable, Optional, Tuple
@@ -33,11 +34,13 @@ from x10.utils import generate_nonce
 from x10.utils.date import to_epoch_millis, utc_now
 
 
+@dataclass(kw_only=True)
 class OrderTpslTriggerParam:
-    triggerPrice: Decimal
-    triggerPriceType: OrderTriggerPriceType
+    trigger_price: Decimal
+    trigger_price_type: OrderTriggerPriceType
     price: Decimal
-    priceType: OrderPriceType
+    price_type: OrderPriceType
+
 
 def create_order_object(
     account: StarkPerpetualAccount,

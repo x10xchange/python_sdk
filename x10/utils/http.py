@@ -137,7 +137,9 @@ async def send_get_request(
     response_code_to_exception: Optional[Dict[int, Type[Exception]]] = None,
 ) -> WrappedApiResponse[ApiResponseType]:
     headers = __get_headers(api_key=api_key, request_headers=request_headers)
+
     LOGGER.debug("Sending GET %s", url)
+
     async with session.get(url, headers=headers) as response:
         response_text = await response.text()
         handle_known_errors(url, response_code_to_exception, response, response_text)
@@ -155,14 +157,18 @@ async def send_post_request(
     response_code_to_exception: Optional[Dict[int, Type[Exception]]] = None,
 ) -> WrappedApiResponse[ApiResponseType]:
     headers = __get_headers(api_key=api_key, request_headers=request_headers)
+
     LOGGER.debug("Sending POST %s, headers=%s", url, headers)
+
     async with session.post(url, json=json, headers=headers) as response:
         response_text = await response.text()
         handle_known_errors(url, response_code_to_exception, response, response_text)
         response_model = parse_response_to_model(response_text, model_class)
+
         if (response_model.status != ResponseStatus.OK) or (response_model.error is not None):
             LOGGER.error("Error response from POST %s: %s", url, response_model.error)
             raise ValueError(f"Error response from POST {url}: {response_model.error}")
+
         return response_model
 
 
@@ -177,12 +183,16 @@ async def send_patch_request(
     response_code_to_exception: Optional[Dict[int, Type[Exception]]] = None,
 ) -> WrappedApiResponse[ApiResponseType]:
     headers = __get_headers(api_key=api_key, request_headers=request_headers)
+
     LOGGER.debug("Sending PATCH %s, headers=%s, data=%s", url, headers, json)
+
     async with session.patch(url, json=json, headers=headers) as response:
         response_text = await response.text()
+
         if response_text == "":
             LOGGER.error("Empty HTTP %s response from PATCH %s", response.status, url)
             response_text = '{"status": "OK"}'
+
         handle_known_errors(url, response_code_to_exception, response, response_text)
         return parse_response_to_model(response_text, model_class)
 
@@ -197,7 +207,9 @@ async def send_delete_request(
     response_code_to_exception: Optional[Dict[int, Type[Exception]]] = None,
 ):
     headers = __get_headers(api_key=api_key, request_headers=request_headers)
+
     LOGGER.debug("Sending DELETE %s, headers=%s", url, headers)
+
     async with session.delete(url, headers=headers) as response:
         response_text = await response.text()
         handle_known_errors(url, response_code_to_exception, response, response_text)
@@ -219,8 +231,8 @@ def handle_known_errors(
         raise response_code_handler[response.status](response_text)
 
     if response.status > 299:
-        LOGGER.error("Error response from POST %s: %s", url, response_text)
-        raise ValueError(f"Error response from POST {url}: code {response.status} - {response_text}")
+        LOGGER.error("Error response from %s: %s", url, response_text)
+        raise ValueError(f"Error response from {url}: code {response.status} - {response_text}")
 
 
 def __get_headers(*, api_key: Optional[str] = None, request_headers: Optional[Dict[str, str]] = None) -> Dict[str, str]:

@@ -19,6 +19,10 @@ class MarketsInformationModule(BaseModule):
         url = self._get_url("/info/markets", query={"market": market_names})
         return await send_get_request(await self.get_session(), url, List[MarketModel])
 
+    async def get_markets_dict(self):
+        markets = await self.get_markets()
+        return {m.name: m for m in markets.data}
+
     async def get_market_statistics(self, *, market_name: str):
         """
         https://api.docs.extended.exchange/#get-market-statistics
