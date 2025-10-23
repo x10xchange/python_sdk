@@ -17,7 +17,10 @@ from x10.perpetual.configuration import StarknetDomain
 from x10.perpetual.fees import DEFAULT_FEES, TradingFeeModel
 from x10.perpetual.markets import MarketModel
 from x10.perpetual.orders import (
+    OrderPriceType,
     OrderSide,
+    OrderTpslType,
+    OrderTriggerPriceType,
     OrderType,
     PerpetualOrderModel,
     SelfTradeProtectionLevel,
@@ -29,6 +32,12 @@ from x10.perpetual.orders import (
 from x10.utils import generate_nonce
 from x10.utils.date import to_epoch_millis, utc_now
 
+
+class OrderTpslTriggerParam:
+    triggerPrice: Decimal
+    triggerPriceType: OrderTriggerPriceType
+    price: Decimal
+    priceType: OrderPriceType
 
 def create_order_object(
     account: StarkPerpetualAccount,
@@ -47,6 +56,9 @@ def create_order_object(
     builder_fee: Optional[Decimal] = None,
     builder_id: Optional[int] = None,
     reduce_only: bool = False,
+    tp_sl_type: Optional[OrderTpslType] = None,
+    take_profit: Optional[OrderTpslTriggerParam] = None,
+    stop_loss: Optional[OrderTpslTriggerParam] = None,
 ) -> PerpetualOrderModel:
     """
     Creates an order object to be placed on the exchange using the `place_order` method.
