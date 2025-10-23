@@ -17,7 +17,7 @@ from perpetual.trading_client import PerpetualTradingClient
 from examples.init_env import init_env
 
 LOGGER = logging.getLogger()
-SDK_CONFIG = TESTNET_CONFIG
+ENDPOINT_CONFIG = TESTNET_CONFIG
 
 
 async def run_example():
@@ -30,7 +30,7 @@ async def run_example():
         private_key=env_config.private_key,
         vault=env_config.vault_id,
     )
-    trading_client = PerpetualTradingClient(SDK_CONFIG, stark_account)
+    trading_client = PerpetualTradingClient(ENDPOINT_CONFIG, stark_account)
     markets_dict = await trading_client.markets_info.get_markets_dict()
 
     market = markets_dict[ETH_USD_MARKET]
