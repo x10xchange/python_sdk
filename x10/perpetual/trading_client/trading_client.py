@@ -42,7 +42,6 @@ class PerpetualTradingClient:
     __testnet_module: TestnetModule
     __config: EndpointConfig
 
-    # FIXME
     async def place_order(
         self,
         market_name: str,
