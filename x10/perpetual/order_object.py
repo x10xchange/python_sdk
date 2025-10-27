@@ -3,16 +3,15 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Callable, Optional, Tuple
 
-from perpetual.order_object_settlement import (
-    OrderSettlementData,
-    SettlementDataCtx,
-    create_order_settlement_data,
-)
-
 from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.configuration import StarknetDomain
 from x10.perpetual.fees import DEFAULT_FEES, TradingFeeModel
 from x10.perpetual.markets import MarketModel
+from x10.perpetual.order_object_settlement import (
+    OrderSettlementData,
+    SettlementDataCtx,
+    create_order_settlement_data,
+)
 from x10.perpetual.orders import (
     CreateOrderTpslTriggerModel,
     OrderPriceType,

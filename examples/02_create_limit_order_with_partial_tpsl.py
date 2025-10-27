@@ -2,23 +2,23 @@ import logging
 from asyncio import run
 
 from config import ETH_USD_MARKET
-from perpetual.accounts import StarkPerpetualAccount
-from perpetual.configuration import TESTNET_CONFIG
-from perpetual.order_object import OrderTpslTriggerParam, create_order_object
-from perpetual.orders import (
+
+from examples.init_env import init_env
+from examples.utils import get_adjust_price_by_pct
+from x10.perpetual.accounts import StarkPerpetualAccount
+from x10.perpetual.configuration import MAINNET_CONFIG
+from x10.perpetual.order_object import OrderTpslTriggerParam, create_order_object
+from x10.perpetual.orders import (
     OrderPriceType,
     OrderSide,
     OrderTpslType,
     OrderTriggerPriceType,
     TimeInForce,
 )
-from perpetual.trading_client import PerpetualTradingClient
-
-from examples.init_env import init_env
-from examples.utils import get_adjust_price_by_pct
+from x10.perpetual.trading_client import PerpetualTradingClient
 
 LOGGER = logging.getLogger()
-ENDPOINT_CONFIG = TESTNET_CONFIG
+ENDPOINT_CONFIG = MAINNET_CONFIG
 
 
 async def run_example():
@@ -45,11 +45,11 @@ async def run_example():
     sl_trigger_price = adjust_price_by_pct(order_price, -0.5)
     sl_price = adjust_price_by_pct(order_price, -1.0)
 
-    LOGGER.info(f"Market: {market}")
+    LOGGER.info(f"Creating LIMIT order object with TPSL for market: {market.name}")
 
     new_order = create_order_object(
         account=stark_account,
-        starknet_domain=TESTNET_CONFIG.starknet_domain,
+        starknet_domain=ENDPOINT_CONFIG.starknet_domain,
         market=market,
         side=OrderSide.BUY,
         amount_of_synthetic=order_size,
@@ -72,7 +72,7 @@ async def run_example():
         ),
     )
 
-    LOGGER.info(f"New order obj: {new_order}")
+    LOGGER.info(f"Placing order...")
 
 
 if __name__ == "__main__":

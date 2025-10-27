@@ -34,8 +34,8 @@ TESTNET_CONFIG = EndpointConfig(
     asset_operations_contract="",
     collateral_asset_on_chain_id="0x1",
     collateral_decimals=6,
-    starknet_domain=StarknetDomain(name="Perpetuals", version="v0", chain_id="SN_SEPOLIA", revision="1"),
     collateral_asset_id="0x1",
+    starknet_domain=StarknetDomain(name="Perpetuals", version="v0", chain_id="SN_SEPOLIA", revision="1"),
 )
 
 MAINNET_CONFIG = EndpointConfig(
@@ -48,8 +48,6 @@ MAINNET_CONFIG = EndpointConfig(
     asset_operations_contract="",
     collateral_asset_on_chain_id="0x1",
     collateral_decimals=6,
-    starknet_domain=StarknetDomain(name="Perpetuals", version="v0", chain_id="SN_MAIN", revision="1"),
     collateral_asset_id="0x1",
+    starknet_domain=StarknetDomain(name="Perpetuals", version="v0", chain_id="SN_MAIN", revision="1"),
 )
-
-STARKNET_MAINNET_CONFIG = MAINNET_CONFIG

@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from perpetual.markets import TradingConfigModel
+from x10.perpetual.markets import TradingConfigModel
 
 
 def get_adjust_price_by_pct(config: TradingConfigModel):

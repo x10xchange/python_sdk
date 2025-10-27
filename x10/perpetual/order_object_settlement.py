@@ -5,25 +5,26 @@ from decimal import Decimal
 from typing import Callable, Optional, Tuple
 
 from fast_stark_crypto import get_order_msg_hash
-from perpetual.amounts import (
+
+from x10.perpetual.amounts import (
     ROUNDING_BUY_CONTEXT,
     ROUNDING_FEE_CONTEXT,
     ROUNDING_SELL_CONTEXT,
     HumanReadableAmount,
     StarkAmount,
 )
-from perpetual.configuration import StarknetDomain
-from perpetual.fees import TradingFeeModel
-from perpetual.markets import MarketModel
-from perpetual.orders import (
+from x10.perpetual.configuration import StarknetDomain
+from x10.perpetual.fees import TradingFeeModel
+from x10.perpetual.markets import MarketModel
+from x10.perpetual.orders import (
     OrderSide,
     StarkDebuggingOrderAmountsModel,
     StarkSettlementModel,
 )
-from utils.model import SettlementSignatureModel
+from x10.utils.model import SettlementSignatureModel
 
 
-@dataclass
+@dataclass(kw_only=True)
 class OrderSettlementData:
     synthetic_amount_human: HumanReadableAmount
     order_hash: int
@@ -31,7 +32,7 @@ class OrderSettlementData:
     debugging_amounts: StarkDebuggingOrderAmountsModel
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SettlementDataCtx:
     market: MarketModel
     fees: TradingFeeModel
@@ -44,7 +45,7 @@ class SettlementDataCtx:
     starknet_domain: StarknetDomain
 
 
-def __get_settlement_expiration(expiration_timestamp: datetime):
+def __calc_settlement_expiration(expiration_timestamp: datetime):
     expire_time_with_buffer = expiration_timestamp + timedelta(days=14)
     expire_time_as_seconds = math.ceil(expire_time_with_buffer.timestamp())
 
@@ -72,7 +73,7 @@ def hash_order(
         quote_amount=amount_collateral.value,
         fee_amount=max_fee.value,
         fee_asset_id=int(collateral_asset.settlement_external_id, 16),
-        expiration=__get_settlement_expiration(expiration_timestamp),
+        expiration=__calc_settlement_expiration(expiration_timestamp),
         salt=nonce,
         user_public_key=public_key,
         domain_name=starknet_domain.name,
