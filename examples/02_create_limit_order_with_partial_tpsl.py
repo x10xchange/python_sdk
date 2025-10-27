@@ -21,8 +21,6 @@ ENDPOINT_CONFIG = MAINNET_CONFIG
 
 
 async def run_example():
-    LOGGER.info("Create limit order with partial TPSL")
-
     env_config = init_env()
     stark_account = StarkPerpetualAccount(
         api_key=env_config.api_key,
