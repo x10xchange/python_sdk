@@ -180,6 +180,7 @@ class OpenOrderModel(X10BaseModel):
     created_time: int
     updated_time: int
     expiry_time: Optional[int] = None
-
-
-#     FIXME: Add TPSL fields
+    trigger: Optional[CreateOrderConditionalTriggerModel] = None
+    tp_sl_type: Optional[OrderTpslType] = None
+    take_profit: Optional[CreateOrderTpslTriggerModel] = None
+    stop_loss: Optional[CreateOrderTpslTriggerModel] = None

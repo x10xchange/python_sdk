@@ -23,8 +23,8 @@ from x10.perpetual.orders import (
     SelfTradeProtectionLevel,
     TimeInForce,
 )
-from x10.utils import generate_nonce
 from x10.utils.date import to_epoch_millis, utc_now
+from x10.utils.nonce import generate_nonce
 
 
 @dataclass(kw_only=True)
