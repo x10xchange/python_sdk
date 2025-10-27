@@ -13,7 +13,7 @@ FROZEN_NONCE = 1473459052
 @freeze_time("2024-01-05 01:08:56.860694")
 @pytest.mark.asyncio
 async def test_create_transfer(mocker: MockerFixture, create_trading_account, create_accounts, create_btc_usd_market):
-    mocker.patch("x10.utils.generate_nonce", return_value=FROZEN_NONCE)
+    mocker.patch("x10.utils.nonce.generate_nonce", return_value=FROZEN_NONCE)
 
     from x10.perpetual.transfer_object import create_transfer_object
 

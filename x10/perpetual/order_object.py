@@ -166,22 +166,28 @@ def __create_order_object(
     settlement_data = create_order_settlement_data(
         side=side, synthetic_amount=synthetic_amount, price=price, ctx=settlement_data_ctx
     )
-    tp_settlement_data = (
-        create_order_settlement_data(
-            side=__get_opposite_side(side),
-            synthetic_amount=synthetic_amount,
-            price=take_profit.price,
-            ctx=settlement_data_ctx,
+    tp_trigger_model = (
+        __create_order_tpsl_trigger_model(
+            take_profit,
+            create_order_settlement_data(
+                side=__get_opposite_side(side),
+                synthetic_amount=synthetic_amount,
+                price=take_profit.price,
+                ctx=settlement_data_ctx,
+            ),
         )
         if take_profit
         else None
     )
-    sl_settlement_data = (
-        create_order_settlement_data(
-            side=__get_opposite_side(side),
-            synthetic_amount=synthetic_amount,
-            price=stop_loss.price,
-            ctx=settlement_data_ctx,
+    sl_trigger_model = (
+        __create_order_tpsl_trigger_model(
+            stop_loss,
+            create_order_settlement_data(
+                side=__get_opposite_side(side),
+                synthetic_amount=synthetic_amount,
+                price=stop_loss.price,
+                ctx=settlement_data_ctx,
+            ),
         )
         if stop_loss
         else None
@@ -204,8 +210,8 @@ def __create_order_object(
         cancel_id=previous_order_external_id,
         settlement=settlement_data.settlement,
         tp_sl_type=tp_sl_type,
-        take_profit=(__create_order_tpsl_trigger_model(take_profit, tp_settlement_data) if take_profit else None),
-        stop_loss=(__create_order_tpsl_trigger_model(stop_loss, sl_settlement_data) if stop_loss else None),
+        take_profit=tp_trigger_model,
+        stop_loss=sl_trigger_model,
         debugging_amounts=settlement_data.debugging_amounts,
         builderFee=builder_fee,
         builderId=builder_id,
