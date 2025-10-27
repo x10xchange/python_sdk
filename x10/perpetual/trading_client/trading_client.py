@@ -5,9 +5,10 @@ from typing import Dict, Optional
 from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.configuration import EndpointConfig
 from x10.perpetual.markets import MarketModel
-from x10.perpetual.order_object import create_order_object
+from x10.perpetual.order_object import OrderTpslTriggerParam, create_order_object
 from x10.perpetual.orders import (
     OrderSide,
+    OrderTpslType,
     PlacedOrderModel,
     SelfTradeProtectionLevel,
     TimeInForce,
@@ -41,6 +42,7 @@ class PerpetualTradingClient:
     __testnet_module: TestnetModule
     __config: EndpointConfig
 
+    # FIXME
     async def place_order(
         self,
         market_name: str,
@@ -56,15 +58,18 @@ class PerpetualTradingClient:
         builder_fee: Optional[Decimal] = None,
         builder_id: Optional[int] = None,
         reduce_only: bool = False,
+        tp_sl_type: Optional[OrderTpslType] = None,
+        take_profit: Optional[OrderTpslTriggerParam] = None,
+        stop_loss: Optional[OrderTpslTriggerParam] = None,
     ) -> WrappedApiResponse[PlacedOrderModel]:
         if not self.__stark_account:
             raise ValueError("Stark account is not set")
 
         if not self.__markets:
-            markets = await self.__markets_info_module.get_markets()
-            self.__markets = {m.name: m for m in markets.data}
+            self.__markets = await self.__markets_info_module.get_markets_dict()
 
         market = self.__markets.get(market_name)
+
         if not market:
             raise ValueError(f"Market {market_name} not found")
 
@@ -87,6 +92,9 @@ class PerpetualTradingClient:
             builder_fee=builder_fee,
             builder_id=builder_id,
             reduce_only=reduce_only,
+            tp_sl_type=tp_sl_type,
+            take_profit=take_profit,
+            stop_loss=stop_loss,
         )
         return await self.__order_management_module.place_order(order)
 

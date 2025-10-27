@@ -161,6 +161,14 @@ class PlacedOrderModel(X10BaseModel):
     external_id: str
 
 
+class OpenOrderTpslTriggerModel(X10BaseModel):
+    trigger_price: Decimal
+    trigger_price_type: OrderTriggerPriceType
+    price: Decimal
+    price_type: OrderPriceType
+    status: Optional[OrderStatus] = None
+
+
 class OpenOrderModel(X10BaseModel):
     id: int
     account_id: int
@@ -180,7 +188,6 @@ class OpenOrderModel(X10BaseModel):
     created_time: int
     updated_time: int
     expiry_time: Optional[int] = None
-    trigger: Optional[CreateOrderConditionalTriggerModel] = None
     tp_sl_type: Optional[OrderTpslType] = None
-    take_profit: Optional[CreateOrderTpslTriggerModel] = None
-    stop_loss: Optional[CreateOrderTpslTriggerModel] = None
+    take_profit: Optional[OpenOrderTpslTriggerModel] = None
+    stop_loss: Optional[OpenOrderTpslTriggerModel] = None

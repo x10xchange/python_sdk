@@ -74,6 +74,23 @@ async def run_example():
 
     LOGGER.info(f"Placing order...")
 
+    placed_order = await trading_client.orders.place_order(order=new_order)
+
+    LOGGER.info(f"Order is placed: {placed_order.to_pretty_json()}")
+
+    open_orders = await trading_client.account.get_open_orders(market_names=[market.name])
+
+    for order in open_orders.data:
+        if order.id == placed_order.data.id:
+            LOGGER.info(f"Found placed order: {order.to_pretty_json()}")
+            break
+
+    LOGGER.info("Cancelling placed order...")
+
+    await trading_client.orders.cancel_order(placed_order.data.id)
+
+    LOGGER.info("Placed order is cancelled.")
+
 
 if __name__ == "__main__":
     run(main=run_example())
