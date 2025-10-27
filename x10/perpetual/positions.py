@@ -43,16 +43,25 @@ class PositionModel(X10BaseModel):
     updated_at: int
 
 
+class RealisedPnlBreakdownModel(X10BaseModel):
+    trade_pnl: Decimal
+    funding_fees: Decimal
+    open_fees: Decimal
+    close_fees: Decimal
+
+
 class PositionHistoryModel(X10BaseModel):
     id: int
     account_id: int
     market: str
     side: PositionSide
-    leverage: Decimal
     size: Decimal
+    max_position_size: Decimal
+    leverage: Decimal
     open_price: Decimal
-    exit_type: Optional[ExitType] = None
     exit_price: Optional[Decimal] = None
     realised_pnl: Decimal
+    realised_pnl_breakdown: RealisedPnlBreakdownModel
     created_time: int
+    exit_type: Optional[ExitType] = None
     closed_time: Optional[int] = None
