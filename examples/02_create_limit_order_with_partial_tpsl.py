@@ -15,6 +15,7 @@ from perpetual.orders import (
 from perpetual.trading_client import PerpetualTradingClient
 
 from examples.init_env import init_env
+from examples.utils import get_adjust_price_by_pct
 
 LOGGER = logging.getLogger()
 ENDPOINT_CONFIG = TESTNET_CONFIG
@@ -34,12 +35,15 @@ async def run_example():
     markets_dict = await trading_client.markets_info.get_markets_dict()
 
     market = markets_dict[ETH_USD_MARKET]
+    adjust_price_by_pct = get_adjust_price_by_pct(market.trading_config)
+
     order_size = market.trading_config.min_order_size
-    order_price = market.market_stats.bid_price * 0.9
-    tp_trigger_price = market.trading_config.round_price(order_price * 1.005)
-    tp_price = market.trading_config.round_price(order_price * 1.01)
-    sl_trigger_price = market.trading_config.round_price(order_price * 0.995)
-    sl_price = market.trading_config.round_price(order_price * 0.99)
+
+    order_price = adjust_price_by_pct(market.market_stats.bid_price, -10.0)
+    tp_trigger_price = adjust_price_by_pct(order_price, 0.5)
+    tp_price = adjust_price_by_pct(order_price, 1.0)
+    sl_trigger_price = adjust_price_by_pct(order_price, -0.5)
+    sl_price = adjust_price_by_pct(order_price, -1.0)
 
     LOGGER.info(f"Market: {market}")
 
