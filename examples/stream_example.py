@@ -3,7 +3,6 @@ import logging
 import signal
 from typing import Any
 
-from examples.utils import init_logging
 from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.stream_client import PerpetualStreamClient
 
@@ -100,5 +99,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    init_logging()
     asyncio.run(main=main())

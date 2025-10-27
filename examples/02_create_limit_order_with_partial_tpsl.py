@@ -1,10 +1,9 @@
 import logging
 from asyncio import run
 
-from config import ETH_USD_MARKET
-
 from examples.init_env import init_env
-from examples.utils import get_adjust_price_by_pct
+from examples.utils import find_order_and_cancel, get_adjust_price_by_pct
+from x10.config import ETH_USD_MARKET
 from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.configuration import MAINNET_CONFIG
 from x10.perpetual.order_object import OrderTpslTriggerParam, create_order_object
@@ -45,7 +44,7 @@ async def run_example():
     sl_trigger_price = adjust_price_by_pct(order_price, -0.5)
     sl_price = adjust_price_by_pct(order_price, -1.0)
 
-    LOGGER.info(f"Creating LIMIT order object with TPSL for market: {market.name}")
+    LOGGER.info("Creating LIMIT order object with TPSL for market: %s", market.name)
 
     new_order = create_order_object(
         account=stark_account,
@@ -72,24 +71,13 @@ async def run_example():
         ),
     )
 
-    LOGGER.info(f"Placing order...")
+    LOGGER.info("Placing order...")
 
     placed_order = await trading_client.orders.place_order(order=new_order)
 
     LOGGER.info(f"Order is placed: {placed_order.to_pretty_json()}")
 
-    open_orders = await trading_client.account.get_open_orders(market_names=[market.name])
-
-    for order in open_orders.data:
-        if order.id == placed_order.data.id:
-            LOGGER.info(f"Found placed order: {order.to_pretty_json()}")
-            break
-
-    LOGGER.info("Cancelling placed order...")
-
-    await trading_client.orders.cancel_order(placed_order.data.id)
-
-    LOGGER.info("Placed order is cancelled.")
+    await find_order_and_cancel(trading_client=trading_client, logger=LOGGER, order_id=placed_order.data.id)
 
 
 if __name__ == "__main__":
