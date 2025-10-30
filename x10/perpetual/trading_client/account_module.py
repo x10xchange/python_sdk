@@ -130,6 +130,8 @@ class AccountModule(BaseModule):
         market_names: List[str],
         trade_side: Optional[OrderSide] = None,
         trade_type: Optional[TradeType] = None,
+        cursor: Optional[int] = None,
+        limit: Optional[int] = None,
     ) -> WrappedApiResponse[List[AccountTradeModel]]:
         """
         https://api.docs.extended.exchange/#get-trades
@@ -137,7 +139,7 @@ class AccountModule(BaseModule):
 
         url = self._get_url(
             "/user/trades",
-            query={"market": market_names, "side": trade_side, "type": trade_type},
+            query={"market": market_names, "side": trade_side, "type": trade_type, "cursor": cursor, "limit": limit},
         )
 
         return await send_get_request(
