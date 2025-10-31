@@ -14,6 +14,7 @@ class NewOrderTimeInForce(StrEnum):
 class TimeInForce(StrEnum):
     GTT = "GTT"
     IOC = "IOC"
+    FOK = "FOK"
 
 
 class OrderSide(StrEnum):
