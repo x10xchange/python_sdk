@@ -4,7 +4,7 @@ from decimal import Decimal
 from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.configuration import MAINNET_CONFIG
 from x10.perpetual.orderbook import OrderBook
-from x10.perpetual.orders import OrderSide, TimeInForce
+from x10.perpetual.orders import NewOrderTimeInForce, OrderSide
 from x10.perpetual.simple_client.simple_trading_client import BlockingTradingClient
 
 
@@ -54,7 +54,7 @@ async def setup_and_run():
         market_name=market.name,
         side=OrderSide.BUY,
         post_only=False,
-        time_in_force=TimeInForce.IOC,
+        time_in_force=NewOrderTimeInForce.IOC,
     )
 
     print(f"Placed order result: {placed_order}")

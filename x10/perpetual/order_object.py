@@ -14,14 +14,14 @@ from x10.perpetual.order_object_settlement import (
 )
 from x10.perpetual.orders import (
     CreateOrderTpslTriggerModel,
+    NewOrderModel,
+    NewOrderTimeInForce,
     OrderPriceType,
     OrderSide,
     OrderTpslType,
     OrderTriggerPriceType,
     OrderType,
-    PerpetualOrderModel,
     SelfTradeProtectionLevel,
-    TimeInForce,
 )
 from x10.utils.date import to_epoch_millis, utc_now
 from x10.utils.nonce import generate_nonce
@@ -46,7 +46,7 @@ def create_order_object(
     previous_order_external_id: Optional[str] = None,
     expire_time: Optional[datetime] = None,
     order_external_id: Optional[str] = None,
-    time_in_force: TimeInForce = TimeInForce.GTT,
+    time_in_force: NewOrderTimeInForce = NewOrderTimeInForce.GTT,
     self_trade_protection_level: SelfTradeProtectionLevel = SelfTradeProtectionLevel.ACCOUNT,
     nonce: Optional[int] = None,
     builder_fee: Optional[Decimal] = None,
@@ -55,7 +55,7 @@ def create_order_object(
     tp_sl_type: Optional[OrderTpslType] = None,
     take_profit: Optional[OrderTpslTriggerParam] = None,
     stop_loss: Optional[OrderTpslTriggerParam] = None,
-) -> PerpetualOrderModel:
+) -> NewOrderModel:
     """
     Creates an order object to be placed on the exchange using the `place_order` method.
     """
@@ -123,7 +123,7 @@ def __create_order_object(
     post_only: bool = False,
     previous_order_external_id: Optional[str] = None,
     order_external_id: Optional[str] = None,
-    time_in_force: TimeInForce = TimeInForce.GTT,
+    time_in_force: NewOrderTimeInForce = NewOrderTimeInForce.GTT,
     self_trade_protection_level: SelfTradeProtectionLevel = SelfTradeProtectionLevel.ACCOUNT,
     nonce: Optional[int] = None,
     builder_fee: Optional[Decimal] = None,
@@ -132,7 +132,10 @@ def __create_order_object(
     tp_sl_type: Optional[OrderTpslType] = None,
     take_profit: Optional[OrderTpslTriggerParam] = None,
     stop_loss: Optional[OrderTpslTriggerParam] = None,
-) -> PerpetualOrderModel:
+) -> NewOrderModel:
+    assert side in OrderSide, f"Unexpected order side value: {side}"
+    assert time_in_force in NewOrderTimeInForce, f"Unexpected time in force value: {time_in_force}"
+
     if exact_only:
         raise NotImplementedError("`exact_only` option is not supported yet")
 
@@ -194,7 +197,7 @@ def __create_order_object(
     )
 
     order_id = str(settlement_data.order_hash) if order_external_id is None else order_external_id
-    order = PerpetualOrderModel(
+    order = NewOrderModel(
         id=order_id,
         market=market.name,
         type=OrderType.LIMIT,

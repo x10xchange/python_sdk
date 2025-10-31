@@ -7,11 +7,11 @@ from x10.perpetual.configuration import EndpointConfig
 from x10.perpetual.markets import MarketModel
 from x10.perpetual.order_object import OrderTpslTriggerParam, create_order_object
 from x10.perpetual.orders import (
+    NewOrderTimeInForce,
     OrderSide,
     OrderTpslType,
     PlacedOrderModel,
     SelfTradeProtectionLevel,
-    TimeInForce,
 )
 from x10.perpetual.trading_client.account_module import AccountModule
 from x10.perpetual.trading_client.info_module import InfoModule
@@ -51,7 +51,7 @@ class PerpetualTradingClient:
         post_only: bool = False,
         previous_order_id=None,
         expire_time: Optional[datetime] = None,
-        time_in_force: TimeInForce = TimeInForce.GTT,
+        time_in_force: NewOrderTimeInForce = NewOrderTimeInForce.GTT,
         self_trade_protection_level: SelfTradeProtectionLevel = SelfTradeProtectionLevel.ACCOUNT,
         external_id: Optional[str] = None,
         builder_fee: Optional[Decimal] = None,

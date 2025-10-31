@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from x10.perpetual.orders import PerpetualOrderModel, PlacedOrderModel
+from x10.perpetual.orders import NewOrderModel, PlacedOrderModel
 from x10.perpetual.trading_client.base_module import BaseModule
 from x10.utils.http import send_delete_request, send_post_request
 from x10.utils.log import get_logger
@@ -17,7 +17,7 @@ class _MassCancelRequestModel(X10BaseModel):
 
 
 class OrderManagementModule(BaseModule):
-    async def place_order(self, order: PerpetualOrderModel):
+    async def place_order(self, order: NewOrderModel):
         """
         Placed new order on the exchange.
 
