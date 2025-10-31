@@ -10,10 +10,10 @@ from x10.perpetual.markets import MarketModel
 from x10.perpetual.order_object import create_order_object
 from x10.perpetual.orders import (
     NewOrderModel,
-    NewOrderTimeInForce,
     OpenOrderModel,
     OrderSide,
     OrderStatus,
+    TimeInForce,
 )
 from x10.perpetual.stream_client.perpetual_stream_connection import (
     PerpetualStreamConnection,
@@ -202,7 +202,7 @@ class BlockingTradingClient:
         external_id: str | None = None,
         builder_fee: Decimal | None = None,
         builder_id: int | None = None,
-        time_in_force: NewOrderTimeInForce = NewOrderTimeInForce.GTT,
+        time_in_force: TimeInForce = TimeInForce.GTT,
     ) -> TimedOpenOrderModel:
         market = (await self.get_markets()).get(market_name)
         if not market:

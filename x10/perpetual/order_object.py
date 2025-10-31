@@ -15,13 +15,13 @@ from x10.perpetual.order_object_settlement import (
 from x10.perpetual.orders import (
     CreateOrderTpslTriggerModel,
     NewOrderModel,
-    NewOrderTimeInForce,
     OrderPriceType,
     OrderSide,
     OrderTpslType,
     OrderTriggerPriceType,
     OrderType,
     SelfTradeProtectionLevel,
+    TimeInForce,
 )
 from x10.utils.date import to_epoch_millis, utc_now
 from x10.utils.nonce import generate_nonce
@@ -46,7 +46,7 @@ def create_order_object(
     previous_order_external_id: Optional[str] = None,
     expire_time: Optional[datetime] = None,
     order_external_id: Optional[str] = None,
-    time_in_force: NewOrderTimeInForce = NewOrderTimeInForce.GTT,
+    time_in_force: TimeInForce = TimeInForce.GTT,
     self_trade_protection_level: SelfTradeProtectionLevel = SelfTradeProtectionLevel.ACCOUNT,
     nonce: Optional[int] = None,
     builder_fee: Optional[Decimal] = None,
@@ -123,7 +123,7 @@ def __create_order_object(
     post_only: bool = False,
     previous_order_external_id: Optional[str] = None,
     order_external_id: Optional[str] = None,
-    time_in_force: NewOrderTimeInForce = NewOrderTimeInForce.GTT,
+    time_in_force: TimeInForce = TimeInForce.GTT,
     self_trade_protection_level: SelfTradeProtectionLevel = SelfTradeProtectionLevel.ACCOUNT,
     nonce: Optional[int] = None,
     builder_fee: Optional[Decimal] = None,
@@ -133,8 +133,14 @@ def __create_order_object(
     take_profit: Optional[OrderTpslTriggerParam] = None,
     stop_loss: Optional[OrderTpslTriggerParam] = None,
 ) -> NewOrderModel:
-    assert side in OrderSide, f"Unexpected order side value: {side}"
-    assert time_in_force in NewOrderTimeInForce, f"Unexpected time in force value: {time_in_force}"
+    if side not in OrderSide:
+        raise ValueError(f"Unexpected order side value: {side}")
+
+    if time_in_force not in TimeInForce or time_in_force == TimeInForce.FOK:
+        raise ValueError(f"Unexpected time in force value: {time_in_force}")
+
+    if expire_time is None:
+        raise ValueError("`expire_time` must be provided")
 
     if exact_only:
         raise NotImplementedError("`exact_only` option is not supported yet")
@@ -146,9 +152,6 @@ def __create_order_object(
         stop_loss and stop_loss.price_type == OrderPriceType.MARKET
     ):
         raise NotImplementedError("TPSL `MARKET` price type is not supported yet")
-
-    if expire_time is None:
-        raise ValueError("`expire_time` must be provided")
 
     if nonce is None:
         nonce = generate_nonce()

@@ -6,11 +6,6 @@ from strenum import StrEnum
 from x10.utils.model import HexValue, SettlementSignatureModel, X10BaseModel
 
 
-class NewOrderTimeInForce(StrEnum):
-    GTT = "GTT"
-    IOC = "IOC"
-
-
 class TimeInForce(StrEnum):
     GTT = "GTT"
     IOC = "IOC"
@@ -145,7 +140,7 @@ class NewOrderModel(X10BaseModel):
     price: Decimal
     reduce_only: bool = False
     post_only: bool = False
-    time_in_force: NewOrderTimeInForce
+    time_in_force: TimeInForce
     expiry_epoch_millis: int
     fee: Decimal
     nonce: Decimal

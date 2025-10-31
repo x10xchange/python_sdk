@@ -8,11 +8,11 @@ from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.configuration import MAINNET_CONFIG
 from x10.perpetual.order_object import OrderTpslTriggerParam, create_order_object
 from x10.perpetual.orders import (
-    NewOrderTimeInForce,
     OrderPriceType,
     OrderSide,
     OrderTpslType,
     OrderTriggerPriceType,
+    TimeInForce,
 )
 from x10.perpetual.trading_client import PerpetualTradingClient
 
@@ -51,7 +51,7 @@ async def run_example():
         side=OrderSide.BUY,
         amount_of_synthetic=order_size,
         price=market.trading_config.round_price(order_price),
-        time_in_force=NewOrderTimeInForce.GTT,
+        time_in_force=TimeInForce.GTT,
         reduce_only=False,
         post_only=True,
         tp_sl_type=OrderTpslType.ORDER,
