@@ -3,9 +3,8 @@ import logging
 from asyncio import run
 from signal import SIGINT, SIGTERM
 
-from config import ETH_USD_MARKET
-
 from examples.init_env import init_env
+from x10.config import ETH_USD_MARKET
 from x10.perpetual.configuration import MAINNET_CONFIG
 from x10.perpetual.stream_client import PerpetualStreamClient
 
