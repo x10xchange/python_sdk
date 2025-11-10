@@ -1,4 +1,4 @@
-import logging
+import logging.handlers
 from asyncio import run
 
 from examples.init_env import init_env
@@ -17,6 +17,9 @@ ENDPOINT_CONFIG = MAINNET_CONFIG
 
 async def run_example():
     env_config = init_env()
+
+    assert env_config.builder_id, "X10_BUILDER_ID is not set"
+
     stark_account = StarkPerpetualAccount(
         api_key=env_config.api_key,
         public_key=env_config.public_key,
@@ -25,13 +28,16 @@ async def run_example():
     )
     trading_client = PerpetualTradingClient(ENDPOINT_CONFIG, stark_account)
     markets_dict = await trading_client.markets_info.get_markets_dict()
+    fees = await trading_client.account.get_fees(market_names=[MARKET_NAME], builder_id=env_config.builder_id)
+    builder_fee = fees.data[0].builder_fee_rate
 
-    market = markets_dict[MARKET_NAME]
+    market = markets_dict[ETH_USD_MARKET]
     adjust_price_by_pct = get_adjust_price_by_pct(market.trading_config)
 
     order_size = market.trading_config.min_order_size
     order_price = adjust_price_by_pct(market.market_stats.bid_price, -10.0)
 
+    LOGGER.info("Builder: id=%s, fee=%s", env_config.builder_id, builder_fee)
     LOGGER.info("Creating LIMIT order object for market: %s", market.name)
 
     new_order = create_order_object(
@@ -44,6 +50,8 @@ async def run_example():
         time_in_force=TimeInForce.GTT,
         reduce_only=False,
         post_only=True,
+        builder_id=env_config.builder_id,
+        builder_fee=builder_fee,
     )
 
     LOGGER.info("Placing order...")

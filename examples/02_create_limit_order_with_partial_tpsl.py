@@ -17,6 +17,7 @@ from x10.perpetual.orders import (
 from x10.perpetual.trading_client import PerpetualTradingClient
 
 LOGGER = logging.getLogger()
+MARKET_NAME = ETH_USD_MARKET
 ENDPOINT_CONFIG = MAINNET_CONFIG
 
 
@@ -31,7 +32,7 @@ async def run_example():
     trading_client = PerpetualTradingClient(ENDPOINT_CONFIG, stark_account)
     markets_dict = await trading_client.markets_info.get_markets_dict()
 
-    market = markets_dict[ETH_USD_MARKET]
+    market = markets_dict[MARKET_NAME]
     adjust_price_by_pct = get_adjust_price_by_pct(market.trading_config)
 
     order_size = market.trading_config.min_order_size
