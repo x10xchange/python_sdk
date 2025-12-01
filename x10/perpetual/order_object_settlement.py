@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Callable, Optional, Tuple
 
-from fast_stark_crypto import get_order_msg_hash
+from fast_stark_crypto import get_limit_order_msg_hash, get_order_msg_hash
 
 from x10.perpetual.amounts import (
     ROUNDING_BUY_CONTEXT,
@@ -45,11 +45,43 @@ class SettlementDataCtx:
     starknet_domain: StarknetDomain
 
 
-def __calc_settlement_expiration(expiration_timestamp: datetime):
+def calculate_order_settlement_expiration(expiration_timestamp: datetime):
     expire_time_with_buffer = expiration_timestamp + timedelta(days=14)
     expire_time_as_seconds = math.ceil(expire_time_with_buffer.timestamp())
 
     return expire_time_as_seconds
+
+
+def hash_limit_order(
+    amount_base: StarkAmount,
+    amount_quote: StarkAmount,
+    max_fee: StarkAmount,
+    nonce: int,
+    position_id: int,
+    expiration_timestamp: datetime,
+    public_key: int,
+    starknet_domain: StarknetDomain,
+) -> int:
+    synthetic_asset = amount_base.asset
+    collateral_asset = amount_quote.asset
+
+    return get_limit_order_msg_hash(
+        source_position_id=position_id,
+        receive_position_id=position_id,
+        base_asset_id=int(synthetic_asset.settlement_external_id, 16),
+        base_amount=amount_base.value,
+        quote_asset_id=int(collateral_asset.settlement_external_id, 16),
+        quote_amount=amount_quote.value,
+        fee_amount=max_fee.value,
+        fee_asset_id=int(collateral_asset.settlement_external_id, 16),
+        expiration=calculate_order_settlement_expiration(expiration_timestamp),
+        salt=nonce,
+        user_public_key=public_key,
+        domain_name=starknet_domain.name,
+        domain_version=starknet_domain.version,
+        domain_chain_id=starknet_domain.chain_id,
+        domain_revision=starknet_domain.revision,
+    )
 
 
 def hash_order(
@@ -73,7 +105,7 @@ def hash_order(
         quote_amount=amount_collateral.value,
         fee_amount=max_fee.value,
         fee_asset_id=int(collateral_asset.settlement_external_id, 16),
-        expiration=__calc_settlement_expiration(expiration_timestamp),
+        expiration=calculate_order_settlement_expiration(expiration_timestamp),
         salt=nonce,
         user_public_key=public_key,
         domain_name=starknet_domain.name,

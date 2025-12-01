@@ -109,6 +109,20 @@ class StarkSettlementModel(X10BaseModel):
     collateral_position: Decimal
 
 
+class LimitOrderSettlementModel(X10BaseModel):
+    base_amount: int
+    quote_amount: int
+    fee_amount: int
+    base_asset_id: HexValue
+    quote_asset_id: HexValue
+    fee_asset_id: HexValue
+    expiration_timestamp: int
+    nonce: int
+    receiver_position_id: int
+    sender_position_id: int
+    signature: SettlementSignatureModel
+
+
 class StarkDebuggingOrderAmountsModel(X10BaseModel):
     collateral_amount: Decimal
     fee_amount: Decimal

@@ -7,7 +7,7 @@ from x10.perpetual.assets import (
     AssetOperationStatus,
     AssetOperationType,
 )
-from x10.perpetual.balances import BalanceModel
+from x10.perpetual.balances import BalanceModel, SpotBalanceModel
 from x10.perpetual.bridges import BridgesConfig, Quote
 from x10.perpetual.clients import ClientModel
 from x10.perpetual.fees import TradingFeeModel
@@ -124,6 +124,14 @@ class AccountModule(BaseModule):
         url = self._get_url("/user/orders/external/<external_id>", external_id=external_id)
 
         return await send_get_request(await self.get_session(), url, list[OpenOrderModel], api_key=self._get_api_key())
+    
+    async def get_spot_balances(self) -> WrappedApiResponse[List[SpotBalanceModel]]:
+        """
+        https://api.docs.extended.exchange/#get-spot-balance
+        """
+
+        url = self._get_url("/user/spot/balances")
+        return await send_get_request(await self.get_session(), url, List[SpotBalanceModel], api_key=self._get_api_key())
 
     async def get_trades(
         self,

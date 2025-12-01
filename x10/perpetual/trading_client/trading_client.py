@@ -20,6 +20,7 @@ from x10.perpetual.trading_client.markets_information_module import (
 )
 from x10.perpetual.trading_client.order_management_module import OrderManagementModule
 from x10.perpetual.trading_client.testnet_module import TestnetModule
+from x10.perpetual.trading_client.vault_module import VaultModule
 from x10.utils.date import utc_now
 from x10.utils.http import WrappedApiResponse
 from x10.utils.log import get_logger
@@ -41,6 +42,7 @@ class PerpetualTradingClient:
     __order_management_module: OrderManagementModule
     __testnet_module: TestnetModule
     __config: EndpointConfig
+    __vault_module: VaultModule
 
     async def place_order(
         self,
@@ -116,6 +118,12 @@ class PerpetualTradingClient:
         self.__order_management_module = OrderManagementModule(endpoint_config, api_key=api_key)
         self.__testnet_module = TestnetModule(endpoint_config, api_key=api_key, account_module=self.__account_module)
         self.__config = endpoint_config
+        self.__vault_module = VaultModule(
+            endpoint_config,
+            account_module=self.__account_module,
+            account=stark_account,
+            api_key=api_key,
+        )
 
     @property
     def info(self):
@@ -136,3 +144,7 @@ class PerpetualTradingClient:
     @property
     def testnet(self):
         return self.__testnet_module
+
+    @property
+    def vault(self):
+        return self.__vault_module
