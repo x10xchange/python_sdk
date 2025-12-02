@@ -104,6 +104,12 @@ class PerpetualTradingClient:
         await self.__account_module.close_session()
         await self.__order_management_module.close_session()
 
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        await self.close()
+
     def __init__(self, endpoint_config: EndpointConfig, stark_account: StarkPerpetualAccount | None = None):
         api_key = stark_account.api_key if stark_account else None
 
