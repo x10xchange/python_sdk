@@ -42,6 +42,7 @@ def create_order_object(
     price: Decimal,
     side: OrderSide,
     starknet_domain: StarknetDomain,
+    order_type: OrderType = OrderType.LIMIT,
     post_only: bool = False,
     previous_order_external_id: Optional[str] = None,
     expire_time: Optional[datetime] = None,
@@ -76,6 +77,7 @@ def create_order_object(
         public_key=account.public_key,
         exact_only=False,
         expire_time=expire_time,
+        order_type=order_type,
         post_only=post_only,
         previous_order_external_id=previous_order_external_id,
         order_external_id=order_external_id,
@@ -120,6 +122,7 @@ def __create_order_object(
     starknet_domain: StarknetDomain,
     exact_only: bool = False,
     expire_time: Optional[datetime] = None,
+    order_type: OrderType = OrderType.LIMIT,
     post_only: bool = False,
     previous_order_external_id: Optional[str] = None,
     order_external_id: Optional[str] = None,
@@ -138,6 +141,9 @@ def __create_order_object(
 
     if time_in_force not in TimeInForce or time_in_force == TimeInForce.FOK:
         raise ValueError(f"Unexpected time in force value: {time_in_force}")
+
+    if order_type not in OrderType:
+        raise ValueError(f"Unexpected order type value: {order_type}")
 
     if expire_time is None:
         raise ValueError("`expire_time` must be provided")
@@ -203,7 +209,7 @@ def __create_order_object(
     order = NewOrderModel(
         id=order_id,
         market=market.name,
-        type=OrderType.LIMIT,
+        type=order_type,
         side=side,
         qty=settlement_data.synthetic_amount_human.value,
         price=price,
