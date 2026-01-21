@@ -12,7 +12,7 @@ from x10.perpetual.trading_client import PerpetualTradingClient
 
 LOGGER = logging.getLogger()
 MARKET_NAME = ETH_USD_MARKET
-ENDPOINT_CONFIG = MAINNET_CONFIG
+ENDPOINT_CONFIG = MAINNET_CONFIG # replace with TESTNET_CONFIG for testnet
 
 
 async def run_example():
