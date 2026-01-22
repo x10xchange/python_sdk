@@ -1,5 +1,5 @@
 from types import TracebackType
-from typing import AsyncIterator, Generic, Optional, Type, TypeVar
+from typing import AsyncIterator, Generic, Optional, Type, TypeVar, Union
 
 import websockets
 from websockets import WebSocketClientProtocol
@@ -12,6 +12,31 @@ from x10.utils.model import X10BaseModel
 LOGGER = get_logger(__name__)
 
 StreamMsgResponseType = TypeVar("StreamMsgResponseType", bound=X10BaseModel)
+
+# Check websockets version for API compatibility
+_WS_VERSION = tuple(int(x) for x in websockets.__version__.split(".")[:2])
+_WS_14_PLUS = _WS_VERSION >= (14, 0)
+
+# Import the correct connection type based on version
+if _WS_14_PLUS:
+    from websockets.asyncio.client import ClientConnection as WebSocketConnection
+else:
+    WebSocketConnection = WebSocketClientProtocol
+
+
+def _is_ws_closed(ws: Union[WebSocketClientProtocol, "WebSocketConnection"]) -> bool:
+    """Check if websocket connection is closed (compatible with both ws 13 and 14+)."""
+    if _WS_14_PLUS:
+        # websockets 14+ uses state enum
+        try:
+            from websockets.protocol import State
+            return ws.state == State.CLOSED
+        except (ImportError, AttributeError):
+            # Fallback: try to check if close() was called
+            return getattr(ws, '_closed', False)
+    else:
+        # websockets 13 and earlier use .closed property
+        return ws.closed
 
 
 class PerpetualStreamConnection(Generic[StreamMsgResponseType]):
@@ -45,7 +70,7 @@ class PerpetualStreamConnection(Generic[StreamMsgResponseType]):
 
     async def close(self):
         assert self.__websocket is not None
-        if not self.__websocket.closed:
+        if not _is_ws_closed(self.__websocket):
             await self.__websocket.close()
         LOGGER.debug("Stream closed: %s", self.__stream_url)
 
@@ -56,8 +81,7 @@ class PerpetualStreamConnection(Generic[StreamMsgResponseType]):
     @property
     def closed(self):
         assert self.__websocket is not None
-
-        return self.__websocket.closed
+        return _is_ws_closed(self.__websocket)
 
     def __aiter__(self) -> AsyncIterator[StreamMsgResponseType]:
         return self
@@ -65,7 +89,7 @@ class PerpetualStreamConnection(Generic[StreamMsgResponseType]):
     async def __anext__(self) -> StreamMsgResponseType:
         assert self.__websocket is not None
 
-        if self.__websocket.closed:
+        if _is_ws_closed(self.__websocket):
             raise StopAsyncIteration
         try:
             return await self.__receive()
@@ -96,14 +120,19 @@ class PerpetualStreamConnection(Generic[StreamMsgResponseType]):
         await self.close()
 
     async def __await_impl__(self):
-        extra_headers: dict[str, str] = {
+        headers: dict[str, str] = {
             RequestHeader.USER_AGENT: USER_AGENT,
         }
 
         if self.__api_key is not None:
-            extra_headers[RequestHeader.API_KEY] = self.__api_key
+            headers[RequestHeader.API_KEY] = self.__api_key
 
-        self.__websocket = await websockets.connect(self.__stream_url, extra_headers=extra_headers)
+        # websockets 14+ renamed extra_headers to additional_headers
+        ws_version = tuple(int(x) for x in websockets.__version__.split(".")[:2])
+        if ws_version >= (14, 0):
+            self.__websocket = await websockets.connect(self.__stream_url, additional_headers=headers)
+        else:
+            self.__websocket = await websockets.connect(self.__stream_url, extra_headers=headers)
 
         LOGGER.debug("Connected to stream: %s", self.__stream_url)
 
