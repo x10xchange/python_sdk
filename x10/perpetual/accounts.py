@@ -76,7 +76,6 @@ class AccountModel(X10BaseModel):
     l2_key: str
     l2_vault: int
     bridge_starknet_address: Optional[str] = None
-    api_keys: Optional[List[str]] = None
 
 
 class ApiKeyResponseModel(X10BaseModel):
