@@ -127,7 +127,7 @@ class AccountModule(BaseModule):
 
     async def get_trades(
         self,
-        market_names: List[str],
+        market_names: List[str] = None,
         trade_side: Optional[OrderSide] = None,
         trade_type: Optional[TradeType] = None,
         cursor: Optional[int] = None,
