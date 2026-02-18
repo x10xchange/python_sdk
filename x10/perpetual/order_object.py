@@ -145,14 +145,6 @@ def __create_order_object(
     if exact_only:
         raise NotImplementedError("`exact_only` option is not supported yet")
 
-    if tp_sl_type == OrderTpslType.POSITION:
-        raise NotImplementedError("`POSITION` TPSL type is not supported yet")
-
-    if (take_profit and take_profit.price_type == OrderPriceType.MARKET) or (
-        stop_loss and stop_loss.price_type == OrderPriceType.MARKET
-    ):
-        raise NotImplementedError("TPSL `MARKET` price type is not supported yet")
-
     if nonce is None:
         nonce = generate_nonce()
 

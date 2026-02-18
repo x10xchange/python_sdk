@@ -66,6 +66,7 @@ class AssetOperationModel(X10BaseModel):
     asset: int
     time: int
     account_id: int
+    chain: str
 
     # When operation type is `TRANSFER`
     counterparty_account_id: Optional[int] = None
