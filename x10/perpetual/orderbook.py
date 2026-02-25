@@ -1,6 +1,7 @@
 import asyncio
 import dataclasses
 import decimal
+import logging
 from collections.abc import Awaitable
 from typing import Callable, Iterable, Tuple
 
@@ -10,6 +11,8 @@ from x10.perpetual.configuration import EndpointConfig
 from x10.perpetual.orderbooks import OrderbookUpdateModel
 from x10.perpetual.stream_client.stream_client import PerpetualStreamClient
 from x10.utils.http import StreamDataType
+
+logger = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass
@@ -34,10 +37,18 @@ class OrderBook:
         market_name: str,
         best_ask_change_callback: Callable[[OrderBookEntry | None], Awaitable[None]] | None = None,
         best_bid_change_callback: Callable[[OrderBookEntry | None], Awaitable[None]] | None = None,
+        orderbook_update_callback: Callable[[], Awaitable[None]] | None = None,
         start=False,
         depth: int | None = None,
     ) -> "OrderBook":
-        ob = OrderBook(endpoint_config, market_name, best_ask_change_callback, best_bid_change_callback, depth)
+        ob = OrderBook(
+            endpoint_config,
+            market_name,
+            best_ask_change_callback,
+            best_bid_change_callback,
+            depth,
+            orderbook_update_callback,
+        )
         if start:
             await ob.start_orderbook()
         return ob
@@ -49,6 +60,7 @@ class OrderBook:
         best_ask_change_callback: Callable[[OrderBookEntry | None], Awaitable[None]] | None = None,
         best_bid_change_callback: Callable[[OrderBookEntry | None], Awaitable[None]] | None = None,
         depth: int | None = None,
+        orderbook_update_callback: Callable[[], Awaitable[None]] | None = None,
     ) -> None:
         self.__stream_client = PerpetualStreamClient(api_url=endpoint_config.stream_url)
         self.__market_name = market_name
@@ -57,7 +69,16 @@ class OrderBook:
         self._ask_prices: "SortedDict[decimal.Decimal, OrderBookEntry]" = SortedDict()  # type: ignore
         self.best_ask_change_callback = best_ask_change_callback
         self.best_bid_change_callback = best_bid_change_callback
+        self.orderbook_update_callback = orderbook_update_callback
         self.depth = depth
+
+    async def _notify_orderbook_update(self) -> None:
+        if self.orderbook_update_callback is None:
+            return
+        try:
+            await self.orderbook_update_callback()
+        except Exception as exc:
+            logger.error("Error in orderbook update callback: %s", exc, exc_info=True)
 
     async def update_orderbook(self, data: OrderbookUpdateModel):
         best_bid_before_update = self.best_bid()
@@ -93,6 +114,7 @@ class OrderBook:
         if best_ask_before_update != now_best_ask:
             if self.best_ask_change_callback:
                 await self.best_ask_change_callback(now_best_ask)
+        await self._notify_orderbook_update()
 
     async def init_orderbook(self, data: OrderbookUpdateModel):
         self._bid_prices.clear()
@@ -119,6 +141,7 @@ class OrderBook:
         if best_ask_before_update != now_best_ask:
             if self.best_ask_change_callback:
                 await self.best_ask_change_callback(now_best_ask)
+        await self._notify_orderbook_update()
 
     async def start_orderbook(self) -> asyncio.Task:
         loop = asyncio.get_running_loop()

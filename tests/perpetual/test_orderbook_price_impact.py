@@ -198,3 +198,39 @@ class TestOrderBook(TestCase):
         qty = decimal.Decimal("1")
         result = self.orderbook.calculate_price_impact_qty(qty, "INVALID_SIDE")
         self.assertIsNone(result, "Result should be None for invalid side.")
+
+    def test_orderbook_update_callback_runs_even_without_best_price_change(self):
+        callback_count = 0
+
+        async def _run():
+            nonlocal callback_count
+
+            async def on_update():
+                nonlocal callback_count
+                callback_count += 1
+
+            ob = OrderBook(
+                self.endpoint_config,
+                self.market_name,
+                best_ask_change_callback=None,
+                best_bid_change_callback=None,
+                orderbook_update_callback=on_update,
+            )
+
+            initial = OrderbookUpdateModel(
+                market=self.market_name,
+                bid=[{"price": decimal.Decimal("100"), "qty": decimal.Decimal("1")}],
+                ask=[{"price": decimal.Decimal("101"), "qty": decimal.Decimal("1")}],
+            )
+            await ob.update_orderbook(initial)
+
+            # Same top-of-book price, only size changes.
+            no_best_change = OrderbookUpdateModel(
+                market=self.market_name,
+                bid=[{"price": decimal.Decimal("100"), "qty": decimal.Decimal("1")}],
+                ask=[{"price": decimal.Decimal("101"), "qty": decimal.Decimal("-0.2")}],
+            )
+            await ob.update_orderbook(no_best_change)
+
+        asyncio.run(_run())
+        self.assertEqual(callback_count, 2)
