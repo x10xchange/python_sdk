@@ -2,7 +2,6 @@ import asyncio
 
 from eth_account import Account
 from eth_account.signers.local import LocalAccount
-
 from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.trading_client.trading_client import PerpetualTradingClient

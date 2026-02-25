@@ -38,6 +38,8 @@ class OrderBook:
         best_ask_change_callback: Callable[[OrderBookEntry | None], Awaitable[None]] | None = None,
         best_bid_change_callback: Callable[[OrderBookEntry | None], Awaitable[None]] | None = None,
         orderbook_update_callback: Callable[[], Awaitable[None]] | None = None,
+        sequence_gap_callback: Callable[[int, int], Awaitable[None]] | None = None,
+        snapshot_callback: Callable[[int], Awaitable[None]] | None = None,
         start=False,
         depth: int | None = None,
     ) -> "OrderBook":
@@ -48,6 +50,8 @@ class OrderBook:
             best_bid_change_callback,
             depth,
             orderbook_update_callback,
+            sequence_gap_callback,
+            snapshot_callback,
         )
         if start:
             await ob.start_orderbook()
@@ -61,6 +65,8 @@ class OrderBook:
         best_bid_change_callback: Callable[[OrderBookEntry | None], Awaitable[None]] | None = None,
         depth: int | None = None,
         orderbook_update_callback: Callable[[], Awaitable[None]] | None = None,
+        sequence_gap_callback: Callable[[int, int], Awaitable[None]] | None = None,
+        snapshot_callback: Callable[[int], Awaitable[None]] | None = None,
     ) -> None:
         self.__stream_client = PerpetualStreamClient(api_url=endpoint_config.stream_url)
         self.__market_name = market_name
@@ -70,7 +76,10 @@ class OrderBook:
         self.best_ask_change_callback = best_ask_change_callback
         self.best_bid_change_callback = best_bid_change_callback
         self.orderbook_update_callback = orderbook_update_callback
+        self.sequence_gap_callback = sequence_gap_callback
+        self.snapshot_callback = snapshot_callback
         self.depth = depth
+        self.__last_seq: int | None = None
 
     async def _notify_orderbook_update(self) -> None:
         if self.orderbook_update_callback is None:
@@ -149,10 +158,30 @@ class OrderBook:
         async def inner():
             while True:
                 async with self.__stream_client.subscribe_to_orderbooks(self.__market_name, depth=self.depth) as stream:
+                    self.__last_seq = None
                     async for event in stream:
+                        current_seq = int(getattr(event, "seq", 0))
+                        if (
+                            self.__last_seq is not None
+                            and current_seq != (self.__last_seq + 1)
+                        ):
+                            prev = self.__last_seq
+                            logger.critical(
+                                "Orderbook sequence gap for %s: prev=%s current=%s",
+                                self.__market_name,
+                                prev,
+                                current_seq,
+                            )
+                            if self.sequence_gap_callback is not None:
+                                await self.sequence_gap_callback(prev, current_seq)
+                            # Break and reconnect from a fresh snapshot.
+                            break
+                        self.__last_seq = current_seq
                         if event.type == StreamDataType.SNAPSHOT:
                             if not event.data:
                                 continue
+                            if self.snapshot_callback is not None:
+                                await self.snapshot_callback(current_seq)
                             await self.init_orderbook(event.data)
                         elif event.type == StreamDataType.DELTA:
                             if not event.data:

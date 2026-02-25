@@ -209,6 +209,22 @@ class AccountModule(BaseModule):
         )
         await send_post_request(await self.get_session(), url, EmptyModel, api_key=self._get_api_key())
 
+    async def set_deadman_switch(self, countdown_time_s: int) -> WrappedApiResponse[EmptyModel]:
+        """
+        https://api.docs.extended.exchange/#set-dead-man-switch
+        """
+
+        url = self._get_url(
+            "/user/deadmanswitch",
+            query={"countdownTime": max(0, int(countdown_time_s))},
+        )
+        return await send_post_request(
+            await self.get_session(),
+            url,
+            EmptyModel,
+            api_key=self._get_api_key(),
+        )
+
     async def transfer(
         self,
         to_vault: int,

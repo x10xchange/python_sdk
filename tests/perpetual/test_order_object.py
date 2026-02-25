@@ -5,7 +5,6 @@ import pytest
 from freezegun import freeze_time
 from hamcrest import assert_that, equal_to, has_entries
 from pytest_mock import MockerFixture
-
 from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.orders import (
     OrderPriceType,
@@ -355,6 +354,101 @@ async def test_external_order_id(mocker: MockerFixture, create_trading_account, 
         has_entries(
             {
                 "id": equal_to("custom_id"),
+            }
+        ),
+    )
+
+
+@freeze_time("2024-01-05 01:08:56.860694")
+@pytest.mark.asyncio
+async def test_post_only_uses_maker_fee_by_default(
+    mocker: MockerFixture, create_trading_account, create_btc_usd_market
+):
+    mocker.patch("x10.utils.nonce.generate_nonce", return_value=FROZEN_NONCE)
+
+    from x10.perpetual.order_object import create_order_object
+
+    trading_account = create_trading_account()
+    btc_usd_market = create_btc_usd_market()
+    order_obj = create_order_object(
+        account=trading_account,
+        market=btc_usd_market,
+        amount_of_synthetic=Decimal("0.00100000"),
+        price=Decimal("43445.11680000"),
+        side=OrderSide.SELL,
+        expire_time=utc_now() + timedelta(days=14),
+        post_only=True,
+        starknet_domain=TESTNET_CONFIG.starknet_domain,
+    )
+
+    assert_that(
+        order_obj.to_api_request_json(),
+        has_entries(
+            {
+                "postOnly": equal_to(True),
+                "fee": equal_to("0.0002"),
+            }
+        ),
+    )
+
+
+@freeze_time("2024-01-05 01:08:56.860694")
+@pytest.mark.asyncio
+async def test_max_fee_rate_overrides_payload_fee_and_settlement(
+    mocker: MockerFixture, create_trading_account, create_btc_usd_market
+):
+    mocker.patch("x10.utils.nonce.generate_nonce", return_value=FROZEN_NONCE)
+
+    from x10.perpetual.order_object import create_order_object
+
+    trading_account = create_trading_account()
+    btc_usd_market = create_btc_usd_market()
+    order_obj = create_order_object(
+        account=trading_account,
+        market=btc_usd_market,
+        amount_of_synthetic=Decimal("0.00100000"),
+        price=Decimal("43445.11680000"),
+        side=OrderSide.BUY,
+        expire_time=utc_now() + timedelta(days=14),
+        max_fee_rate=Decimal("0.0001"),
+        starknet_domain=TESTNET_CONFIG.starknet_domain,
+    )
+
+    payload = order_obj.to_api_request_json()
+    assert_that(payload, has_entries({"fee": equal_to("0.0001")}))
+    fee_amount = Decimal(payload["debuggingAmounts"]["feeAmount"])
+    # Lower max-fee cap should lower settlement fee amount from default (21723)
+    assert fee_amount > 0
+    assert fee_amount < Decimal("21723")
+
+
+@freeze_time("2024-01-05 01:08:56.860694")
+@pytest.mark.asyncio
+async def test_fee_alias_maps_to_max_fee_rate(
+    mocker: MockerFixture, create_trading_account, create_btc_usd_market
+):
+    mocker.patch("x10.utils.nonce.generate_nonce", return_value=FROZEN_NONCE)
+
+    from x10.perpetual.order_object import create_order_object
+
+    trading_account = create_trading_account()
+    btc_usd_market = create_btc_usd_market()
+    order_obj = create_order_object(
+        account=trading_account,
+        market=btc_usd_market,
+        amount_of_synthetic=Decimal("0.00100000"),
+        price=Decimal("43445.11680000"),
+        side=OrderSide.BUY,
+        expire_time=utc_now() + timedelta(days=14),
+        fee=Decimal("0.00015"),
+        starknet_domain=TESTNET_CONFIG.starknet_domain,
+    )
+
+    assert_that(
+        order_obj.to_api_request_json(),
+        has_entries(
+            {
+                "fee": equal_to("0.00015"),
             }
         ),
     )

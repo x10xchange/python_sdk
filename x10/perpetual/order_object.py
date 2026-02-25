@@ -50,7 +50,10 @@ def create_order_object(
     time_in_force: TimeInForce = TimeInForce.GTT,
     self_trade_protection_level: SelfTradeProtectionLevel = SelfTradeProtectionLevel.ACCOUNT,
     nonce: Optional[int] = None,
+    max_fee_rate: Optional[Decimal] = None,
+    fee: Optional[Decimal] = None,
     builder_fee: Optional[Decimal] = None,
+    builder_fee_rate: Optional[Decimal] = None,
     builder_id: Optional[int] = None,
     reduce_only: bool = False,
     tp_sl_type: Optional[OrderTpslType] = None,
@@ -65,6 +68,11 @@ def create_order_object(
         expire_time = utc_now() + timedelta(hours=1)
 
     fees = account.trading_fee.get(market.name, DEFAULT_FEES)
+
+    resolved_max_fee_rate = max_fee_rate if max_fee_rate is not None else fee
+    resolved_builder_fee_rate = (
+        builder_fee_rate if builder_fee_rate is not None else builder_fee
+    )
 
     return __create_order_object(
         market=market,
@@ -85,7 +93,8 @@ def create_order_object(
         self_trade_protection_level=self_trade_protection_level,
         starknet_domain=starknet_domain,
         nonce=nonce,
-        builder_fee=builder_fee,
+        max_fee_rate=resolved_max_fee_rate,
+        builder_fee_rate=resolved_builder_fee_rate,
         builder_id=builder_id,
         reduce_only=reduce_only,
         tp_sl_type=tp_sl_type,
@@ -129,7 +138,8 @@ def __create_order_object(
     time_in_force: TimeInForce = TimeInForce.GTT,
     self_trade_protection_level: SelfTradeProtectionLevel = SelfTradeProtectionLevel.ACCOUNT,
     nonce: Optional[int] = None,
-    builder_fee: Optional[Decimal] = None,
+    max_fee_rate: Optional[Decimal] = None,
+    builder_fee_rate: Optional[Decimal] = None,
     builder_id: Optional[int] = None,
     reduce_only: bool = False,
     tp_sl_type: Optional[OrderTpslType] = None,
@@ -162,12 +172,15 @@ def __create_order_object(
     if nonce is None:
         nonce = generate_nonce()
 
-    fee_rate = fees.taker_fee_rate
+    if max_fee_rate is not None:
+        fee_rate = max_fee_rate
+    else:
+        fee_rate = fees.maker_fee_rate if post_only else fees.taker_fee_rate
 
     settlement_data_ctx = SettlementDataCtx(
         market=market,
-        fees=fees,
-        builder_fee=builder_fee,
+        max_fee_rate=fee_rate,
+        builder_fee_rate=builder_fee_rate,
         nonce=nonce,
         collateral_position_id=collateral_position_id,
         expire_time=expire_time,
@@ -225,7 +238,7 @@ def __create_order_object(
         take_profit=tp_trigger_model,
         stop_loss=sl_trigger_model,
         debugging_amounts=settlement_data.debugging_amounts,
-        builderFee=builder_fee,
+        builderFee=builder_fee_rate,
         builderId=builder_id,
         reduce_only=reduce_only,
     )
