@@ -8,7 +8,6 @@ from x10.perpetual.configuration import StarknetDomain
 from x10.perpetual.fees import DEFAULT_FEES, TradingFeeModel
 from x10.perpetual.markets import MarketModel
 from x10.perpetual.order_object_settlement import (
-    OrderSettlementData,
     SettlementDataCtx,
     create_order_settlement_data,
 )
@@ -25,6 +24,7 @@ from x10.perpetual.orders import (
 )
 from x10.utils.date import to_epoch_millis, utc_now
 from x10.utils.nonce import generate_nonce
+from x10.utils.tpsl import calc_entire_position_size
 
 
 @dataclass(kw_only=True)
@@ -92,7 +92,31 @@ def create_order_object(
     )
 
 
-def __create_order_tpsl_trigger_model(trigger_param: OrderTpslTriggerParam, settlement_data: OrderSettlementData):
+def __create_order_tpsl_trigger_model(
+    *,
+    trigger_param: OrderTpslTriggerParam,
+    side: OrderSide,
+    synthetic_amount: Decimal,
+    tp_sl_type: OrderTpslType,
+    market: MarketModel,
+    settlement_data_ctx: SettlementDataCtx,
+):
+    settlement_synthetic_amount = (
+        synthetic_amount
+        if tp_sl_type == OrderTpslType.ORDER
+        else calc_entire_position_size(
+            price=trigger_param.price,
+            quantity_precision=market.trading_config.quantity_precision,
+            max_position_value=market.trading_config.max_position_value,
+        )
+    )
+    settlement_data = create_order_settlement_data(
+        side=__get_opposite_side(side),
+        synthetic_amount=settlement_synthetic_amount,
+        price=trigger_param.price,
+        ctx=settlement_data_ctx,
+    )
+
     return CreateOrderTpslTriggerModel(
         trigger_price=trigger_param.trigger_price,
         trigger_price_type=trigger_param.trigger_price_type,
@@ -145,14 +169,6 @@ def __create_order_object(
     if exact_only:
         raise NotImplementedError("`exact_only` option is not supported yet")
 
-    if tp_sl_type == OrderTpslType.POSITION:
-        raise NotImplementedError("`POSITION` TPSL type is not supported yet")
-
-    if (take_profit and take_profit.price_type == OrderPriceType.MARKET) or (
-        stop_loss and stop_loss.price_type == OrderPriceType.MARKET
-    ):
-        raise NotImplementedError("TPSL `MARKET` price type is not supported yet")
-
     if nonce is None:
         nonce = generate_nonce()
 
@@ -172,32 +188,25 @@ def __create_order_object(
     settlement_data = create_order_settlement_data(
         side=side, synthetic_amount=synthetic_amount, price=price, ctx=settlement_data_ctx
     )
-    tp_trigger_model = (
-        __create_order_tpsl_trigger_model(
-            take_profit,
-            create_order_settlement_data(
-                side=__get_opposite_side(side),
-                synthetic_amount=synthetic_amount,
-                price=take_profit.price,
-                ctx=settlement_data_ctx,
-            ),
+
+    def create_tpsl_trigger_model(trigger_param: OrderTpslTriggerParam | None):
+        if not trigger_param:
+            return None
+
+        if tp_sl_type is None:
+            raise ValueError("`tp_sl_type` must be provided if `take_profit` or `stop_loss` is specified")
+
+        if trigger_param.price_type == OrderPriceType.MARKET:
+            raise NotImplementedError("TPSL `MARKET` price type is not supported yet")
+
+        return __create_order_tpsl_trigger_model(
+            trigger_param=trigger_param,
+            side=side,
+            synthetic_amount=synthetic_amount,
+            tp_sl_type=tp_sl_type,
+            market=market,
+            settlement_data_ctx=settlement_data_ctx,
         )
-        if take_profit
-        else None
-    )
-    sl_trigger_model = (
-        __create_order_tpsl_trigger_model(
-            stop_loss,
-            create_order_settlement_data(
-                side=__get_opposite_side(side),
-                synthetic_amount=synthetic_amount,
-                price=stop_loss.price,
-                ctx=settlement_data_ctx,
-            ),
-        )
-        if stop_loss
-        else None
-    )
 
     order_id = str(settlement_data.order_hash) if order_external_id is None else order_external_id
     order = NewOrderModel(
@@ -216,8 +225,8 @@ def __create_order_object(
         cancel_id=previous_order_external_id,
         settlement=settlement_data.settlement,
         tp_sl_type=tp_sl_type,
-        take_profit=tp_trigger_model,
-        stop_loss=sl_trigger_model,
+        take_profit=create_tpsl_trigger_model(take_profit),
+        stop_loss=create_tpsl_trigger_model(stop_loss),
         debugging_amounts=settlement_data.debugging_amounts,
         builderFee=builder_fee,
         builderId=builder_id,
