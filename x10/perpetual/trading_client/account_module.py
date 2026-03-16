@@ -139,7 +139,7 @@ class AccountModule(BaseModule):
 
         url = self._get_url(
             "/user/trades",
-            query={"market": market_names, "side": trade_side, "type": trade_type, "cursor": cursor, "limit": limit},
+            query={"market": market_names or [], "side": trade_side, "type": trade_type, "cursor": cursor, "limit": limit},
         )
 
         return await send_get_request(
