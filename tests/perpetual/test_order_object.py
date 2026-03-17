@@ -414,6 +414,100 @@ async def test_create_buy_order_with_position_tpsl(
 
 @freeze_time("2024-01-05 01:08:56.860694")
 @pytest.mark.asyncio
+async def test_create_buy_partial_tpsl_order(mocker: MockerFixture, create_trading_account, create_btc_usd_market):
+    mocker.patch("x10.utils.nonce.generate_nonce", return_value=FROZEN_NONCE)
+
+    from x10.perpetual.order_object import OrderTpslTriggerParam, create_order_object
+
+    trading_account = create_trading_account()
+    btc_usd_market = create_btc_usd_market()
+    order_obj = create_order_object(
+        account=trading_account,
+        market=btc_usd_market,
+        order_type=OrderType.TPSL,
+        amount_of_synthetic=btc_usd_market.trading_config.min_order_size,
+        price=Decimal("0"),
+        side=OrderSide.SELL,
+        reduce_only=True,
+        expire_time=utc_now() + timedelta(days=14),
+        self_trade_protection_level=SelfTradeProtectionLevel.CLIENT,
+        starknet_domain=TESTNET_CONFIG.starknet_domain,
+        tp_sl_type=OrderTpslType.ORDER,
+        take_profit=OrderTpslTriggerParam(
+            trigger_price=Decimal("49000"),
+            trigger_price_type=OrderTriggerPriceType.MARK,
+            price=Decimal("50000"),
+            price_type=OrderPriceType.LIMIT,
+        ),
+        stop_loss=OrderTpslTriggerParam(
+            trigger_price=Decimal("40000"),
+            trigger_price_type=OrderTriggerPriceType.MARK,
+            price=Decimal("39000"),
+            price_type=OrderPriceType.LIMIT,
+        ),
+    )
+
+    assert_that(
+        order_obj.to_api_request_json(),
+        equal_to(
+            {
+                "id": "2302927936354168859785231329337424926774195696889032018790365367779325970821",
+                "market": "BTC-USD",
+                "type": "TPSL",
+                "side": "SELL",
+                "qty": "0.0001",
+                "price": "0",
+                "reduceOnly": True,
+                "postOnly": False,
+                "timeInForce": "GTT",
+                "expiryEpochMillis": 1705626536861,
+                "fee": "0.0005",
+                "nonce": "1473459052",
+                "selfTradeProtectionLevel": "CLIENT",
+                "cancelId": None,
+                "settlement": None,
+                "trigger": None,
+                "tpSlType": "ORDER",
+                "takeProfit": {
+                    "triggerPrice": "49000",
+                    "triggerPriceType": "MARK",
+                    "price": "50000",
+                    "priceType": "LIMIT",
+                    "settlement": {
+                        "signature": {
+                            "r": "0x513b8c6540b171c6e85e2992046ce697b6056793ace2ea0e46c04cba1b72aa0",
+                            "s": "0x25684458e72e276bbaa87a6787bfab11ed4b117c4f6ffa7cea2781c13648667",
+                        },
+                        "starkKey": "0x61c5e7e8339b7d56f197f54ea91b776776690e3232313de0f2ecbd0ef76f466",
+                        "collateralPosition": "10002",
+                    },
+                    "debuggingAmounts": {"collateralAmount": "5000000", "feeAmount": "2500", "syntheticAmount": "-100"},
+                },
+                "stopLoss": {
+                    "triggerPrice": "40000",
+                    "triggerPriceType": "MARK",
+                    "price": "39000",
+                    "priceType": "LIMIT",
+                    "settlement": {
+                        "signature": {
+                            "r": "0x30227b00607a0f671db245c734a9d9152c58af0ec0fbc83ac8c50d41b6dc2e5",
+                            "s": "0xb355fcce280b7c82c8e6b23106df57d98aba5b3616a791a4db226063693b5d",
+                        },
+                        "starkKey": "0x61c5e7e8339b7d56f197f54ea91b776776690e3232313de0f2ecbd0ef76f466",
+                        "collateralPosition": "10002",
+                    },
+                    "debuggingAmounts": {"collateralAmount": "3900000", "feeAmount": "1950", "syntheticAmount": "-100"},
+                },
+                "debuggingAmounts": {"collateralAmount": "0", "feeAmount": "0", "syntheticAmount": "-100"},
+                "builderFee": None,
+                "builderId": None,
+            }
+        ),
+    )
+
+
+@freeze_time("2024-01-05 01:08:56.860694")
+@pytest.mark.asyncio
 async def test_create_buy_position_tpsl_order(mocker: MockerFixture, create_trading_account, create_btc_usd_market):
     mocker.patch("x10.utils.nonce.generate_nonce", return_value=FROZEN_NONCE)
 
@@ -427,7 +521,7 @@ async def test_create_buy_position_tpsl_order(mocker: MockerFixture, create_trad
         order_type=OrderType.TPSL,
         amount_of_synthetic=Decimal("0"),
         price=Decimal("0"),
-        side=OrderSide.BUY,
+        side=OrderSide.SELL,
         reduce_only=True,
         expire_time=utc_now() + timedelta(days=14),
         self_trade_protection_level=SelfTradeProtectionLevel.CLIENT,
@@ -454,7 +548,7 @@ async def test_create_buy_position_tpsl_order(mocker: MockerFixture, create_trad
                 "id": "2740618205716882280724217633173981437193188033910023585411792989580464995593",
                 "market": "BTC-USD",
                 "type": "TPSL",
-                "side": "BUY",
+                "side": "SELL",
                 "qty": "0",
                 "price": "0",
                 "reduceOnly": True,
@@ -465,14 +559,7 @@ async def test_create_buy_position_tpsl_order(mocker: MockerFixture, create_trad
                 "nonce": "1473459052",
                 "selfTradeProtectionLevel": "CLIENT",
                 "cancelId": None,
-                "settlement": {
-                    "signature": {
-                        "r": "0x721145761c282c6bfe6437cb03452223212e060eb64656bb71893b65915f040",
-                        "s": "0x7f5e5aaea50d60777e3d75ee198e2ea61d7663ea2b532178092f422ee6e8eb8",
-                    },
-                    "starkKey": "0x61c5e7e8339b7d56f197f54ea91b776776690e3232313de0f2ecbd0ef76f466",
-                    "collateralPosition": "10002",
-                },
+                "settlement": None,
                 "trigger": None,
                 "tpSlType": "POSITION",
                 "takeProfit": {
@@ -482,16 +569,16 @@ async def test_create_buy_position_tpsl_order(mocker: MockerFixture, create_trad
                     "priceType": "LIMIT",
                     "settlement": {
                         "signature": {
-                            "r": "0x58b3d48793b1f4d30aa16c6d4a03c15ecdd7e226c6a7a86fe7ac35366a82713",
-                            "s": "0xf16659adb76a0624e7f5cc97564d7872d16b58d699411640328114441045cc",
+                            "r": "0x9ec78c951d0397e31873bb1f5ede330dffc05a6be918007fac3299a122bc37",
+                            "s": "0x1962207a67b6b6d77216d363af31ca5ea37d371ac762aa13bd5366634337b86",
                         },
                         "starkKey": "0x61c5e7e8339b7d56f197f54ea91b776776690e3232313de0f2ecbd0ef76f466",
                         "collateralPosition": "10002",
                     },
                     "debuggingAmounts": {
-                        "collateralAmount": "-500000000000000",
+                        "collateralAmount": "500000000000000",
                         "feeAmount": "250000000000",
-                        "syntheticAmount": "10000000000",
+                        "syntheticAmount": "-10000000000",
                     },
                 },
                 "stopLoss": {
@@ -501,16 +588,16 @@ async def test_create_buy_position_tpsl_order(mocker: MockerFixture, create_trad
                     "priceType": "LIMIT",
                     "settlement": {
                         "signature": {
-                            "r": "0x54c50c1f6e110ff6d057a58244e499a66f6d4ad68a50a8851164706d8531a02",
-                            "s": "0x1cc6a2b3850dc811a94581108190c6695bc5390b3cb694e597d7a82289c9352",
+                            "r": "0x4b5a05de5d0c07956398de50b846037250dee8cd85c35944fd97f0b3dad3e5b",
+                            "s": "0x76aa8c382b73c0f516c8398e4d648d2dad411e8b6a9a7e81fbae3656bed6d78",
                         },
                         "starkKey": "0x61c5e7e8339b7d56f197f54ea91b776776690e3232313de0f2ecbd0ef76f466",
                         "collateralPosition": "10002",
                     },
                     "debuggingAmounts": {
-                        "collateralAmount": "-499999999980000",
+                        "collateralAmount": "499999999980000",
                         "feeAmount": "249999999990",
-                        "syntheticAmount": "12820512820",
+                        "syntheticAmount": "-12820512820",
                     },
                 },
                 "debuggingAmounts": {"collateralAmount": "0", "feeAmount": "0", "syntheticAmount": "0"},

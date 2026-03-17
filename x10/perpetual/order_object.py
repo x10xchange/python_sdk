@@ -43,7 +43,7 @@ def create_order_object(
     price: Decimal,
     side: OrderSide,
     starknet_domain: StarknetDomain,
-    order_type: Optional[OrderType] = OrderType.LIMIT,
+    order_type: OrderType = OrderType.LIMIT,
     post_only: bool = False,
     previous_order_external_id: Optional[str] = None,
     expire_time: Optional[datetime] = None,
@@ -178,6 +178,9 @@ def __create_order_object(
         if not reduce_only:
             raise ValueError("TPSL orders must be reduce-only")
 
+        if post_only:
+            raise ValueError("TPSL orders must not be post-only")
+
         if tp_sl_type == OrderTpslType.POSITION and synthetic_amount != Decimal(0):
             raise ValueError("`amount_of_synthetic` must be 0 for entire position TPSL orders")
 
@@ -239,7 +242,7 @@ def __create_order_object(
         self_trade_protection_level=self_trade_protection_level,
         nonce=Decimal(nonce),
         cancel_id=previous_order_external_id,
-        settlement=settlement_data.settlement,
+        settlement=settlement_data.settlement if order_type != OrderType.TPSL else None,
         tp_sl_type=tp_sl_type,
         take_profit=create_tpsl_trigger_model(take_profit),
         stop_loss=create_tpsl_trigger_model(stop_loss),

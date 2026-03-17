@@ -2,11 +2,11 @@ import logging
 from asyncio import run
 from decimal import Decimal
 
-from perpetual.orders import OrderType
+from x10.perpetual.orders import OrderType
 
 from examples.init_env import init_env
 from examples.utils import find_order_and_cancel, get_adjust_price_by_pct
-from x10.config import ETH_USD_MARKET
+from x10.config import BTC_USD_MARKET
 from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.order_object import OrderTpslTriggerParam, create_order_object
@@ -20,7 +20,7 @@ from x10.perpetual.orders import (
 from x10.perpetual.trading_client import PerpetualTradingClient
 
 LOGGER = logging.getLogger()
-MARKET_NAME = ETH_USD_MARKET
+MARKET_NAME = BTC_USD_MARKET
 ENDPOINT_CONFIG = TESTNET_CONFIG
 
 
@@ -38,11 +38,11 @@ async def run_example():
     market = markets_dict[MARKET_NAME]
     adjust_price_by_pct = get_adjust_price_by_pct(market.trading_config)
 
-    order_price = adjust_price_by_pct(market.market_stats.bid_price, -10.0)
-    tp_trigger_price = adjust_price_by_pct(order_price, 0.5)
-    tp_price = adjust_price_by_pct(order_price, 1.0)
-    sl_trigger_price = adjust_price_by_pct(order_price, -0.5)
-    sl_price = adjust_price_by_pct(order_price, -1.0)
+    last_price = market.market_stats.last_price
+    tp_trigger_price = adjust_price_by_pct(last_price, -5)
+    tp_price = adjust_price_by_pct(last_price, -10)
+    sl_trigger_price = adjust_price_by_pct(last_price, 5)
+    sl_price = adjust_price_by_pct(last_price, 10)
 
     LOGGER.info("Creating entire position TPSL order object for market: %s", market.name)
 
@@ -51,7 +51,7 @@ async def run_example():
         starknet_domain=ENDPOINT_CONFIG.starknet_domain,
         market=market,
         order_type=OrderType.TPSL,
-        side=OrderSide.BUY,
+        side=OrderSide.SELL,
         amount_of_synthetic=Decimal(0),
         price=Decimal(0),
         time_in_force=TimeInForce.GTT,
@@ -71,9 +71,6 @@ async def run_example():
             price_type=OrderPriceType.LIMIT,
         ),
     )
-
-    # FIXME
-    print(new_order.to_pretty_json())
 
     LOGGER.info("Placing order...")
 

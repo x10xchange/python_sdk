@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from examples.init_env import init_env
 from examples.utils import find_order_and_cancel, get_adjust_price_by_pct
-from x10.config import ETH_USD_MARKET
+from x10.config import BTC_USD_MARKET
 from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.order_object import OrderTpslTriggerParam, create_order_object
@@ -19,7 +19,7 @@ from x10.perpetual.orders import (
 from x10.perpetual.trading_client import PerpetualTradingClient
 
 LOGGER = logging.getLogger()
-MARKET_NAME = ETH_USD_MARKET
+MARKET_NAME = BTC_USD_MARKET
 ENDPOINT_CONFIG = TESTNET_CONFIG
 
 
@@ -39,11 +39,11 @@ async def run_example():
 
     order_size = market.trading_config.min_order_size
 
-    order_price = adjust_price_by_pct(market.market_stats.bid_price, -10.0)
-    tp_trigger_price = adjust_price_by_pct(order_price, 0.5)
-    tp_price = adjust_price_by_pct(order_price, 1.0)
-    sl_trigger_price = adjust_price_by_pct(order_price, -0.5)
-    sl_price = adjust_price_by_pct(order_price, -1.0)
+    last_price = market.market_stats.last_price
+    tp_trigger_price = adjust_price_by_pct(last_price, -5)
+    tp_price = adjust_price_by_pct(last_price, -10)
+    sl_trigger_price = adjust_price_by_pct(last_price, 5)
+    sl_price = adjust_price_by_pct(last_price, 10)
 
     LOGGER.info("Creating partial TPSL order object for market: %s", market.name)
 
@@ -52,7 +52,7 @@ async def run_example():
         starknet_domain=ENDPOINT_CONFIG.starknet_domain,
         market=market,
         order_type=OrderType.TPSL,
-        side=OrderSide.BUY,
+        side=OrderSide.SELL,
         amount_of_synthetic=order_size,
         price=Decimal(0),
         time_in_force=TimeInForce.GTT,
