@@ -2,8 +2,6 @@ import logging
 from asyncio import run
 from decimal import Decimal
 
-from x10.perpetual.orders import OrderType
-
 from examples.init_env import init_env
 from examples.utils import find_order_and_cancel, get_adjust_price_by_pct
 from x10.config import BTC_USD_MARKET
@@ -15,6 +13,7 @@ from x10.perpetual.orders import (
     OrderSide,
     OrderTpslType,
     OrderTriggerPriceType,
+    OrderType,
     TimeInForce,
 )
 from x10.perpetual.trading_client import PerpetualTradingClient
