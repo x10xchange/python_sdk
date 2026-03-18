@@ -36,12 +36,14 @@ class OrderTpslTriggerParam:
 
 
 def create_order_object(
+    *,
     account: StarkPerpetualAccount,
     market: MarketModel,
     amount_of_synthetic: Decimal,
     price: Decimal,
     side: OrderSide,
     starknet_domain: StarknetDomain,
+    order_type: OrderType = OrderType.LIMIT,
     post_only: bool = False,
     previous_order_external_id: Optional[str] = None,
     expire_time: Optional[datetime] = None,
@@ -67,6 +69,7 @@ def create_order_object(
 
     return __create_order_object(
         market=market,
+        order_type=order_type,
         synthetic_amount=amount_of_synthetic,
         price=price,
         side=side,
@@ -95,6 +98,7 @@ def create_order_object(
 def __create_order_tpsl_trigger_model(
     *,
     trigger_param: OrderTpslTriggerParam,
+    order_type: OrderType,
     side: OrderSide,
     synthetic_amount: Decimal,
     tp_sl_type: OrderTpslType,
@@ -111,7 +115,7 @@ def __create_order_tpsl_trigger_model(
         )
     )
     settlement_data = create_order_settlement_data(
-        side=__get_opposite_side(side),
+        side=side if order_type == OrderType.TPSL else __get_opposite_side(side),
         synthetic_amount=settlement_synthetic_amount,
         price=trigger_param.price,
         ctx=settlement_data_ctx,
@@ -134,6 +138,7 @@ def __get_opposite_side(side: OrderSide) -> OrderSide:
 def __create_order_object(
     *,
     market: MarketModel,
+    order_type: OrderType,
     synthetic_amount: Decimal,
     price: Decimal,
     side: OrderSide,
@@ -157,8 +162,11 @@ def __create_order_object(
     take_profit: Optional[OrderTpslTriggerParam] = None,
     stop_loss: Optional[OrderTpslTriggerParam] = None,
 ) -> NewOrderModel:
-    if side not in OrderSide:
-        raise ValueError(f"Unexpected order side value: {side}")
+    if order_type not in [OrderType.LIMIT, OrderType.TPSL]:
+        raise NotImplementedError(f"{order_type} order type is not supported yet")
+
+    if exact_only:
+        raise NotImplementedError("`exact_only` option is not supported yet")
 
     if time_in_force not in TimeInForce or time_in_force == TimeInForce.FOK:
         raise ValueError(f"Unexpected time in force value: {time_in_force}")
@@ -166,8 +174,18 @@ def __create_order_object(
     if expire_time is None:
         raise ValueError("`expire_time` must be provided")
 
-    if exact_only:
-        raise NotImplementedError("`exact_only` option is not supported yet")
+    if order_type == OrderType.TPSL:
+        if not reduce_only:
+            raise ValueError("TPSL orders must be reduce-only")
+
+        if post_only:
+            raise ValueError("TPSL orders must not be post-only")
+
+        if tp_sl_type == OrderTpslType.POSITION and synthetic_amount != Decimal(0):
+            raise ValueError("`amount_of_synthetic` must be 0 for entire position TPSL orders")
+
+        if price != Decimal(0):
+            raise ValueError("`price` must be 0 for TPSL orders")
 
     if nonce is None:
         nonce = generate_nonce()
@@ -201,6 +219,7 @@ def __create_order_object(
 
         return __create_order_tpsl_trigger_model(
             trigger_param=trigger_param,
+            order_type=order_type,
             side=side,
             synthetic_amount=synthetic_amount,
             tp_sl_type=tp_sl_type,
@@ -212,7 +231,7 @@ def __create_order_object(
     order = NewOrderModel(
         id=order_id,
         market=market.name,
-        type=OrderType.LIMIT,
+        type=order_type,
         side=side,
         qty=settlement_data.synthetic_amount_human.value,
         price=price,
@@ -223,7 +242,7 @@ def __create_order_object(
         self_trade_protection_level=self_trade_protection_level,
         nonce=Decimal(nonce),
         cancel_id=previous_order_external_id,
-        settlement=settlement_data.settlement,
+        settlement=settlement_data.settlement if order_type != OrderType.TPSL else None,
         tp_sl_type=tp_sl_type,
         take_profit=create_tpsl_trigger_model(take_profit),
         stop_loss=create_tpsl_trigger_model(stop_loss),
