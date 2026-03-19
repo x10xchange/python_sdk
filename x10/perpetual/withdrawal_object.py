@@ -81,5 +81,6 @@ def create_withdrawal_object(
         quote_id=quote_id,
         asset="USD",
         target_wallet=target_wallet,
-        signature=signature
+        signature=signature,
+        withdrawal_hash = hex(withdrawal_hash)
     )

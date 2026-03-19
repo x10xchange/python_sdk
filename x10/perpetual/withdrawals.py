@@ -31,28 +31,25 @@ class WithdrawalRequest(X10BaseModel):
     asset: str
     target_wallet: str | None = None
     signature: str | None = None
+    withdrawal_hash: str | None = None
 
 
 @dataclass
 class Withdrawal:
     account_id: int
     target_wallet: str
-    asset_id: str
+    asset: str
     amount: Decimal
-    expiration: datetime
-
-    def __post_init__(self):
-        self.expiration_string = self.expiration.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    starknet_hash: str
 
     def to_signable_message(self, signing_domain) -> SignableMessage:
         domain = {"name": signing_domain}
-        asset = int(self.asset_id, 16)
         message = {
             "account": self.account_id,
             "targetWallet": self.target_wallet,
-            "assetId": asset,
+            "asset": self.asset,
             "amount": str(self.amount),
-            "expiration": self.expiration_string,
+            "starknetHash": self.starknet_hash,
         }
         types = {
             "EIP712Domain": [
@@ -61,9 +58,9 @@ class Withdrawal:
             "Withdrawal": [
                 {"name": "account", "type": "int64"},
                 {"name": "targetWallet", "type": "string"},
-                {"name": "assetId", "type": "int64"},
+                {"name": "asset", "type": "string"},
                 {"name": "amount", "type": "string"},
-                {"name": "expiration", "type": "string"}
+                {"name": "starknetHash", "type": "string"}
             ]
         }
         primary_type = "Withdrawal"

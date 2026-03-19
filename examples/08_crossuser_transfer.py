@@ -7,11 +7,11 @@ from eth_account.signers.local import LocalAccount
 
 from examples.init_env import init_env
 from x10.perpetual.accounts import StarkPerpetualAccount
-from x10.perpetual.configuration import TESTNET_CONFIG
+from x10.perpetual.configuration import TESTNET_CONFIG, MAINNET_CONFIG
 from x10.perpetual.trading_client import PerpetualTradingClient
 
 LOGGER = logging.getLogger()
-ENDPOINT_CONFIG = TESTNET_CONFIG
+ENDPOINT_CONFIG = MAINNET_CONFIG
 
 
 # Bridged withdrawal example. Bridge disabled on sepolia, example works only on mainnet
