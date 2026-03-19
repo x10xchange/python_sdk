@@ -1,6 +1,8 @@
 from decimal import Decimal
 from typing import List, Optional
 
+from eth_account.signers.local import LocalAccount
+
 from x10.perpetual.accounts import AccountLeverage, AccountModel
 from x10.perpetual.assets import (
     AssetOperationModel,
@@ -16,7 +18,7 @@ from x10.perpetual.positions import PositionHistoryModel, PositionModel, Positio
 from x10.perpetual.trades import AccountTradeModel, TradeType
 from x10.perpetual.trading_client.base_module import BaseModule
 from x10.perpetual.transfer_object import create_transfer_object
-from x10.perpetual.transfers import TransferResponseModel
+from x10.perpetual.transfers import TransferResponseModel, Transfer
 from x10.perpetual.withdrawal_object import create_withdrawal_object
 from x10.utils.http import (
     WrappedApiResponse,
@@ -215,6 +217,7 @@ class AccountModule(BaseModule):
         to_l2_key: int | str,
         amount: Decimal,
         nonce: int | None = None,
+        signing_account: LocalAccount| None = None,
     ) -> WrappedApiResponse[TransferResponseModel]:
         from_vault = self._get_stark_account().vault
         url = self._get_url("/user/transfer/onchain")
@@ -231,6 +234,17 @@ class AccountModule(BaseModule):
             stark_account=self._get_stark_account(),
             nonce=nonce,
         )
+
+        if signing_account is not None:
+            message_to_sign = Transfer(
+                from_vault=from_vault,
+                to_vault=to_vault,
+                asset=request_model.transferred_asset,
+                amount=amount,
+                starknet_hash=request_model.transfer_hash,
+            ).to_signable_message(self._get_endpoint_config().signing_domain)
+            signature = '0x'+ signing_account.sign_message(message_to_sign).signature.hex()
+            request_model = request_model.model_copy(update={"signature": signature})
 
         return await send_post_request(
             await self.get_session(),

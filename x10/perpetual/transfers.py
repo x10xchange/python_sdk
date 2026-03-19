@@ -34,7 +34,8 @@ class OnChainPerpetualTransferModel(X10BaseModel):
     amount: Decimal
     settlement: StarkTransferSettlement
     transferred_asset: str
-    signature: str
+    transfer_hash: str
+    signature: str | None = None
 
 
 class TransferResponseModel(X10BaseModel):
@@ -45,36 +46,32 @@ class TransferResponseModel(X10BaseModel):
 
 @dataclass
 class Transfer:
-    source_account: int
-    target_account: int
-    asset_id: str
+    from_vault: int
+    to_vault: int
+    asset: str
     amount: Decimal
-    expiration: datetime
-
-    def __post_init__(self):
-        self.expiration_string = self.expiration.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    starknet_hash: str
 
     def to_signable_message(self, signing_domain) -> SignableMessage:
-        asset = int(self.asset_id, 16)
         domain = {"name": signing_domain}
 
         message = {
-            "sourceAccount": self.source_account,
-            "targetAccount": self.target_account,
-            "assetId": asset,
+            "fromVault": self.from_vault,
+            "toVault": self.to_vault,
+            "asset": self.asset,
             "amount": str(self.amount),
-            "expiration": self.expiration_string,
+            "starknetHash": self.starknet_hash,
         }
         types = {
             "EIP712Domain": [
                 {"name": "name", "type": "string"}
             ],
             "Transfer": [
-                {"name": "sourceAccount", "type": "int64"},
-                {"name": "targetAccount", "type": "int64"},
-                {"name": "assetId", "type": "int64"},
+                {"name": "fromVault", "type": "int64"},
+                {"name": "toVault", "type": "int64"},
+                {"name": "asset", "type": "string"},
                 {"name": "amount", "type": "string"},
-                {"name": "expiration", "type": "string"}
+                {"name": "starknetHash", "type": "string"}
             ]
         }
         primary_type = "Transfer"

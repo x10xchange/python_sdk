@@ -37,7 +37,6 @@ def create_transfer_object(
     config: EndpointConfig,
     stark_account: StarkPerpetualAccount,
     nonce: int | None = None,
-    signature: str | None = None,
 ) -> OnChainPerpetualTransferModel:
     expiration_timestamp = calc_expiration_timestamp()
     scaled_amount = amount.scaleb(config.collateral_decimals)
@@ -77,6 +76,6 @@ def create_transfer_object(
         to_vault=to_vault,
         amount=amount,
         settlement=settlement,
+        transfer_hash= hex(transfer_hash),
         transferred_asset=config.collateral_asset_id,
-        signature=signature
     )
