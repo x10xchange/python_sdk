@@ -2,10 +2,11 @@ import logging.handlers
 from asyncio import run
 from decimal import Decimal
 
-from examples.init_env import init_env
 from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.configuration import MAINNET_CONFIG
 from x10.perpetual.trading_client import PerpetualTradingClient
+
+from examples.init_env import init_env
 
 LOGGER = logging.getLogger()
 ENDPOINT_CONFIG = MAINNET_CONFIG

@@ -4,7 +4,6 @@ import pytest
 from freezegun import freeze_time
 from hamcrest import assert_that, equal_to
 from pytest_mock import MockerFixture
-
 from x10.perpetual.configuration import TESTNET_CONFIG
 
 FROZEN_NONCE = 1473459052

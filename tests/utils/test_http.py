@@ -1,6 +1,5 @@
 from hamcrest import assert_that, equal_to, raises
 from strenum import StrEnum
-
 from x10.utils.http import get_url
 
 

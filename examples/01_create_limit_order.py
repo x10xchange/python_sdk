@@ -1,14 +1,15 @@
 import logging
 from asyncio import run
 
-from examples.init_env import init_env
-from examples.utils import find_order_and_cancel, get_adjust_price_by_pct
 from x10.config import ETH_USD_MARKET
 from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.configuration import MAINNET_CONFIG
 from x10.perpetual.order_object import create_order_object
 from x10.perpetual.orders import OrderSide, TimeInForce
 from x10.perpetual.trading_client import PerpetualTradingClient
+
+from examples.init_env import init_env
+from examples.utils import find_order_and_cancel, get_adjust_price_by_pct
 
 LOGGER = logging.getLogger()
 MARKET_NAME = ETH_USD_MARKET

@@ -14,7 +14,6 @@ from x10.perpetual.amounts import (
     StarkAmount,
 )
 from x10.perpetual.configuration import StarknetDomain
-from x10.perpetual.fees import TradingFeeModel
 from x10.perpetual.markets import MarketModel
 from x10.perpetual.orders import (
     OrderSide,
@@ -35,8 +34,8 @@ class OrderSettlementData:
 @dataclass(kw_only=True)
 class SettlementDataCtx:
     market: MarketModel
-    fees: TradingFeeModel
-    builder_fee: Optional[Decimal]
+    max_fee_rate: Decimal
+    builder_fee_rate: Optional[Decimal]
     nonce: int
     collateral_position_id: int
     expire_time: datetime
@@ -95,7 +94,9 @@ def create_order_settlement_data(
 
     synthetic_amount_human = HumanReadableAmount(synthetic_amount, ctx.market.synthetic_asset)
     collateral_amount_human = HumanReadableAmount(synthetic_amount * price, ctx.market.collateral_asset)
-    total_fee = ctx.fees.taker_fee_rate + (ctx.builder_fee if ctx.builder_fee is not None else 0)
+    total_fee = ctx.max_fee_rate + (
+        ctx.builder_fee_rate if ctx.builder_fee_rate is not None else Decimal("0")
+    )
     fee_amount_human = HumanReadableAmount(
         total_fee * collateral_amount_human.value,
         ctx.market.collateral_asset,

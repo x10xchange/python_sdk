@@ -13,6 +13,7 @@ from x10.perpetual.orders import (
     OpenOrderModel,
     OrderSide,
     OrderStatus,
+    OrderType,
     TimeInForce,
 )
 from x10.perpetual.stream_client.perpetual_stream_connection import (
@@ -197,6 +198,7 @@ class BlockingTradingClient:
         amount_of_synthetic: Decimal,
         price: Decimal,
         side: OrderSide,
+        order_type: OrderType = OrderType.LIMIT,
         post_only: bool = False,
         previous_order_external_id: str | None = None,
         external_id: str | None = None,
@@ -214,6 +216,7 @@ class BlockingTradingClient:
             amount_of_synthetic=amount_of_synthetic,
             price=price,
             side=side,
+            order_type=order_type,
             post_only=post_only,
             previous_order_external_id=previous_order_external_id,
             starknet_domain=self.__endpoint_config.starknet_domain,

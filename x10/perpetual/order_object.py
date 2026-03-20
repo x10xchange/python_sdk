@@ -51,7 +51,10 @@ def create_order_object(
     time_in_force: TimeInForce = TimeInForce.GTT,
     self_trade_protection_level: SelfTradeProtectionLevel = SelfTradeProtectionLevel.ACCOUNT,
     nonce: Optional[int] = None,
+    max_fee_rate: Optional[Decimal] = None,
+    fee: Optional[Decimal] = None,
     builder_fee: Optional[Decimal] = None,
+    builder_fee_rate: Optional[Decimal] = None,
     builder_id: Optional[int] = None,
     reduce_only: bool = False,
     tp_sl_type: Optional[OrderTpslType] = None,
@@ -67,6 +70,11 @@ def create_order_object(
 
     fees = account.trading_fee.get(market.name, DEFAULT_FEES)
 
+    resolved_max_fee_rate = max_fee_rate if max_fee_rate is not None else fee
+    resolved_builder_fee_rate = (
+        builder_fee_rate if builder_fee_rate is not None else builder_fee
+    )
+
     return __create_order_object(
         market=market,
         order_type=order_type,
@@ -79,6 +87,7 @@ def create_order_object(
         public_key=account.public_key,
         exact_only=False,
         expire_time=expire_time,
+        order_type=order_type,
         post_only=post_only,
         previous_order_external_id=previous_order_external_id,
         order_external_id=order_external_id,
@@ -86,7 +95,8 @@ def create_order_object(
         self_trade_protection_level=self_trade_protection_level,
         starknet_domain=starknet_domain,
         nonce=nonce,
-        builder_fee=builder_fee,
+        max_fee_rate=resolved_max_fee_rate,
+        builder_fee_rate=resolved_builder_fee_rate,
         builder_id=builder_id,
         reduce_only=reduce_only,
         tp_sl_type=tp_sl_type,
@@ -149,13 +159,15 @@ def __create_order_object(
     starknet_domain: StarknetDomain,
     exact_only: bool = False,
     expire_time: Optional[datetime] = None,
+    order_type: OrderType = OrderType.LIMIT,
     post_only: bool = False,
     previous_order_external_id: Optional[str] = None,
     order_external_id: Optional[str] = None,
     time_in_force: TimeInForce = TimeInForce.GTT,
     self_trade_protection_level: SelfTradeProtectionLevel = SelfTradeProtectionLevel.ACCOUNT,
     nonce: Optional[int] = None,
-    builder_fee: Optional[Decimal] = None,
+    max_fee_rate: Optional[Decimal] = None,
+    builder_fee_rate: Optional[Decimal] = None,
     builder_id: Optional[int] = None,
     reduce_only: bool = False,
     tp_sl_type: Optional[OrderTpslType] = None,
@@ -170,6 +182,9 @@ def __create_order_object(
 
     if time_in_force not in TimeInForce or time_in_force == TimeInForce.FOK:
         raise ValueError(f"Unexpected time in force value: {time_in_force}")
+
+    if order_type not in OrderType:
+        raise ValueError(f"Unexpected order type value: {order_type}")
 
     if expire_time is None:
         raise ValueError("`expire_time` must be provided")
@@ -190,12 +205,15 @@ def __create_order_object(
     if nonce is None:
         nonce = generate_nonce()
 
-    fee_rate = fees.taker_fee_rate
+    if max_fee_rate is not None:
+        fee_rate = max_fee_rate
+    else:
+        fee_rate = fees.maker_fee_rate if post_only else fees.taker_fee_rate
 
     settlement_data_ctx = SettlementDataCtx(
         market=market,
-        fees=fees,
-        builder_fee=builder_fee,
+        max_fee_rate=fee_rate,
+        builder_fee_rate=builder_fee_rate,
         nonce=nonce,
         collateral_position_id=collateral_position_id,
         expire_time=expire_time,
@@ -247,7 +265,7 @@ def __create_order_object(
         take_profit=create_tpsl_trigger_model(take_profit),
         stop_loss=create_tpsl_trigger_model(stop_loss),
         debugging_amounts=settlement_data.debugging_amounts,
-        builderFee=builder_fee,
+        builderFee=builder_fee_rate,
         builderId=builder_id,
         reduce_only=reduce_only,
     )

@@ -9,6 +9,7 @@ from x10.perpetual.order_object import OrderTpslTriggerParam, create_order_objec
 from x10.perpetual.orders import (
     OrderSide,
     OrderTpslType,
+    OrderType,
     PlacedOrderModel,
     SelfTradeProtectionLevel,
     TimeInForce,
@@ -48,13 +49,17 @@ class PerpetualTradingClient:
         amount_of_synthetic: Decimal,
         price: Decimal,
         side: OrderSide,
+        order_type: OrderType = OrderType.LIMIT,
         post_only: bool = False,
         previous_order_id=None,
         expire_time: Optional[datetime] = None,
         time_in_force: TimeInForce = TimeInForce.GTT,
         self_trade_protection_level: SelfTradeProtectionLevel = SelfTradeProtectionLevel.ACCOUNT,
         external_id: Optional[str] = None,
+        max_fee_rate: Optional[Decimal] = None,
+        fee: Optional[Decimal] = None,
         builder_fee: Optional[Decimal] = None,
+        builder_fee_rate: Optional[Decimal] = None,
         builder_id: Optional[int] = None,
         reduce_only: bool = False,
         tp_sl_type: Optional[OrderTpslType] = None,
@@ -75,12 +80,18 @@ class PerpetualTradingClient:
         if expire_time is None:
             expire_time = utc_now() + timedelta(hours=1)
 
+        resolved_max_fee_rate = max_fee_rate if max_fee_rate is not None else fee
+        resolved_builder_fee_rate = (
+            builder_fee_rate if builder_fee_rate is not None else builder_fee
+        )
+
         order = create_order_object(
             account=self.__stark_account,
             market=market,
             amount_of_synthetic=amount_of_synthetic,
             price=price,
             side=side,
+            order_type=order_type,
             post_only=post_only,
             previous_order_external_id=previous_order_id,
             expire_time=expire_time,
@@ -88,7 +99,8 @@ class PerpetualTradingClient:
             self_trade_protection_level=self_trade_protection_level,
             starknet_domain=self.__config.starknet_domain,
             order_external_id=external_id,
-            builder_fee=builder_fee,
+            max_fee_rate=resolved_max_fee_rate,
+            builder_fee_rate=resolved_builder_fee_rate,
             builder_id=builder_id,
             reduce_only=reduce_only,
             tp_sl_type=tp_sl_type,

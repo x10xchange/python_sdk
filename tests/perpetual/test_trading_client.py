@@ -4,7 +4,6 @@ from typing import List
 import pytest
 from aiohttp import web
 from hamcrest import assert_that, equal_to, has_length
-
 from x10.perpetual.assets import AssetOperationModel
 from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.markets import MarketModel
@@ -170,3 +169,30 @@ async def test_get_asset_operations(aiohttp_server, create_asset_operations, cre
             ]
         ),
     )
+
+
+@pytest.mark.asyncio
+async def test_set_deadman_switch(aiohttp_server, create_trading_account):
+    from x10.perpetual.trading_client import PerpetualTradingClient
+
+    expected_response = WrappedApiResponse.model_validate({"status": "OK", "data": None})
+
+    captured_query = {}
+
+    async def _set_deadman(request):
+        captured_query.update(dict(request.query))
+        return web.Response(text=expected_response.model_dump_json())
+
+    app = web.Application()
+    app.router.add_post("/user/deadmanswitch", _set_deadman)
+
+    server = await aiohttp_server(app)
+    url = f"http://{server.host}:{server.port}"
+
+    stark_account = create_trading_account()
+    endpoint_config = dataclasses.replace(TESTNET_CONFIG, api_base_url=url)
+    trading_client = PerpetualTradingClient(endpoint_config=endpoint_config, stark_account=stark_account)
+
+    response = await trading_client.account.set_deadman_switch(60)
+    assert_that(response.status, equal_to("OK"))
+    assert_that(captured_query.get("countdownTime"), equal_to("60"))

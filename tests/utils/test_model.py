@@ -3,7 +3,6 @@ from typing import Optional
 
 from hamcrest import assert_that, equal_to, raises
 from pydantic import ValidationError
-
 from x10.utils.model import X10BaseModel
 
 

@@ -162,6 +162,11 @@ async def send_post_request(
 
     async with session.post(url, json=json, headers=headers) as response:
         response_text = await response.text()
+
+        if response_text == "":
+            LOGGER.warning("Empty HTTP %s response from POST %s", response.status, url)
+            response_text = '{"status": "OK"}'
+
         handle_known_errors(url, response_code_to_exception, response, response_text)
         response_model = parse_response_to_model(response_text, model_class)
 

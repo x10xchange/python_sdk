@@ -8,7 +8,6 @@ from asyncio import run
 from decimal import Decimal
 
 from dotenv import load_dotenv
-
 from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.orderbook import OrderBook

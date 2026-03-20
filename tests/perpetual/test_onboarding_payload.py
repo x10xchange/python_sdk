@@ -1,7 +1,6 @@
 import datetime
 
 from eth_account import Account
-
 from x10.perpetual.user_client.onboarding import get_l2_keys_from_l1_account
 
 
