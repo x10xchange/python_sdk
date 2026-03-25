@@ -170,6 +170,11 @@ class OpenOrderTpslTriggerModel(X10BaseModel):
 
 
 class OpenOrderModel(X10BaseModel):
+    """
+    Attributes:
+        price: Price of the order. If it's a TP/SL order, it will be null.
+    """
+
     id: int
     account_id: int
     external_id: str
@@ -178,10 +183,11 @@ class OpenOrderModel(X10BaseModel):
     side: OrderSide
     status: OrderStatus
     status_reason: Optional[OrderStatusReason] = None
-    price: Decimal
+    price: Optional[Decimal] = None
     average_price: Optional[Decimal] = None
     qty: Decimal
     filled_qty: Optional[Decimal] = None
+    cancelled_qty: Optional[Decimal] = None
     reduce_only: bool
     post_only: bool
     payed_fee: Optional[Decimal] = None
