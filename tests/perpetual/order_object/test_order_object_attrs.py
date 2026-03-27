@@ -7,14 +7,7 @@ from hamcrest import assert_that, equal_to, has_entries
 from pytest_mock import MockerFixture
 
 from x10.perpetual.configuration import TESTNET_CONFIG
-from x10.perpetual.orders import (
-    OrderPriceType,
-    OrderSide,
-    OrderTpslType,
-    OrderTriggerPriceType,
-    OrderType,
-    SelfTradeProtectionLevel,
-)
+from x10.perpetual.orders import OrderSide
 from x10.utils.date import utc_now
 
 FROZEN_NONCE = 1473459052

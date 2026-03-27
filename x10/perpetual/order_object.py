@@ -162,19 +162,14 @@ def __create_order_object(
     take_profit: Optional[OrderTpslTriggerParam] = None,
     stop_loss: Optional[OrderTpslTriggerParam] = None,
 ) -> NewOrderModel:
-    if order_type not in [OrderType.LIMIT, OrderType.MARKET, OrderType.TPSL]:
-        raise NotImplementedError(f"{order_type} order type is not supported yet")
+    def validate_market_order():
+        if post_only:
+            raise ValueError("MARKET orders must not be post-only")
 
-    if exact_only:
-        raise NotImplementedError("`exact_only` option is not supported yet")
+        if time_in_force != TimeInForce.IOC:
+            raise ValueError("MARKET orders must have `time_in_force` set to IOC")
 
-    if time_in_force == TimeInForce.FOK:
-        raise ValueError(f"FOK time in force value is deprecated")
-
-    if expire_time is None:
-        raise ValueError("`expire_time` must be provided")
-
-    if order_type == OrderType.TPSL:
+    def validate_tpsl_order():
         if not reduce_only:
             raise ValueError("TPSL orders must be reduce-only")
 
@@ -182,10 +177,27 @@ def __create_order_object(
             raise ValueError("TPSL orders must not be post-only")
 
         if tp_sl_type == OrderTpslType.POSITION and synthetic_amount != Decimal(0):
-            raise ValueError("`amount_of_synthetic` must be 0 for entire position TPSL orders")
+            raise ValueError("`synthetic_amount` must be 0 for entire position TPSL orders")
 
         if price != Decimal(0):
             raise ValueError("`price` must be 0 for TPSL orders")
+
+    if order_type not in [OrderType.LIMIT, OrderType.MARKET, OrderType.TPSL]:
+        raise NotImplementedError(f"{order_type} order type is not supported yet")
+
+    if exact_only:
+        raise NotImplementedError("`exact_only` option is not supported yet")
+
+    if time_in_force == TimeInForce.FOK:
+        raise ValueError("FOK `time_in_force` value is deprecated")
+
+    if expire_time is None:
+        raise ValueError("`expire_time` must be provided")
+
+    if order_type == OrderType.MARKET:
+        validate_market_order()
+    elif order_type == OrderType.TPSL:
+        validate_tpsl_order()
 
     if nonce is None:
         nonce = generate_nonce()

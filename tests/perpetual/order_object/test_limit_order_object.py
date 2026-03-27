@@ -3,7 +3,7 @@ from decimal import Decimal
 
 import pytest
 from freezegun import freeze_time
-from hamcrest import assert_that, equal_to, has_entries
+from hamcrest import assert_that, equal_to
 from pytest_mock import MockerFixture
 
 from x10.perpetual.configuration import TESTNET_CONFIG
@@ -12,7 +12,6 @@ from x10.perpetual.orders import (
     OrderSide,
     OrderTpslType,
     OrderTriggerPriceType,
-    OrderType,
     SelfTradeProtectionLevel,
 )
 from x10.utils.date import utc_now

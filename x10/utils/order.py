@@ -1,6 +1,5 @@
 from decimal import ROUND_CEILING, ROUND_FLOOR, Decimal
 
-from perpetual.markets import MarketModel
 from perpetual.orders import OrderSide
 
 
@@ -20,12 +19,16 @@ def calc_entire_position_size(
     return (max_position_value * 50 / price).quantize(Decimal(10) ** -quantity_precision, rounding=ROUND_FLOOR)
 
 
-def get_price_with_slippage(side: OrderSide, price: Decimal, market: MarketModel, slippage: Decimal) -> Decimal:
+def round_price(price: Decimal, min_price_change: Decimal, rounding_direction: str = ROUND_CEILING) -> Decimal:
+    return price.quantize(min_price_change, rounding=rounding_direction)
+
+
+def get_price_with_slippage(side: OrderSide, price: Decimal, min_price_change: Decimal, slippage: Decimal) -> Decimal:
     slippage_collateral = price * slippage
     price_with_slippage = price + slippage_collateral if side == OrderSide.BUY else price - slippage_collateral
     rounding_direction = ROUND_CEILING if side == OrderSide.BUY else ROUND_FLOOR
 
     return Decimal.max(
-        market.trading_config.min_price_change,
-        market.trading_config.round_price(price_with_slippage, rounding_direction=rounding_direction),
+        min_price_change,
+        round_price(price_with_slippage, min_price_change, rounding_direction),
     )
