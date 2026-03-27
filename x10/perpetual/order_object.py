@@ -24,7 +24,7 @@ from x10.perpetual.orders import (
 )
 from x10.utils.date import to_epoch_millis, utc_now
 from x10.utils.nonce import generate_nonce
-from x10.utils.tpsl import calc_entire_position_size
+from x10.utils.order import calc_entire_position_size
 
 
 @dataclass(kw_only=True)
@@ -162,14 +162,14 @@ def __create_order_object(
     take_profit: Optional[OrderTpslTriggerParam] = None,
     stop_loss: Optional[OrderTpslTriggerParam] = None,
 ) -> NewOrderModel:
-    if order_type not in [OrderType.LIMIT, OrderType.TPSL]:
+    if order_type not in [OrderType.LIMIT, OrderType.MARKET, OrderType.TPSL]:
         raise NotImplementedError(f"{order_type} order type is not supported yet")
 
     if exact_only:
         raise NotImplementedError("`exact_only` option is not supported yet")
 
-    if time_in_force not in TimeInForce or time_in_force == TimeInForce.FOK:
-        raise ValueError(f"Unexpected time in force value: {time_in_force}")
+    if time_in_force == TimeInForce.FOK:
+        raise ValueError(f"FOK time in force value is deprecated")
 
     if expire_time is None:
         raise ValueError("`expire_time` must be provided")
