@@ -4,13 +4,12 @@ from decimal import Decimal
 import pytest
 from freezegun import freeze_time
 from hamcrest import assert_that, equal_to
-from perpetual.orders import TimeInForce
 from pytest_mock import MockerFixture
-from utils.order import get_price_with_slippage
 
 from x10.perpetual.configuration import TESTNET_CONFIG
-from x10.perpetual.orders import OrderSide, OrderType
+from x10.perpetual.orders import OrderSide, OrderType, TimeInForce
 from x10.utils.date import utc_now
+from x10.utils.order import get_price_with_slippage
 
 FROZEN_NONCE = 1473459052
 SLIPPAGE = Decimal("0.0075")
@@ -27,7 +26,10 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
     btc_usd_market = create_btc_usd_market()
     order_side = OrderSide.SELL
     order_price = get_price_with_slippage(
-        order_side, Decimal("50000"), btc_usd_market.trading_config.min_price_change, SLIPPAGE
+        side=order_side,
+        price=Decimal("50000"),
+        min_price_change=btc_usd_market.trading_config.min_price_change,
+        slippage=SLIPPAGE,
     )
     order_obj = create_order_object(
         account=trading_account,
@@ -91,7 +93,10 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
     btc_usd_market = create_btc_usd_market()
     order_side = OrderSide.BUY
     order_price = get_price_with_slippage(
-        order_side, Decimal("50000"), btc_usd_market.trading_config.min_price_change, SLIPPAGE
+        side=order_side,
+        price=Decimal("50000"),
+        min_price_change=btc_usd_market.trading_config.min_price_change,
+        slippage=SLIPPAGE,
     )
     order_obj = create_order_object(
         account=trading_account,
