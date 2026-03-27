@@ -12,7 +12,6 @@ from x10.perpetual.orders import (
     OrderSide,
     OrderTpslType,
     OrderTriggerPriceType,
-    OrderType,
     SelfTradeProtectionLevel,
 )
 from x10.utils.date import utc_now
