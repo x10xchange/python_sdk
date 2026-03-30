@@ -24,15 +24,17 @@ def calc_expiration_timestamp():
 
 
 def create_withdrawal_object(
-    amount: Decimal,
-    recipient_stark_address: str,
-    stark_account: StarkPerpetualAccount,
-    config: EndpointConfig,
-    account_id: int,
-    chain_id: str,
-    description: str | None = None,
-    nonce: int | None = None,
-    quote_id: str | None = None,
+        amount: Decimal,
+        recipient_stark_address: str,
+        stark_account: StarkPerpetualAccount,
+        config: EndpointConfig,
+        account_id: int,
+        chain_id: str,
+        description: str | None = None,
+        nonce: int | None = None,
+        quote_id: str | None = None,
+        target_wallet: str | None = None,
+        signature: str | None = None,
 ) -> WithdrawalRequest:
     expiration_timestamp = calc_expiration_timestamp()
     scaled_amount = amount.scaleb(config.collateral_decimals)
@@ -78,4 +80,7 @@ def create_withdrawal_object(
         chain_id=chain_id,
         quote_id=quote_id,
         asset="USD",
+        target_wallet=target_wallet,
+        signature=signature,
+        withdrawal_hash = hex(withdrawal_hash)
     )

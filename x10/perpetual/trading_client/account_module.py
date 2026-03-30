@@ -1,6 +1,8 @@
 from decimal import Decimal
 from typing import List, Optional
 
+from eth_account.signers.local import LocalAccount
+
 from x10.perpetual.accounts import AccountLeverage, AccountModel
 from x10.perpetual.assets import (
     AssetOperationModel,
@@ -16,8 +18,9 @@ from x10.perpetual.positions import PositionHistoryModel, PositionModel, Positio
 from x10.perpetual.trades import AccountTradeModel, TradeType
 from x10.perpetual.trading_client.base_module import BaseModule
 from x10.perpetual.transfer_object import create_transfer_object
-from x10.perpetual.transfers import TransferResponseModel
+from x10.perpetual.transfers import TransferResponseModel, Transfer
 from x10.perpetual.withdrawal_object import create_withdrawal_object
+from x10.perpetual.withdrawals import Withdrawal
 from x10.utils.http import (
     WrappedApiResponse,
     send_get_request,
@@ -45,7 +48,7 @@ class AccountModule(BaseModule):
         return await send_get_request(await self.get_session(), url, BalanceModel, api_key=self._get_api_key())
 
     async def get_positions(
-        self, *, market_names: Optional[List[str]] = None, position_side: Optional[PositionSide] = None
+            self, *, market_names: Optional[List[str]] = None, position_side: Optional[PositionSide] = None
     ) -> WrappedApiResponse[List[PositionModel]]:
         """
         https://api.docs.extended.exchange/#get-positions
@@ -55,11 +58,11 @@ class AccountModule(BaseModule):
         return await send_get_request(await self.get_session(), url, List[PositionModel], api_key=self._get_api_key())
 
     async def get_positions_history(
-        self,
-        market_names: Optional[List[str]] = None,
-        position_side: Optional[PositionSide] = None,
-        cursor: Optional[int] = None,
-        limit: Optional[int] = None,
+            self,
+            market_names: Optional[List[str]] = None,
+            position_side: Optional[PositionSide] = None,
+            cursor: Optional[int] = None,
+            limit: Optional[int] = None,
     ) -> WrappedApiResponse[List[PositionHistoryModel]]:
         """
         https://api.docs.extended.exchange/#get-positions-history
@@ -74,10 +77,10 @@ class AccountModule(BaseModule):
         )
 
     async def get_open_orders(
-        self,
-        market_names: Optional[List[str]] = None,
-        order_type: Optional[OrderType] = None,
-        order_side: Optional[OrderSide] = None,
+            self,
+            market_names: Optional[List[str]] = None,
+            order_type: Optional[OrderType] = None,
+            order_side: Optional[OrderSide] = None,
     ) -> WrappedApiResponse[List[OpenOrderModel]]:
         """
         https://api.docs.extended.exchange/#get-open-orders
@@ -90,12 +93,12 @@ class AccountModule(BaseModule):
         return await send_get_request(await self.get_session(), url, List[OpenOrderModel], api_key=self._get_api_key())
 
     async def get_orders_history(
-        self,
-        market_names: Optional[List[str]] = None,
-        order_type: Optional[OrderType] = None,
-        order_side: Optional[OrderSide] = None,
-        cursor: Optional[int] = None,
-        limit: Optional[int] = None,
+            self,
+            market_names: Optional[List[str]] = None,
+            order_type: Optional[OrderType] = None,
+            order_side: Optional[OrderSide] = None,
+            cursor: Optional[int] = None,
+            limit: Optional[int] = None,
     ) -> WrappedApiResponse[List[OpenOrderModel]]:
         """
         https://api.docs.extended.exchange/#get-orders-history
@@ -126,12 +129,12 @@ class AccountModule(BaseModule):
         return await send_get_request(await self.get_session(), url, list[OpenOrderModel], api_key=self._get_api_key())
 
     async def get_trades(
-        self,
-        market_names: Optional[List[str]] = None,
-        trade_side: Optional[OrderSide] = None,
-        trade_type: Optional[TradeType] = None,
-        cursor: Optional[int] = None,
-        limit: Optional[int] = None,
+            self,
+            market_names: Optional[List[str]] = None,
+            trade_side: Optional[OrderSide] = None,
+            trade_type: Optional[TradeType] = None,
+            cursor: Optional[int] = None,
+            limit: Optional[int] = None,
     ) -> WrappedApiResponse[List[AccountTradeModel]]:
         """
         https://api.docs.extended.exchange/#get-trades
@@ -147,7 +150,7 @@ class AccountModule(BaseModule):
         )
 
     async def get_fees(
-        self, *, market_names: Optional[List[str]] = None, builder_id: Optional[int] = None
+            self, *, market_names: Optional[List[str]] = None, builder_id: Optional[int] = None
     ) -> WrappedApiResponse[List[TradingFeeModel]]:
         """
         https://api.docs.extended.exchange/#get-fees
@@ -189,13 +192,15 @@ class AccountModule(BaseModule):
         url = self._get_url("/user/bridge/config")
         return await send_get_request(await self.get_session(), url, BridgesConfig, api_key=self._get_api_key())
 
-    async def get_bridge_quote(self, chain_in: str, chain_out: str, amount: Decimal) -> WrappedApiResponse[Quote]:
+    async def get_bridge_quote(self, chain_in: str, chain_out: str, amount: Decimal, recipient: str | None = None) -> \
+    WrappedApiResponse[Quote]:
         url = self._get_url(
             "/user/bridge/quote",
             query={
                 "chainIn": chain_in,
                 "chainOut": chain_out,
                 "amount": amount,
+                "recipient": recipient
             },
         )
         return await send_get_request(await self.get_session(), url, Quote, api_key=self._get_api_key())
@@ -210,11 +215,12 @@ class AccountModule(BaseModule):
         await send_post_request(await self.get_session(), url, EmptyModel, api_key=self._get_api_key())
 
     async def transfer(
-        self,
-        to_vault: int,
-        to_l2_key: int | str,
-        amount: Decimal,
-        nonce: int | None = None,
+            self,
+            to_vault: int,
+            to_l2_key: int | str,
+            amount: Decimal,
+            nonce: int | None = None,
+            signing_account: LocalAccount | None = None,
     ) -> WrappedApiResponse[TransferResponseModel]:
         from_vault = self._get_stark_account().vault
         url = self._get_url("/user/transfer/onchain")
@@ -232,6 +238,17 @@ class AccountModule(BaseModule):
             nonce=nonce,
         )
 
+        if signing_account is not None:
+            message_to_sign = Transfer(
+                from_vault=from_vault,
+                to_vault=to_vault,
+                asset="USD",
+                amount=amount,
+                starknet_hash=request_model.transfer_hash,
+            ).to_signable_message(self._get_endpoint_config().signing_domain)
+            signature = '0x' + signing_account.sign_message(message_to_sign).signature.hex()
+            request_model = request_model.model_copy(update={"signature": signature})
+
         return await send_post_request(
             await self.get_session(),
             url,
@@ -241,13 +258,18 @@ class AccountModule(BaseModule):
         )
 
     async def withdraw(
-        self,
-        amount: Decimal,
-        chain_id: str = "STRK",
-        stark_address: str | None = None,
-        nonce: int | None = None,
-        quote_id: str | None = None,
+            self,
+            amount: Decimal,
+            chain_id: str = "STRK",
+            stark_address: str | None = None,
+            nonce: int | None = None,
+            quote_id: str | None = None,
+            target_wallet: str | None = None,
+            signing_account: LocalAccount | None = None,
     ) -> WrappedApiResponse[int]:
+        if target_wallet is not None:
+            target_wallet = target_wallet.lower()
+
         url = self._get_url("/user/withdrawal")
         account = (await self.get_account()).data
         if account is None:
@@ -283,7 +305,19 @@ class AccountModule(BaseModule):
             chain_id=chain_id,
             quote_id=quote_id,
             nonce=nonce,
+            target_wallet=target_wallet
         )
+        if signing_account is not None:
+            message_to_sign = Withdrawal(
+                account_id=account.id,
+                target_wallet=target_wallet,
+                asset=request_model.asset,
+                amount=amount,
+                starknet_hash=request_model.withdrawal_hash,
+            ).to_signable_message(self._get_endpoint_config().signing_domain)
+            signature = '0x' + signing_account.sign_message(message_to_sign).signature.hex()
+            request_model = request_model.model_copy(update={"signature": signature})
+
         return await send_post_request(
             await self.get_session(),
             url,
@@ -293,14 +327,14 @@ class AccountModule(BaseModule):
         )
 
     async def asset_operations(
-        self,
-        id: Optional[int] = None,
-        operations_type: Optional[List[AssetOperationType]] = None,
-        operations_status: Optional[List[AssetOperationStatus]] = None,
-        start_time: Optional[int] = None,
-        end_time: Optional[int] = None,
-        cursor: Optional[int] = None,
-        limit: Optional[int] = None,
+            self,
+            id: Optional[int] = None,
+            operations_type: Optional[List[AssetOperationType]] = None,
+            operations_status: Optional[List[AssetOperationStatus]] = None,
+            start_time: Optional[int] = None,
+            end_time: Optional[int] = None,
+            cursor: Optional[int] = None,
+            limit: Optional[int] = None,
     ) -> WrappedApiResponse[List[AssetOperationModel]]:
         url = self._get_url(
             "/user/assetOperations",

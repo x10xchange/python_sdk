@@ -76,5 +76,6 @@ def create_transfer_object(
         to_vault=to_vault,
         amount=amount,
         settlement=settlement,
+        transfer_hash= hex(transfer_hash),
         transferred_asset=config.collateral_asset_id,
     )
