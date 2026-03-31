@@ -12,11 +12,13 @@ from x10.perpetual.order_object_settlement import (
     create_order_settlement_data,
 )
 from x10.perpetual.orders import (
+    CreateOrderConditionalTriggerModel,
     CreateOrderTpslTriggerModel,
     NewOrderModel,
     OrderPriceType,
     OrderSide,
     OrderTpslType,
+    OrderTriggerDirection,
     OrderTriggerPriceType,
     OrderType,
     SelfTradeProtectionLevel,
@@ -57,6 +59,10 @@ def create_order_object(
     tp_sl_type: Optional[OrderTpslType] = None,
     take_profit: Optional[OrderTpslTriggerParam] = None,
     stop_loss: Optional[OrderTpslTriggerParam] = None,
+    trigger_price: Optional[Decimal] = None,
+    trigger_price_type: Optional[OrderTriggerPriceType] = None,
+    trigger_direction: Optional[OrderTriggerDirection] = None,
+    execution_price_type: Optional[OrderPriceType] = None,
 ) -> NewOrderModel:
     """
     Creates an order object to be placed on the exchange using the `place_order` method.
@@ -92,6 +98,10 @@ def create_order_object(
         tp_sl_type=tp_sl_type,
         take_profit=take_profit,
         stop_loss=stop_loss,
+        trigger_price=trigger_price,
+        trigger_price_type=trigger_price_type,
+        trigger_direction=trigger_direction,
+        execution_price_type=execution_price_type,
     )
 
 
@@ -161,6 +171,10 @@ def __create_order_object(
     tp_sl_type: Optional[OrderTpslType] = None,
     take_profit: Optional[OrderTpslTriggerParam] = None,
     stop_loss: Optional[OrderTpslTriggerParam] = None,
+    trigger_price: Optional[Decimal] = None,
+    trigger_price_type: Optional[OrderTriggerPriceType] = None,
+    trigger_direction: Optional[OrderTriggerDirection] = None,
+    execution_price_type: Optional[OrderPriceType] = None,
 ) -> NewOrderModel:
     def validate_market_order():
         if post_only:
@@ -182,7 +196,16 @@ def __create_order_object(
         if price != Decimal(0):
             raise ValueError("`price` must be 0 for TPSL orders")
 
-    if order_type not in [OrderType.LIMIT, OrderType.MARKET, OrderType.TPSL]:
+    def validate_conditional_order():
+        if trigger_price is None or trigger_direction is None:
+            raise ValueError(
+                "CONDITIONAL orders require trigger_price and trigger_direction"
+            )
+
+        if post_only:
+            raise ValueError("CONDITIONAL orders must not be post-only")
+
+    if order_type not in [OrderType.LIMIT, OrderType.MARKET, OrderType.TPSL, OrderType.CONDITIONAL]:
         raise NotImplementedError(f"{order_type} order type is not supported yet")
 
     if exact_only:
@@ -198,6 +221,8 @@ def __create_order_object(
         validate_market_order()
     elif order_type == OrderType.TPSL:
         validate_tpsl_order()
+    elif order_type == OrderType.CONDITIONAL:
+        validate_conditional_order()
 
     if nonce is None:
         nonce = generate_nonce()
@@ -239,6 +264,15 @@ def __create_order_object(
             settlement_data_ctx=settlement_data_ctx,
         )
 
+    trigger = None
+    if order_type == OrderType.CONDITIONAL:
+        trigger = CreateOrderConditionalTriggerModel(
+            trigger_price=trigger_price,
+            trigger_price_type=trigger_price_type or OrderTriggerPriceType.LAST,
+            direction=trigger_direction,
+            execution_price_type=execution_price_type or OrderPriceType.LIMIT,
+        )
+
     order_id = str(settlement_data.order_hash) if order_external_id is None else order_external_id
     order = NewOrderModel(
         id=order_id,
@@ -255,6 +289,7 @@ def __create_order_object(
         nonce=Decimal(nonce),
         cancel_id=previous_order_external_id,
         settlement=settlement_data.settlement if order_type != OrderType.TPSL else None,
+        trigger=trigger,
         tp_sl_type=tp_sl_type,
         take_profit=create_tpsl_trigger_model(take_profit),
         stop_loss=create_tpsl_trigger_model(stop_loss),
