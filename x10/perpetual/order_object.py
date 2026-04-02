@@ -12,11 +12,13 @@ from x10.perpetual.order_object_settlement import (
     create_order_settlement_data,
 )
 from x10.perpetual.orders import (
+    CreateOrderConditionalTriggerModel,
     CreateOrderTpslTriggerModel,
     NewOrderModel,
     OrderPriceType,
     OrderSide,
     OrderTpslType,
+    OrderTriggerDirection,
     OrderTriggerPriceType,
     OrderType,
     SelfTradeProtectionLevel,
@@ -25,6 +27,14 @@ from x10.perpetual.orders import (
 from x10.utils.date import to_epoch_millis, utc_now
 from x10.utils.nonce import generate_nonce
 from x10.utils.order import calc_entire_position_size
+
+
+@dataclass(kw_only=True)
+class OrderConditionalTriggerParam:
+    trigger_price: Decimal
+    trigger_price_type: OrderTriggerPriceType
+    direction: OrderTriggerDirection
+    execution_price_type: OrderPriceType
 
 
 @dataclass(kw_only=True)
@@ -54,6 +64,7 @@ def create_order_object(
     builder_fee: Optional[Decimal] = None,
     builder_id: Optional[int] = None,
     reduce_only: bool = False,
+    trigger: Optional[OrderConditionalTriggerParam] = None,
     tp_sl_type: Optional[OrderTpslType] = None,
     take_profit: Optional[OrderTpslTriggerParam] = None,
     stop_loss: Optional[OrderTpslTriggerParam] = None,
@@ -89,6 +100,7 @@ def create_order_object(
         builder_fee=builder_fee,
         builder_id=builder_id,
         reduce_only=reduce_only,
+        trigger=trigger,
         tp_sl_type=tp_sl_type,
         take_profit=take_profit,
         stop_loss=stop_loss,
@@ -158,6 +170,7 @@ def __create_order_object(
     builder_fee: Optional[Decimal] = None,
     builder_id: Optional[int] = None,
     reduce_only: bool = False,
+    trigger: Optional[OrderConditionalTriggerParam] = None,
     tp_sl_type: Optional[OrderTpslType] = None,
     take_profit: Optional[OrderTpslTriggerParam] = None,
     stop_loss: Optional[OrderTpslTriggerParam] = None,
@@ -168,6 +181,10 @@ def __create_order_object(
 
         if time_in_force != TimeInForce.IOC:
             raise ValueError("MARKET orders must have `time_in_force` set to IOC")
+
+    def validate_conditional_order():
+        if not trigger:
+            raise ValueError("CONDITIONAL orders must have `trigger` specified")
 
     def validate_tpsl_order():
         if not reduce_only:
@@ -182,7 +199,7 @@ def __create_order_object(
         if price != Decimal(0):
             raise ValueError("`price` must be 0 for TPSL orders")
 
-    if order_type not in [OrderType.LIMIT, OrderType.MARKET, OrderType.TPSL]:
+    if order_type not in [OrderType.LIMIT, OrderType.MARKET, OrderType.CONDITIONAL, OrderType.TPSL]:
         raise NotImplementedError(f"{order_type} order type is not supported yet")
 
     if exact_only:
@@ -196,6 +213,8 @@ def __create_order_object(
 
     if order_type == OrderType.MARKET:
         validate_market_order()
+    elif order_type == OrderType.CONDITIONAL:
+        validate_conditional_order()
     elif order_type == OrderType.TPSL:
         validate_tpsl_order()
 
@@ -255,12 +274,20 @@ def __create_order_object(
         nonce=Decimal(nonce),
         cancel_id=previous_order_external_id,
         settlement=settlement_data.settlement if order_type != OrderType.TPSL else None,
+        trigger=CreateOrderConditionalTriggerModel(
+            trigger_price=trigger.trigger_price,
+            trigger_price_type=trigger.trigger_price_type,
+            direction=trigger.direction,
+            execution_price_type=trigger.execution_price_type,
+        )
+        if trigger
+        else None,
         tp_sl_type=tp_sl_type,
         take_profit=create_tpsl_trigger_model(take_profit),
         stop_loss=create_tpsl_trigger_model(stop_loss),
         debugging_amounts=settlement_data.debugging_amounts,
-        builderFee=builder_fee,
-        builderId=builder_id,
+        builder_fee=builder_fee,
+        builder_id=builder_id,
         reduce_only=reduce_only,
     )
 

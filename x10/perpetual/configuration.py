@@ -11,17 +11,27 @@ class StarknetDomain:
 
 @dataclass
 class EndpointConfig:
+    """
+    Attributes:
+        asset_operations_contract (str): Field is deprecated and will be removed.
+        collateral_asset_contract (str): Field is deprecated and will be removed.
+        collateral_asset_on_chain_id (str): Field is deprecated and will be removed.
+        collateral_decimals (int): Field is deprecated and will be removed.
+        collateral_asset_id (str): Field is deprecated and will be removed.
+    """
+
     chain_rpc_url: str
     api_base_url: str
     stream_url: str
     onboarding_url: str
     signing_domain: str
-    collateral_asset_contract: str
+    starknet_domain: StarknetDomain
+
     asset_operations_contract: str
+    collateral_asset_contract: str
     collateral_asset_on_chain_id: str
     collateral_decimals: int
     collateral_asset_id: str
-    starknet_domain: StarknetDomain
 
 
 TESTNET_CONFIG = EndpointConfig(
@@ -30,8 +40,8 @@ TESTNET_CONFIG = EndpointConfig(
     stream_url="wss://api.starknet.sepolia.extended.exchange/stream.extended.exchange/v1",
     onboarding_url="https://api.starknet.sepolia.extended.exchange",
     signing_domain="starknet.sepolia.extended.exchange",
-    collateral_asset_contract="0x31857064564ed0ff978e687456963cba09c2c6985d8f9300a1de4962fafa054",
     asset_operations_contract="",
+    collateral_asset_contract="0x31857064564ed0ff978e687456963cba09c2c6985d8f9300a1de4962fafa054",
     collateral_asset_on_chain_id="0x1",
     collateral_decimals=6,
     collateral_asset_id="0x1",
@@ -44,8 +54,8 @@ MAINNET_CONFIG = EndpointConfig(
     stream_url="wss://api.starknet.extended.exchange/stream.extended.exchange/v1",
     onboarding_url="https://api.starknet.extended.exchange",
     signing_domain="extended.exchange",
-    collateral_asset_contract="",
     asset_operations_contract="",
+    collateral_asset_contract="",
     collateral_asset_on_chain_id="0x1",
     collateral_decimals=6,
     collateral_asset_id="0x1",

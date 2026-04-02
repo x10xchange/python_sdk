@@ -366,20 +366,6 @@ def get_private_key_from_eth_signature(eth_signature: str) -> int:
 There is a new function `deposit` available on the [`AccountModule`](x10/perpetual/trading_client/account_module.py) which provides the ability to directly deposit USDC into your StarkEx account. For more details check out `call_stark_perpetual_deposit` in [contract.py](x10/perpetual/contract.py)
 
 
-## Contribution
+## Contributing
 
-Make sure you have [poetry](https://python-poetry.org/) installed.
-
-- Clone the repository: `git@github.com:x10xchange/python_sdk.git`
-- Navigate to the project directory: `cd python_sdk`
-- Create a virtual environment: `poetry shell`
-- Install dependencies: `poetry install`
-- Update `examples/placed_order_example.py` with your credentials
-- Run it: `python -m examples.placed_order_example`
-
-Custom commands:
-- `make format` - format code with `black`
-- `make lint` - run `safety`, `black`, `flake8` and `mypy` checks
-- `make test` - run tests
-
-
+See the [CONTRIBUTING.md](CONTRIBUTING.md) file.
