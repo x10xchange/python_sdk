@@ -33,7 +33,7 @@ class PerpetualTradingClient:
     """
 
     __markets: Dict[str, MarketModel] | None
-    __stark_account: StarkPerpetualAccount
+    __stark_account: StarkPerpetualAccount | None
 
     __info_module: InfoModule
     __markets_info_module: MarketsInformationModule
@@ -105,17 +105,23 @@ class PerpetualTradingClient:
     def __init__(self, endpoint_config: EndpointConfig, stark_account: StarkPerpetualAccount | None = None):
         api_key = stark_account.api_key if stark_account else None
 
+        self.__config = endpoint_config
         self.__markets = None
-
-        if stark_account:
-            self.__stark_account = stark_account
+        self.__stark_account = stark_account
 
         self.__info_module = InfoModule(endpoint_config)
         self.__markets_info_module = MarketsInformationModule(endpoint_config, api_key=api_key)
         self.__account_module = AccountModule(endpoint_config, api_key=api_key, stark_account=stark_account)
         self.__order_management_module = OrderManagementModule(endpoint_config, api_key=api_key)
         self.__testnet_module = TestnetModule(endpoint_config, api_key=api_key, account_module=self.__account_module)
-        self.__config = endpoint_config
+
+    @property
+    def config(self):
+        return self.__config
+
+    @property
+    def stark_account(self):
+        return self.__stark_account
 
     @property
     def info(self):

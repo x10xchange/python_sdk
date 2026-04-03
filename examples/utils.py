@@ -1,8 +1,23 @@
 from decimal import Decimal
 from logging import Logger
 
+from examples.init_env import init_env
+from x10.perpetual.accounts import StarkPerpetualAccount
+from x10.perpetual.configuration import TESTNET_CONFIG, EndpointConfig
 from x10.perpetual.markets import TradingConfigModel
 from x10.perpetual.trading_client import PerpetualTradingClient
+
+
+def create_trading_client(endpoint_config: EndpointConfig = TESTNET_CONFIG):
+    env_config = init_env()
+    stark_account = StarkPerpetualAccount(
+        api_key=env_config.api_key,
+        public_key=env_config.public_key,
+        private_key=env_config.private_key,
+        vault=env_config.vault_id,
+    )
+
+    return PerpetualTradingClient(endpoint_config, stark_account)
 
 
 def get_adjust_price_by_pct(config: TradingConfigModel):

@@ -3,6 +3,7 @@ from asyncio import run
 from decimal import Decimal
 
 from examples.init_env import init_env
+from examples.utils import create_trading_client
 from x10.config import BTC_USD_MARKET
 from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.configuration import TESTNET_CONFIG
@@ -13,19 +14,11 @@ from x10.utils.order import get_price_with_slippage
 
 LOGGER = logging.getLogger()
 MARKET_NAME = BTC_USD_MARKET
-ENDPOINT_CONFIG = TESTNET_CONFIG
 SLIPPAGE = Decimal(0.0075)
 
 
 async def run_example():
-    env_config = init_env()
-    stark_account = StarkPerpetualAccount(
-        api_key=env_config.api_key,
-        public_key=env_config.public_key,
-        private_key=env_config.private_key,
-        vault=env_config.vault_id,
-    )
-    trading_client = PerpetualTradingClient(ENDPOINT_CONFIG, stark_account)
+    trading_client = create_trading_client()
     markets_dict = await trading_client.markets_info.get_markets_dict()
     market_stats = await trading_client.markets_info.get_market_statistics(market_name=MARKET_NAME)
 
@@ -45,9 +38,9 @@ async def run_example():
     LOGGER.info("Creating MARKET order object for market: %s", market.name)
 
     new_order = create_order_object(
-        account=stark_account,
+        account=trading_client.stark_account,
         order_type=OrderType.MARKET,
-        starknet_domain=ENDPOINT_CONFIG.starknet_domain,
+        starknet_domain=trading_client.config.starknet_domain,
         market=market,
         side=order_side,
         amount_of_synthetic=order_size,
