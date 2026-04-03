@@ -2,14 +2,10 @@ import logging
 from asyncio import run
 from decimal import Decimal
 
-from examples.init_env import init_env
 from examples.utils import create_trading_client
 from x10.config import BTC_USD_MARKET
-from x10.perpetual.accounts import StarkPerpetualAccount
-from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.order_object import create_order_object
 from x10.perpetual.orders import OrderSide, OrderType, TimeInForce
-from x10.perpetual.trading_client import PerpetualTradingClient
 from x10.utils.order import get_price_with_slippage
 
 LOGGER = logging.getLogger()

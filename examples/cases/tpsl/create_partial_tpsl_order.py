@@ -2,11 +2,12 @@ import logging
 from asyncio import run
 from decimal import Decimal
 
-from examples.init_env import init_env
-from examples.utils import find_order_and_cancel, get_adjust_price_by_pct
+from examples.utils import (
+    create_trading_client,
+    find_order_and_cancel,
+    get_adjust_price_by_pct,
+)
 from x10.config import BTC_USD_MARKET
-from x10.perpetual.accounts import StarkPerpetualAccount
-from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.order_object import OrderTpslTriggerParam, create_order_object
 from x10.perpetual.orders import (
     OrderPriceType,
@@ -16,22 +17,13 @@ from x10.perpetual.orders import (
     OrderType,
     TimeInForce,
 )
-from x10.perpetual.trading_client import PerpetualTradingClient
 
 LOGGER = logging.getLogger()
 MARKET_NAME = BTC_USD_MARKET
-ENDPOINT_CONFIG = TESTNET_CONFIG
 
 
 async def run_example():
-    env_config = init_env()
-    stark_account = StarkPerpetualAccount(
-        api_key=env_config.api_key,
-        public_key=env_config.public_key,
-        private_key=env_config.private_key,
-        vault=env_config.vault_id,
-    )
-    trading_client = PerpetualTradingClient(ENDPOINT_CONFIG, stark_account)
+    trading_client = create_trading_client()
     markets_dict = await trading_client.markets_info.get_markets_dict()
 
     market = markets_dict[MARKET_NAME]
@@ -48,8 +40,8 @@ async def run_example():
     LOGGER.info("Creating partial TPSL order object for market: %s", market.name)
 
     new_order = create_order_object(
-        account=stark_account,
-        starknet_domain=ENDPOINT_CONFIG.starknet_domain,
+        account=trading_client.stark_account,
+        starknet_domain=trading_client.config.starknet_domain,
         market=market,
         order_type=OrderType.TPSL,
         side=OrderSide.SELL,
