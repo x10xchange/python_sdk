@@ -13,6 +13,8 @@ from dotenv import load_dotenv
 from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.configuration import TESTNET_CONFIG, EndpointConfig
 from x10.perpetual.markets import TradingConfigModel
+from x10.perpetual.simple_client.simple_trading_client import BlockingTradingClient
+from x10.perpetual.stream_client import PerpetualStreamClient
 from x10.perpetual.trading_client import PerpetualTradingClient
 
 
@@ -67,6 +69,23 @@ def create_trading_client(endpoint_config: EndpointConfig = TESTNET_CONFIG):
     )
 
     return PerpetualTradingClient(endpoint_config, stark_account)
+
+
+def create_blocking_client(endpoint_config: EndpointConfig = TESTNET_CONFIG):
+    env_config = init_env()
+
+    stark_account = StarkPerpetualAccount(
+        api_key=env_config.api_key,
+        public_key=env_config.public_key,
+        private_key=env_config.private_key,
+        vault=env_config.vault_id,
+    )
+
+    return BlockingTradingClient(endpoint_config, stark_account)
+
+
+def create_stream_client(endpoint_config: EndpointConfig = TESTNET_CONFIG):
+    return PerpetualStreamClient(api_url=endpoint_config.stream_url)
 
 
 def get_adjust_price_by_pct(config: TradingConfigModel):
