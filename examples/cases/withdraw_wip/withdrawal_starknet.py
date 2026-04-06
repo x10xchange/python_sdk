@@ -22,6 +22,8 @@ async def run_example():
 
     assert target_wallet_address.startswith("0x"), "`target_wallet_address` must be a hex string"
 
+    LOGGER.info("Creating withdrawal of %s USDC to %s...", amount_usdc, target_wallet_address)
+
     withdrawal_id = (
         await trading_client.account.withdraw(
             amount=amount_usdc,
