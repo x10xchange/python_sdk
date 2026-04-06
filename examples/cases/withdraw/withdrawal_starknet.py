@@ -5,6 +5,7 @@ from decimal import Decimal
 from examples.utils import create_trading_client
 from x10.perpetual.configuration import MAINNET_CONFIG
 from x10.utils.nonce import generate_nonce
+from x10.utils.string import is_hex_string
 
 LOGGER = logging.getLogger()
 
@@ -20,7 +21,7 @@ async def run_example():
     target_wallet_address = "<STARKNET_WALLET_ADDRESS>"
     nonce = generate_nonce()
 
-    assert target_wallet_address.startswith("0x"), "`target_wallet_address` must be a hex string"
+    assert is_hex_string(target_wallet_address), "`target_wallet_address` must be a hex string"
 
     LOGGER.info("Creating withdrawal of %s USDC to %s...", amount_usdc, target_wallet_address)
 

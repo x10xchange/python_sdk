@@ -16,6 +16,7 @@ from x10.perpetual.markets import TradingConfigModel
 from x10.perpetual.simple_client.simple_trading_client import BlockingTradingClient
 from x10.perpetual.stream_client import PerpetualStreamClient
 from x10.perpetual.trading_client import PerpetualTradingClient
+from x10.utils.string import is_hex_string
 
 
 @dataclass
@@ -46,13 +47,13 @@ def init_env(require_private_api: bool = True):
         assert private_key, "X10_PRIVATE_KEY is not set"
         assert vault_id, "X10_VAULT_ID is not set"
 
-        assert public_key.startswith("0x"), "X10_PUBLIC_KEY must be a hex string"
-        assert private_key.startswith("0x"), "X10_PRIVATE_KEY must be a hex string"
+        assert is_hex_string(public_key), "X10_PUBLIC_KEY must be a hex string"
+        assert is_hex_string(private_key), "X10_PRIVATE_KEY must be a hex string"
 
     return EnvConfig(
         api_key=api_key,
-        public_key=public_key,
-        private_key=private_key,
+        public_key=public_key.lower() if public_key else None,
+        private_key=private_key.lower() if private_key else None,
         vault_id=int(vault_id) if vault_id else None,
         builder_id=int(builder_id) if builder_id else None,
     )
