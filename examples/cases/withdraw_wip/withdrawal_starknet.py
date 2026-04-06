@@ -1,36 +1,37 @@
+import logging
 from asyncio import run
 from decimal import Decimal
 
-from x10.perpetual.accounts import StarkPerpetualAccount
+from examples.utils import create_trading_client
 from x10.perpetual.configuration import MAINNET_CONFIG
-from x10.perpetual.trading_client import PerpetualTradingClient
+from x10.utils.nonce import generate_nonce
+
+LOGGER = logging.getLogger()
 
 
-async def setup_and_run():
-    stark_account = StarkPerpetualAccount(
-        vault=200027,
-        private_key="<>",
-        public_key="<>",
-        api_key="<>",
-    )
-    trading_client = PerpetualTradingClient(
-        endpoint_config=MAINNET_CONFIG,
-        stark_account=stark_account,
-    )
+async def run_example():
+    """
+    Example works on MAINNET only with STARKNET wallets.
+    """
 
-    resp = await trading_client.account.withdraw(
-        amount=Decimal("10"),
-        stark_address="0x037D9c8bBf6DE8b08F0C4072eBfAE9D1E890d094b9d117bABFCb3D41379B63ce".lower(),
-        nonce=123,
-    )
+    trading_client = create_trading_client(MAINNET_CONFIG)
 
-    print("Withdrawal response:")
-    print(resp)
+    amount_usdc = Decimal("5")
+    target_wallet_address = "<STARKNET_WALLET_ADDRESS>"
+    nonce = generate_nonce()
 
-    print("Withdrawal complete")
-    print("press enter to continue")
-    input()
+    assert target_wallet_address.startswith("0x"), "`target_wallet_address` must be a hex string"
+
+    withdrawal_id = (
+        await trading_client.account.withdraw(
+            amount=amount_usdc,
+            stark_address=target_wallet_address.lower(),
+            nonce=nonce,
+        )
+    ).data
+
+    LOGGER.info("Withdrawal created: %s", withdrawal_id)
 
 
 if __name__ == "__main__":
-    run(main=setup_and_run())
+    run(main=run_example())

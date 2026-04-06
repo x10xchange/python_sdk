@@ -1,4 +1,4 @@
-import logging.handlers
+import logging
 from asyncio import run
 from decimal import Decimal
 
@@ -6,16 +6,15 @@ from examples.utils import create_trading_client
 from x10.perpetual.configuration import MAINNET_CONFIG
 
 LOGGER = logging.getLogger()
-ENDPOINT_CONFIG = MAINNET_CONFIG
 FEE_THRESHOLD_USDC = 2
 
 
 async def run_example():
     """
-    Bridge disabled on Sepolia. Example works on MAINNET only.
+    Example works on MAINNET only with EVM wallets.
     """
 
-    trading_client = create_trading_client(ENDPOINT_CONFIG)
+    trading_client = create_trading_client(MAINNET_CONFIG)
 
     amount_usdc = Decimal("5")
     chain_in = "STRK"
