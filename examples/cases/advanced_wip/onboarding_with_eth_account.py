@@ -46,7 +46,7 @@ async def run_example():
 
     if claim_id:
         asset_operations = await trading_client.account.asset_operations(id=claim_id)
-        LOGGER.info("Test funds asset operation: %s", asset_operations.data[0])
+        LOGGER.info("Test funds asset operation: %s", asset_operations.data[0].to_pretty_json())
 
 
 if __name__ == "__main__":

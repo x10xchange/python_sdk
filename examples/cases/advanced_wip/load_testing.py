@@ -1,165 +1,133 @@
 import asyncio
-import logging
-import logging.config
 import logging.handlers
+import random
 from asyncio import run
-from collections.abc import Awaitable
-from decimal import Decimal
-from typing import Dict, Optional, Tuple
+from typing import Dict
 
-from x10.config import ADA_USD_MARKET
-from x10.perpetual.accounts import StarkPerpetualAccount
-from x10.perpetual.configuration import TESTNET_CONFIG
+from examples.utils import create_trading_client
+from x10.config import BTC_USD_MARKET
 from x10.perpetual.markets import MarketModel
 from x10.perpetual.order_object import create_order_object
-from x10.perpetual.orders import OrderSide, PlacedOrderModel
-from x10.perpetual.stream_client.perpetual_stream_connection import (
-    PerpetualStreamConnection,
-)
+from x10.perpetual.orders import OrderSide
 from x10.perpetual.stream_client.stream_client import PerpetualStreamClient
 from x10.perpetual.trading_client import PerpetualTradingClient
-from x10.utils.http import WrappedApiResponse
-from x10.utils.model import EmptyModel
 
-NUM_ORDERS_PER_PRICE_LEVEL = 100
-NUM_PRICE_LEVELS = 80
+LOGGER = logging.getLogger()
+MARKET_NAME = BTC_USD_MARKET
+NUM_ORDERS_PER_PRICE_LEVEL = 10
+NUM_PRICE_LEVELS = 20
 
-API_KEY = "<API_KEY>"
-PRIVATE_KEY = "<PRIVATE_KEY>"
-PUBLIC_KEY = "<PUBLIC_KEY"
-VAULT_ID = 12345677890
-
-order_condtions: Dict[str, asyncio.Condition] = {}
-socket_connect_condition = asyncio.Condition()
-socket_connected = False
-order_loop_finished = False
-stream: Optional[PerpetualStreamConnection] = None
+stop_event = asyncio.Event()
+unconfirmed_order_lock = asyncio.Lock()
+unconfirmed_order_external_ids: Dict[str, asyncio.Condition] = {}
 
 
-stark_account = StarkPerpetualAccount(vault=VAULT_ID, private_key=PRIVATE_KEY, public_key=PUBLIC_KEY, api_key=API_KEY)
+def generate_external_id():
+    return str(random.randint(0, 10000000000000000000000000))
 
 
-async def build_markets_cache(trading_client: PerpetualTradingClient):
-    markets = await trading_client.markets_info.get_markets()
-    assert markets.data is not None
-    return {m.name: m for m in markets.data}
-
-
-async def order_stream():
-    stream_client = PerpetualStreamClient(api_url=TESTNET_CONFIG.stream_url)
-    global stream
-    stream = await stream_client.subscribe_to_account_updates(API_KEY)
-
-    global socket_connected
-    socket_connected = True
-
-    async with socket_connect_condition:
-        socket_connect_condition.notify_all()
-
-    async for event in stream:
-        if order_loop_finished:
-            break
-        if not (event.data and event.data.orders):
-            continue
-        else:
-            pass
-        for order in event.data.orders:
-            print(f"processing order {order.external_id}")
-            condition = order_condtions.get(order.external_id)
-            if not condition:
-                continue
-            if condition:
-                async with condition:
-                    condition.notify_all()
-                    del order_condtions[order.external_id]
-
-
-async def order_loop(
-    i: int,
-    trading_client: PerpetualTradingClient,
-    markets_cache: dict[str, MarketModel],
-):
-    if not socket_connected:
-        async with socket_connect_condition:
-            await socket_connect_condition.wait()
+async def create_orders_loop(*, trading_client: PerpetualTradingClient, market: MarketModel, level: int):
+    market_mid_price = market.trading_config.round_price(
+        (market.market_stats.bid_price + market.market_stats.ask_price) / 2
+    )
 
     for _ in range(NUM_ORDERS_PER_PRICE_LEVEL):
-        (external_id, order_response) = await place_order(i, trading_client, markets_cache)
-        print(f"placed order {external_id}")
-        condition = order_condtions.get(external_id)
-        if condition:
-            async with condition:
-                await condition.wait()
-        if order_response and order_response.data:
-            print(f"cancelling order {external_id}")
-            await trading_client.orders.cancel_order(order_id=order_response.data.id)
-            print(f"cancelled order {external_id}")
+        should_buy = level % 2 == 0
+
+        price_delta = market.trading_config.min_price_change * (level + 1) * (-1 if should_buy else 1)
+
+        new_order_side = OrderSide.BUY if should_buy else OrderSide.SELL
+        new_order_price = market.trading_config.round_price(market_mid_price + price_delta)
+        new_order_external_id = generate_external_id()
+        new_order_size = market.trading_config.min_order_size
+
+        new_order = create_order_object(
+            account=trading_client.stark_account,
+            market=market,
+            amount_of_synthetic=new_order_size,
+            price=new_order_price,
+            side=new_order_side,
+            starknet_domain=trading_client.config.starknet_domain,
+            order_external_id=new_order_external_id,
+            post_only=True,
+        )
+
+        async with unconfirmed_order_lock:
+            confirmation_condition = asyncio.Condition()
+            unconfirmed_order_external_ids[new_order_external_id] = confirmation_condition
+            confirmation_condition.wait()
+
+        await trading_client.orders.place_order(order=new_order)
 
 
-async def place_order(
-    i: int,
-    trading_client: PerpetualTradingClient,
-    markets_cache: dict[str, MarketModel],
-) -> Tuple[str, WrappedApiResponse[PlacedOrderModel]]:
-    should_buy = i % 2 == 0
-    price = Decimal("0.660") - Decimal("0.00" + str(i)) if should_buy else Decimal("0.6601") + Decimal("0.00" + str(i))
-    order_side = OrderSide.BUY if should_buy else OrderSide.SELL
-    market = markets_cache[ADA_USD_MARKET]
-    new_order = create_order_object(
-        account=stark_account,
-        market=market,
-        amount_of_synthetic=Decimal("100"),
-        price=price,
-        side=order_side,
-        starknet_domain=TESTNET_CONFIG.starknet_domain,
-    )
-    order_condtions[new_order.id] = asyncio.Condition()
-    return new_order.id, await trading_client.orders.place_order(order=new_order)
+async def order_confirmation_loop(*, stream_url: str, api_key: str):
+    stream_client = PerpetualStreamClient(api_url=stream_url)
+
+    async with stream_client.subscribe_to_account_updates(api_key) as account_stream:
+        while not stop_event.is_set():
+            try:
+                msg = await asyncio.wait_for(account_stream.recv(), timeout=1)
+
+                if msg.type == "ORDER":
+                    async with unconfirmed_order_lock:
+                        for order in msg.data.orders:
+                            # No "external" orders are expected during this test run.
+                            confirmation_condition = unconfirmed_order_external_ids[order.external_id]
+
+                            async with confirmation_condition:
+                                confirmation_condition.notify_all()
+                                del unconfirmed_order_external_ids[order.external_id]
+
+                        unconfirmed_orders_count = len(unconfirmed_order_external_ids)
+
+                        if unconfirmed_orders_count == 0:
+                            stop_event.set()
+                        else:
+                            LOGGER.info("Waiting for confirmation of %s orders", unconfirmed_orders_count)
+            except asyncio.TimeoutError:
+                pass
 
 
-async def clean_it():
-    logger = logging.getLogger("placed_order_example")
-    trading_client = PerpetualTradingClient(TESTNET_CONFIG, stark_account)
-    positions = await trading_client.account.get_positions()
-    logger.info("Positions: %s", positions.to_pretty_json())
+async def cancel_open_orders(trading_client: PerpetualTradingClient):
+    positions = await trading_client.account.get_positions(market_names=[MARKET_NAME])
     balance = await trading_client.account.get_balance()
-    logger.info("Balance: %s", balance.to_pretty_json())
-    open_orders = await trading_client.account.get_open_orders(market_names=[ADA_USD_MARKET])
 
-    def __cancel_order(order_id: int) -> Awaitable[WrappedApiResponse[EmptyModel]]:
-        return trading_client.orders.cancel_order(order_id=order_id)
+    LOGGER.info("Balance: %s", balance.to_pretty_json())
+    LOGGER.info("Positions: %s", positions.to_pretty_json())
 
-    cancel_futures = list(map(__cancel_order, [order.id for order in open_orders.data]))
-    await asyncio.gather(*cancel_futures)
+    await trading_client.orders.mass_cancel(markets=[MARKET_NAME])
 
 
 async def run_example():
-    await clean_it()
-    print("Press enter to start load test")
-    input()
+    trading_client = create_trading_client()
 
-    trading_client = PerpetualTradingClient(TESTNET_CONFIG, stark_account)
-    markets_cache = await build_markets_cache(trading_client)
-    stream_future = asyncio.create_task(order_stream())
+    markets_dict = await trading_client.markets_info.get_markets_dict()
+    market = markets_dict[MARKET_NAME]
 
-    def __create_order_loop(i: int):
-        return asyncio.create_task(
-            order_loop(
-                i,
-                trading_client=trading_client,
-                markets_cache=markets_cache,
-            )
+    LOGGER.info("Starting load testing:")
+    LOGGER.info("- Market: %s", MARKET_NAME)
+    LOGGER.info("- Levels: %s", NUM_PRICE_LEVELS)
+    LOGGER.info("- Orders per level: %s", NUM_ORDERS_PER_PRICE_LEVEL)
+
+    await cancel_open_orders(trading_client)
+
+    orders_confirmation_task = asyncio.create_task(
+        order_confirmation_loop(
+            stream_url=trading_client.config.stream_url,
+            api_key=trading_client.stark_account.api_key,
         )
+    )
+    orders_creation_tasks = []
 
-    order_loop_futures = map(__create_order_loop, range(NUM_PRICE_LEVELS))
-    await asyncio.gather(*order_loop_futures)
-    print("Load Test Complete")
-    global order_loop_finished
-    order_loop_finished = True
-    if stream:
-        await stream.close()
-    await stream_future
-    await clean_it()
+    for level in range(NUM_PRICE_LEVELS):
+        task = create_orders_loop(trading_client=trading_client, market=market, level=level)
+        orders_creation_tasks.append(asyncio.create_task(task))
+
+    await asyncio.gather(*orders_creation_tasks)
+    await orders_confirmation_task
+    await cancel_open_orders(trading_client)
+
+    LOGGER.info("Load testing finished")
 
 
 if __name__ == "__main__":

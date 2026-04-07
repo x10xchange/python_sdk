@@ -12,7 +12,6 @@ from x10.perpetual.orderbook import OrderBook, OrderBookEntry
 from x10.perpetual.orders import OrderSide
 
 LOGGER = logging.getLogger()
-ENDPOINT_CONFIG = TESTNET_CONFIG
 MARKET_NAME = BTC_USD_MARKET
 NUM_PRICE_LEVELS = 5
 PRICE_OFFSET_PER_LEVEL_PCT = Decimal("0.3")
@@ -28,7 +27,7 @@ async def create_orders_task(
     side: OrderSide,
     get_best_price: Callable[[], Awaitable[Decimal | None]],
 ):
-    trading_client = create_trading_client(ENDPOINT_CONFIG)
+    trading_client = create_trading_client()
     markets_dict = await trading_client.markets_info.get_markets_dict()
 
     market = markets_dict[MARKET_NAME]
@@ -128,7 +127,7 @@ async def run_example():
     loop.add_signal_handler(SIGINT, signal_handler)
     loop.add_signal_handler(SIGTERM, signal_handler)
 
-    trading_client = create_trading_client(ENDPOINT_CONFIG)
+    trading_client = create_trading_client()
     markets_dict = await trading_client.markets_info.get_markets_dict()
 
     market = markets_dict[MARKET_NAME]
@@ -147,7 +146,7 @@ async def run_example():
             best_bid_condition.notify_all()
 
     orderbook = await OrderBook.create(
-        ENDPOINT_CONFIG,
+        trading_client.config,
         market.name,
         start=True,
         best_ask_change_callback=on_best_ask_change,
