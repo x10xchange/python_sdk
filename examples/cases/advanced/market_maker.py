@@ -3,11 +3,10 @@ import logging
 import random
 from decimal import Decimal
 from signal import SIGINT, SIGTERM
-from typing import Awaitable, Callable
+from typing import Awaitable, Callable, List
 
 from examples.utils import create_trading_client
 from x10.config import BTC_USD_MARKET
-from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.orderbook import OrderBook, OrderBookEntry
 from x10.perpetual.orders import OrderSide
 
@@ -116,7 +115,7 @@ async def create_orders_task(
 
 async def run_example():
     loop = asyncio.get_running_loop()
-    create_orders_tasks = []
+    create_orders_tasks: List[asyncio.Future] = []
 
     def signal_handler():
         LOGGER.info("Signal received, stopping...")

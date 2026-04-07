@@ -2,7 +2,7 @@ import asyncio
 import logging.handlers
 import random
 from asyncio import run
-from typing import Dict
+from typing import Set
 
 from examples.utils import create_trading_client
 from x10.config import BTC_USD_MARKET
@@ -19,7 +19,7 @@ NUM_PRICE_LEVELS = 20
 
 stop_event = asyncio.Event()
 unconfirmed_order_lock = asyncio.Lock()
-unconfirmed_order_external_ids: Dict[str, asyncio.Condition] = {}
+unconfirmed_order_external_ids: Set[str] = set()
 
 
 def generate_external_id():
@@ -53,9 +53,7 @@ async def create_orders_loop(*, trading_client: PerpetualTradingClient, market: 
         )
 
         async with unconfirmed_order_lock:
-            confirmation_condition = asyncio.Condition()
-            unconfirmed_order_external_ids[new_order_external_id] = confirmation_condition
-            confirmation_condition.wait()
+            unconfirmed_order_external_ids.add(new_order_external_id)
 
         await trading_client.orders.place_order(order=new_order)
 
@@ -71,12 +69,8 @@ async def order_confirmation_loop(*, stream_url: str, api_key: str):
                 if msg.type == "ORDER":
                     async with unconfirmed_order_lock:
                         for order in msg.data.orders:
-                            # No "external" orders are expected during this test run.
-                            confirmation_condition = unconfirmed_order_external_ids[order.external_id]
-
-                            async with confirmation_condition:
-                                confirmation_condition.notify_all()
-                                del unconfirmed_order_external_ids[order.external_id]
+                            if order.external_id in unconfirmed_order_external_ids:
+                                unconfirmed_order_external_ids.remove(order.external_id)
 
                         unconfirmed_orders_count = len(unconfirmed_order_external_ids)
 

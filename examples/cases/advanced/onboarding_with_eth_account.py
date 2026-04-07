@@ -3,13 +3,13 @@ from asyncio import run
 
 from eth_account import Account
 from eth_account.signers.local import LocalAccount
-from utils.string import is_hex_string
 
 from examples.utils import init_env
 from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.trading_client.trading_client import PerpetualTradingClient
 from x10.perpetual.user_client.user_client import UserClient
+from x10.utils.string import is_hex_string
 
 LOGGER = logging.getLogger()
 ENDPOINT_CONFIG = TESTNET_CONFIG
