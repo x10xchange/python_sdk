@@ -38,7 +38,6 @@ async def run_example():
     )
     trading_client = PerpetualTradingClient(ENDPOINT_CONFIG, starknet_account)
 
-    LOGGER.info("API key: %s", starknet_account.api_key)
     LOGGER.info("StarkNet public key: %s", starknet_account.public_key)
 
     claim = await trading_client.testnet.claim_testing_funds()
