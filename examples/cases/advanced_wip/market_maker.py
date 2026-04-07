@@ -1,95 +1,133 @@
 import asyncio
-import datetime
 import logging
 import random
 from decimal import Decimal
-from typing import Any, Awaitable, Callable, Coroutine, Dict
+from signal import SIGINT, SIGTERM
+from typing import Awaitable, Callable
 
 from examples.utils import create_trading_client
 from x10.config import BTC_USD_MARKET
-from x10.perpetual.accounts import StarkPerpetualAccount
-from x10.perpetual.configuration import MAINNET_CONFIG, TESTNET_CONFIG
+from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.orderbook import OrderBook, OrderBookEntry
 from x10.perpetual.orders import OrderSide
-from x10.perpetual.trading_client.trading_client import PerpetualTradingClient
 
 LOGGER = logging.getLogger()
-ENDPOINT_CONFIG = MAINNET_CONFIG
+ENDPOINT_CONFIG = TESTNET_CONFIG
 MARKET_NAME = BTC_USD_MARKET
-NUM_PRICE_LEVELS = 2
+NUM_PRICE_LEVELS = 5
 PRICE_OFFSET_PER_LEVEL_PCT = Decimal("0.3")
+
+
+def generate_external_id():
+    return str(random.randint(0, 10000000000000000000000000))
 
 
 async def create_orders_task(
     *,
     level: int,
     side: OrderSide,
-    get_best_price: Callable[[], Awaitable[OrderBookEntry | None]],
+    get_best_price: Callable[[], Awaitable[Decimal | None]],
 ):
     trading_client = create_trading_client(ENDPOINT_CONFIG)
     markets_dict = await trading_client.markets_info.get_markets_dict()
 
     market = markets_dict[MARKET_NAME]
 
-    prev_order_id: int | None = None
+    prev_order_external_id: str | None = None
     prev_order_price: Decimal | None = None
 
     price_offset_for_level_percent = PRICE_OFFSET_PER_LEVEL_PCT * (level + 1)
 
-    while True:
-        best_price = await get_best_price()
+    try:
+        while True:
+            best_price = await get_best_price()
 
-        if best_price is None:
-            continue
+            if best_price is None:
+                continue
 
-        LOGGER.info("Creating %s orders task for level %s (best price is %s)", side, level, best_price)
+            LOGGER.info("Creating %s orders task for level %s (best price is %s)", side, level, best_price)
 
-        offset_direction = Decimal(1 if side == OrderSide.SELL else -1)
+            offset_direction = Decimal(1 if side == OrderSide.SELL else -1)
 
-        current_price = best_price.price
-        target_price = market.trading_config.round_price(
-            current_price + offset_direction * current_price * (price_offset_for_level_percent / Decimal("100"))
-        )
+            current_price = best_price
+            target_price = market.trading_config.round_price(
+                current_price + offset_direction * current_price * (price_offset_for_level_percent / Decimal("100"))
+            )
 
-        current_delta = abs(((prev_order_price - current_price) / current_price)) if prev_order_price is not None else 0
-        target_delta = price_offset_for_level_percent / Decimal("100")
+            current_delta = (
+                abs(((prev_order_price - current_price) / current_price)) if prev_order_price is not None else 0
+            )
+            target_delta = price_offset_for_level_percent / Decimal("100")
 
-        min_delta_required = target_delta - target_delta * PRICE_OFFSET_PER_LEVEL_PCT * (
-            Decimal(1) + Decimal(level) / Decimal(NUM_PRICE_LEVELS)
-        )
-        max_delta_allowed = target_delta + target_delta * PRICE_OFFSET_PER_LEVEL_PCT / (
-            Decimal(1) + Decimal(level) / Decimal(NUM_PRICE_LEVELS)
-        )
+            min_delta_required = target_delta - target_delta * PRICE_OFFSET_PER_LEVEL_PCT * (
+                Decimal(1) + Decimal(level) / Decimal(NUM_PRICE_LEVELS)
+            )
+            max_delta_allowed = target_delta + target_delta * PRICE_OFFSET_PER_LEVEL_PCT / (
+                Decimal(1) + Decimal(level) / Decimal(NUM_PRICE_LEVELS)
+            )
 
-        if prev_order_price is not None and (min_delta_required <= current_delta <= max_delta_allowed):
-            continue
+            if prev_order_price is not None and (min_delta_required <= current_delta <= max_delta_allowed):
+                continue
 
-        LOGGER.info("Repricing %s order for level %s: %s -> %s",side, level, current_price, target_price)
-#                 print(f"Repricing {side} order from {prev_order_price} to {target_price}, price level {i}")
-#                 if prev_order_id is not None:
-#                     print(f"Cancelling previous order {prev_order_id}")
-#                     asyncio.create_task(
-#                         root_trading_client.orders.cancel_order_by_external_id(order_external_id=str(prev_order_id))
-#                     )
-#                 new_id = random.randint(0, 10000000000000000000000000)
-#                 print(f"Placing {side} order {new_id} at {target_price}, price level {i}")
-#                 try:
-#                     await root_trading_client.place_order(
-#                         market_name=market.name,
-#                         amount_of_synthetic=market.trading_config.min_order_size,
-#                         price=target_price,
-#                         side=side,
-#                         external_id=str(new_id),
-#                         post_only=True,
-#                     )
-#                 except Exception as e:
-#                     print(f"Error placing order {new_id} at {target_price}, price level {i}: {e}")
-#                     continue
-#                 prev_order_id = new_id
-#                 prev_order_price = target_price
+            LOGGER.info("Re-pricing %s order for level %s: %s -> %s", side, level, current_price, target_price)
+
+            if prev_order_external_id is not None:
+                LOGGER.info("Cancelling previous order with external id %s", prev_order_external_id)
+
+                asyncio.create_task(
+                    trading_client.orders.cancel_order_by_external_id(order_external_id=prev_order_external_id)
+                )
+
+            new_order_external_id = generate_external_id()
+            new_order_size = market.trading_config.min_order_size
+
+            try:
+                await trading_client.place_order(
+                    market_name=market.name,
+                    amount_of_synthetic=new_order_size,
+                    price=target_price,
+                    side=side,
+                    external_id=new_order_external_id,
+                    post_only=True,
+                )
+
+                LOGGER.info(
+                    "Placed %s %s@%s order for level %s",
+                    side,
+                    new_order_size,
+                    target_price,
+                    level,
+                )
+
+                prev_order_external_id = new_order_external_id
+                prev_order_price = target_price
+            except Exception as e:
+                LOGGER.error(
+                    "Error placing %s %s@%s order for level %s",
+                    side,
+                    new_order_size,
+                    target_price,
+                    level,
+                    e,
+                )
+    except asyncio.CancelledError:
+        LOGGER.info("Orders task for %s level %s cancelled, stopping...", side, level)
+        raise
 
 
 async def run_example():
+    loop = asyncio.get_running_loop()
+    create_orders_tasks = []
+
+    def signal_handler():
+        LOGGER.info("Signal received, stopping...")
+
+        for task in create_orders_tasks:
+            task.cancel()
+
+    loop.add_signal_handler(SIGINT, signal_handler)
+    loop.add_signal_handler(SIGTERM, signal_handler)
+
     trading_client = create_trading_client(ENDPOINT_CONFIG)
     markets_dict = await trading_client.markets_info.get_markets_dict()
 
@@ -119,14 +157,14 @@ async def run_example():
     async def get_best_ask():
         async with best_ask_condition:
             await best_ask_condition.wait()
-            return orderbook.best_ask()
+            best_entry = orderbook.best_bid()
+            return best_entry.price if best_entry else None
 
     async def get_best_bid():
         async with best_bid_condition:
             await best_bid_condition.wait()
-            return orderbook.best_bid()
-
-    create_orders_tasks = []
+            best_entry = orderbook.best_bid()
+            return best_entry.price if best_entry else None
 
     for level in range(NUM_PRICE_LEVELS):
         buy_task = create_orders_task(
@@ -143,13 +181,8 @@ async def run_example():
         create_orders_tasks.append(asyncio.create_task(buy_task))
         create_orders_tasks.append(asyncio.create_task(sell_task))
 
-    # FIXME
-    # while True:
-    try:
-        await asyncio.gather(*create_orders_tasks)
-        await asyncio.sleep(30)
-    except Exception as e:
-        LOGGER.error(e)
+    await asyncio.gather(*create_orders_tasks, return_exceptions=True)
+    await orderbook.close()
 
 
 if __name__ == "__main__":
