@@ -133,7 +133,7 @@ async def clean_it():
     await asyncio.gather(*cancel_futures)
 
 
-async def setup_and_run():
+async def run_example():
     await clean_it()
     print("Press enter to start load test")
     input()
@@ -163,4 +163,4 @@ async def setup_and_run():
 
 
 if __name__ == "__main__":
-    run(main=setup_and_run())
+    run(main=run_example())

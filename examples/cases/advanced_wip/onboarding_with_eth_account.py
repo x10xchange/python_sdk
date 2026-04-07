@@ -1,0 +1,53 @@
+import logging
+from asyncio import run
+
+from eth_account import Account
+from eth_account.signers.local import LocalAccount
+from utils.string import is_hex_string
+
+from examples.utils import init_env
+from x10.perpetual.accounts import StarkPerpetualAccount
+from x10.perpetual.configuration import TESTNET_CONFIG
+from x10.perpetual.trading_client.trading_client import PerpetualTradingClient
+from x10.perpetual.user_client.user_client import UserClient
+
+LOGGER = logging.getLogger()
+ENDPOINT_CONFIG = TESTNET_CONFIG
+
+
+async def run_example():
+    init_env(require_private_api=False)
+
+    eth_account_private_key = "<PRIVATE_KEY>"
+
+    assert is_hex_string(eth_account_private_key), "`eth_account_private_key` must be a hex string"
+
+    eth_local_account: LocalAccount = Account.from_key(eth_account_private_key)
+    user_client = UserClient(endpoint_config=ENDPOINT_CONFIG, l1_private_key=eth_local_account.key.hex)
+
+    LOGGER.info("Onboarding with ETH account %s...", eth_local_account.address)
+
+    main_account = await user_client.onboard()
+    main_account_api_key = await user_client.create_account_api_key(main_account.account, "Onboarding example API key")
+
+    starknet_account = StarkPerpetualAccount(
+        api_key=main_account_api_key,
+        public_key=main_account.l2_key_pair.public_hex,
+        private_key=main_account.l2_key_pair.private_hex,
+        vault=main_account.account.l2_vault,
+    )
+    trading_client = PerpetualTradingClient(ENDPOINT_CONFIG, starknet_account)
+
+    LOGGER.info("API key: %s", starknet_account.api_key)
+    LOGGER.info("StarkNet public key: %s", starknet_account.public_key)
+
+    claim = await trading_client.testnet.claim_testing_funds()
+    claim_id = claim.data.id if claim.data else None
+
+    if claim_id:
+        asset_operations = await trading_client.account.asset_operations(id=claim_id)
+        LOGGER.info("Test funds asset operation: %s", asset_operations.data[0])
+
+
+if __name__ == "__main__":
+    run(main=run_example())
