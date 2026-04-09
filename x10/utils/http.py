@@ -1,5 +1,6 @@
 import itertools
 import re
+from types import NoneType
 from typing import Any, Dict, Generic, List, Optional, Sequence, Type, TypeVar, Union
 
 import aiohttp
@@ -16,7 +17,7 @@ from x10.utils.model import X10BaseModel
 LOGGER = get_logger(__name__)
 CLIENT_TIMEOUT = ClientTimeout(total=DEFAULT_REQUEST_TIMEOUT_SECONDS)
 
-ApiResponseType = TypeVar("ApiResponseType", bound=Union[int, X10BaseModel, Sequence[X10BaseModel]])
+ApiResponseType = TypeVar("ApiResponseType", bound=Union[int, X10BaseModel, Sequence[X10BaseModel], None])
 
 
 class RateLimitException(X10Error):
@@ -89,6 +90,13 @@ def parse_response_to_model(
 ) -> WrappedApiResponse[ApiResponseType]:
     # Read this to get more context re the type ignore:
     # https://github.com/python/mypy/issues/13619
+
+    if model_class == NoneType:
+        return WrappedApiResponse[None](
+            status=ResponseStatus.OK,
+            data=None,
+        )  # type: ignore
+
     return WrappedApiResponse[model_class].model_validate_json(response_text)  # type: ignore[valid-type]
 
 
