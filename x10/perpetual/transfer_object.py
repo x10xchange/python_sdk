@@ -29,6 +29,7 @@ def calc_expiration_timestamp():
     return expire_time_with_buffer_seconds
 
 
+# FIXME: Transfers are broken
 def create_transfer_object(
     from_vault: int,
     to_vault: int,
@@ -76,5 +77,5 @@ def create_transfer_object(
         to_vault=to_vault,
         amount=amount,
         settlement=settlement,
-        transferred_asset=config.collateral_asset_id,
+        transferred_asset=config.collateral_asset_on_chain_id,
     )

@@ -14,12 +14,11 @@ from x10.perpetual.orders import (
     TimeInForce,
 )
 from x10.perpetual.trading_client.account_module import AccountModule
+from x10.perpetual.trading_client.info_markets_module import InfoMarketsModule
 from x10.perpetual.trading_client.info_module import InfoModule
-from x10.perpetual.trading_client.markets_information_module import (
-    MarketsInformationModule,
-)
 from x10.perpetual.trading_client.order_management_module import OrderManagementModule
 from x10.perpetual.trading_client.testnet_module import TestnetModule
+from x10.perpetual.trading_client.vault_module import VaultModule
 from x10.utils.date import utc_now
 from x10.utils.http import WrappedApiResponse
 from x10.utils.log import get_logger
@@ -33,14 +32,16 @@ class PerpetualTradingClient:
     """
 
     __markets: Dict[str, MarketModel] | None
+
+    __config: EndpointConfig
     __stark_account: StarkPerpetualAccount | None
 
     __info_module: InfoModule
-    __markets_info_module: MarketsInformationModule
+    __info_markets_module: InfoMarketsModule
     __account_module: AccountModule
     __order_management_module: OrderManagementModule
+    __vault_module: VaultModule
     __testnet_module: TestnetModule
-    __config: EndpointConfig
 
     async def place_order(
         self,
@@ -65,7 +66,7 @@ class PerpetualTradingClient:
             raise ValueError("Stark account is not set")
 
         if not self.__markets:
-            self.__markets = await self.__markets_info_module.get_markets_dict()
+            self.__markets = await self.__info_markets_module.get_markets_dict()
 
         market = self.__markets.get(market_name)
 
@@ -98,9 +99,15 @@ class PerpetualTradingClient:
         return await self.__order_management_module.place_order(order)
 
     async def close(self):
-        await self.__markets_info_module.close_session()
+        await self.__info_markets_module.close_session()
         await self.__account_module.close_session()
         await self.__order_management_module.close_session()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        await self.close()
 
     def __init__(self, endpoint_config: EndpointConfig, stark_account: StarkPerpetualAccount | None = None):
         api_key = stark_account.api_key if stark_account else None
@@ -110,9 +117,16 @@ class PerpetualTradingClient:
         self.__stark_account = stark_account
 
         self.__info_module = InfoModule(endpoint_config)
-        self.__markets_info_module = MarketsInformationModule(endpoint_config, api_key=api_key)
+        self.__info_markets_module = InfoMarketsModule(endpoint_config, api_key=api_key)
         self.__account_module = AccountModule(endpoint_config, api_key=api_key, stark_account=stark_account)
         self.__order_management_module = OrderManagementModule(endpoint_config, api_key=api_key)
+        self.__vault_module = VaultModule(
+            endpoint_config,
+            info_module=self.__info_module,
+            account_module=self.__account_module,
+            account=stark_account,
+            api_key=api_key,
+        )
         self.__testnet_module = TestnetModule(endpoint_config, api_key=api_key, account_module=self.__account_module)
 
     @property
@@ -129,7 +143,7 @@ class PerpetualTradingClient:
 
     @property
     def markets_info(self):
-        return self.__markets_info_module
+        return self.__info_markets_module
 
     @property
     def account(self):
@@ -142,3 +156,7 @@ class PerpetualTradingClient:
     @property
     def testnet(self):
         return self.__testnet_module
+
+    @property
+    def vault(self):
+        return self.__vault_module

@@ -7,6 +7,21 @@ from strenum import StrEnum
 from x10.utils.model import HexValue, X10BaseModel
 
 
+class AssetModel(X10BaseModel):
+    id: int
+    name: str
+    symbol: str
+    precision: int
+    is_active: bool
+    is_collateral: bool
+    starkex_id: HexValue
+    starkex_resolution: int
+    l1_id: str
+    l1_resolution: int
+    version: int
+
+
+# FIXME: Replace with AssetModel
 @dataclass
 class Asset:
     id: int
@@ -36,6 +51,20 @@ class Asset:
         if not self.is_collateral:
             raise ValueError("Only collateral assets have an L1 representation")
         return int(internal * Decimal(self.l1_resolution))
+
+    @staticmethod
+    def from_model(model: AssetModel):
+        return Asset(
+            id=model.id,
+            name=model.name,
+            precision=model.precision,
+            active=model.is_active,
+            is_collateral=model.is_collateral,
+            settlement_external_id=hex(model.starkex_id),
+            settlement_resolution=model.starkex_resolution,
+            l1_external_id=model.l1_id,
+            l1_resolution=model.l1_resolution,
+        )
 
 
 class AssetOperationType(StrEnum):
