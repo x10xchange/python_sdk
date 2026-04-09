@@ -60,8 +60,8 @@ class Asset:
             precision=model.precision,
             active=model.is_active,
             is_collateral=model.is_collateral,
-            settlement_external_id=model.l1_id,
-            settlement_resolution=model.l1_resolution,
+            settlement_external_id=hex(model.starkex_id),
+            settlement_resolution=model.starkex_resolution,
             l1_external_id=model.l1_id,
             l1_resolution=model.l1_resolution,
         )

@@ -67,17 +67,74 @@ class VaultModule(BaseModule):
         total_vault_asset_balance = sum(map(lambda b: b.balance, vault_asset_balances), Decimal(0))
         return total_vault_asset_balance
 
-    async def withdraw_from_vault(self, *, shares_amount: Decimal, collateral_amount: Decimal) -> None:
-        assets = await self._info_module.get_assets_dict()
+    async def deposit_to_vault(self, *, collateral_amount: Decimal) -> None:
         account_info = (await self._account_module.get_account()).data
+        assets = await self._info_module.get_assets_dict()
+        vault_asset_price = (
+            await self._info_module.get_asset_price(asset_name=self._get_endpoint_config().vault_asset_name)
+        ).data
 
         assert account_info is not None
+        assert vault_asset_price is not None
 
         position_id = account_info.l2_vault
         collateral_asset = assets[COLLATERAL_ASSET_NAME]
         vault_asset = assets[self._get_endpoint_config().vault_asset_name]
+        vault_shares_expected = self.__calc_vault_shares_expected(
+            collateral_amount,
+            vault_asset_price,
+            vault_asset.precision,
+        )
+
         settlement, collateral_amount_human, shares_amount_human = self.__create_limit_order(
             collateral_amount=collateral_amount,
+            shares_amount=vault_shares_expected,
+            position_id=position_id,
+            collateral_asset_model=collateral_asset,
+            vault_asset_model=vault_asset,
+            buying_shares=True,
+        )
+        deposit_request = DepositRequestModel(
+            from_account_id=account_info.id,
+            to_account_id=account_info.id,
+            collateral=abs(collateral_amount_human.value),
+            shares=abs(shares_amount_human.value),
+            settlement=settlement,
+        )
+
+        url = self._get_url("/vault/user/deposits")
+        resp = await send_post_request(
+            await self.get_session(),
+            url,
+            NoneType,
+            json=deposit_request.to_api_request_json(exclude_none=True),
+            api_key=self._get_api_key(),
+        )
+
+        if resp.error is not None:
+            raise X10Error(f"Deposit error: {resp.error}")
+
+    async def withdraw_from_vault(self, *, shares_amount: Decimal) -> None:
+        assets = await self._info_module.get_assets_dict()
+        account_info = (await self._account_module.get_account()).data
+        vault_asset_price = (
+            await self._info_module.get_asset_price(asset_name=self._get_endpoint_config().vault_asset_name)
+        ).data
+
+        assert account_info is not None
+        assert vault_asset_price is not None
+
+        position_id = account_info.l2_vault
+        collateral_asset = assets[COLLATERAL_ASSET_NAME]
+        vault_asset = assets[self._get_endpoint_config().vault_asset_name]
+        collateral_amount_expected = self.__calc_collateral_amount_expected(
+            shares_amount,
+            vault_asset_price,
+            vault_asset.precision,
+        )
+
+        settlement, collateral_amount_human, shares_amount_human = self.__create_limit_order(
+            collateral_amount=collateral_amount_expected,
             shares_amount=shares_amount,
             position_id=position_id,
             collateral_asset_model=collateral_asset,
@@ -103,55 +160,6 @@ class VaultModule(BaseModule):
         if resp.error is not None:
             raise X10Error(f"Withdraw error: {resp.error}")
 
-    async def deposit_to_vault(self, *, amount: Decimal) -> None:
-        account_info = (await self._account_module.get_account()).data
-        assets = await self._info_module.get_assets_dict()
-        vault_asset_price = (
-            await self._info_module.get_asset_price(asset_name=self._get_endpoint_config().vault_asset_name)
-        ).data
-
-        assert account_info is not None
-        assert vault_asset_price is not None
-
-        position_id = account_info.l2_vault
-        collateral_asset = assets[COLLATERAL_ASSET_NAME]
-        vault_asset = assets[self._get_endpoint_config().vault_asset_name]
-        vault_shares_expected = self.__calc_vault_shares_expected(
-            amount,
-            vault_asset_price,
-            vault_asset.precision,
-        )
-
-        settlement, collateral_amount_human, shares_amount_human = self.__create_limit_order(
-            collateral_amount=amount,
-            shares_amount=vault_shares_expected,
-            position_id=position_id,
-            collateral_asset_model=collateral_asset,
-            vault_asset_model=vault_asset,
-            buying_shares=True,
-        )
-        deposit_request = DepositRequestModel(
-            from_account_id=account_info.id,
-            to_account_id=account_info.id,
-            collateral=abs(collateral_amount_human.value),
-            shares=abs(shares_amount_human.value),
-            settlement=settlement,
-        )
-
-        f = deposit_request.to_api_request_json(exclude_none=True)
-        q = 1
-        # url = self._get_url("/vault/user/deposits")
-        # resp = await send_post_request(
-        #     await self.get_session(),
-        #     url,
-        #     NoneType,
-        #     json=deposit_request.to_api_request_json(exclude_none=True),
-        #     api_key=self._get_api_key(),
-        # )
-        #
-        # if resp.error is not None:
-        #     raise X10Error(f"Deposit error: {resp.error}")
-
     def __create_limit_order(
         self,
         *,
@@ -165,8 +173,8 @@ class VaultModule(BaseModule):
         if self._account is None:
             raise X10Error("Stark account is required for vault investments")
 
-        vault_asset = Asset.from_model(vault_asset_model)
         collateral_asset = Asset.from_model(collateral_asset_model)
+        vault_asset = Asset.from_model(vault_asset_model)
 
         collateral_amount_human = HumanReadableAmount(
             asset=collateral_asset,
@@ -216,3 +224,10 @@ class VaultModule(BaseModule):
     ) -> Decimal:
         shares = collateral_amount / vault_asset_price * VAULT_SHARES_SLIPPAGE_PCT
         return shares.quantize(Decimal("10") ** -vault_asset_precision, rounding=decimal.ROUND_FLOOR)
+
+    @staticmethod
+    def __calc_collateral_amount_expected(
+        shares_amount: Decimal, vault_asset_price: Decimal, collateral_asset_precision: int
+    ) -> Decimal:
+        collateral_amount = shares_amount * vault_asset_price * VAULT_SHARES_SLIPPAGE_PCT
+        return collateral_amount.quantize(Decimal("10") ** -collateral_asset_precision, rounding=decimal.ROUND_FLOOR)
