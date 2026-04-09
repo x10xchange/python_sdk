@@ -29,6 +29,7 @@ def calc_expiration_timestamp():
     return expire_time_with_buffer_seconds
 
 
+# FIXME: Transfers are broken
 def create_transfer_object(
     from_vault: int,
     to_vault: int,
