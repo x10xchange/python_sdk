@@ -10,7 +10,7 @@ from x10.utils.date import to_epoch_millis
 from x10.utils.http import send_get_request
 
 
-class MarketsInformationModule(BaseModule):
+class InfoMarketsModule(BaseModule):
     async def get_markets(self, *, market_names: Optional[List[str]] = None):
         """
         https://api.docs.extended.exchange/#get-markets

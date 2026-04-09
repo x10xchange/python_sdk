@@ -33,6 +33,7 @@ class EndpointConfig:
     collateral_decimals: int
     collateral_asset_id: str
 
+    # FIXME: Remove
     vault_position: int = 0
     vault_asset_on_chain_id: str = "0x0"
     vault_asset_id: int = 0

@@ -1,9 +1,13 @@
 import decimal
-import random
 from datetime import timedelta
 from decimal import Decimal
+from types import NoneType
 from typing import Optional
 
+from perpetual.assets import AssetModel
+from utils.nonce import generate_nonce
+
+from x10.errors import X10Error
 from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.amounts import HumanReadableAmount, StarkAmount
 from x10.perpetual.assets import Asset
@@ -15,9 +19,14 @@ from x10.perpetual.order_object_settlement import (
 from x10.perpetual.orders import LimitOrderSettlementModel
 from x10.perpetual.trading_client.account_module import AccountModule
 from x10.perpetual.trading_client.base_module import BaseModule
+from x10.perpetual.trading_client.info_module import InfoModule
 from x10.utils.date import utc_now
 from x10.utils.http import send_post_request
 from x10.utils.model import SettlementSignatureModel, X10BaseModel
+
+# Protects from an error on shares pricing fluctuations.
+VAULT_SHARES_SLIPPAGE_PCT = Decimal("0.65")
+COLLATERAL_ASSET_NAME = "USD"
 
 
 class DepositRequestModel(X10BaseModel):
@@ -36,48 +45,45 @@ class WithdrawRequestModel(X10BaseModel):
     settlement: LimitOrderSettlementModel
 
 
-class DepositResponseModel(X10BaseModel):
-    pass
-
-
-class WithdrawResponseModel(X10BaseModel):
-    pass
-
-
 class VaultModule(BaseModule):
     def __init__(
         self,
         endpoint_config: EndpointConfig,
+        *,
+        info_module: InfoModule,
         account_module: AccountModule,
         account: Optional[StarkPerpetualAccount],
         api_key: Optional[str] = None,
     ):
         super().__init__(endpoint_config, api_key=api_key)
+
+        self._info_module = info_module
         self._account_module = account_module
         self._account = account
 
     async def get_vault_share_balance(self) -> Decimal:
         spot_balances = (await self._account_module.get_spot_balances()).data
         if spot_balances is None:
-            raise Exception("Failed to get spot balances")
-        filtered_balances = filter(lambda b: b.asset == self._get_endpoint_config().vault_asset_name, spot_balances)
-        vault_balance = sum(map(lambda b: b.balance, filtered_balances), Decimal(0))
-        return vault_balance
+            raise X10Error("Failed to get spot balances")
+        vault_asset_balances = filter(lambda b: b.asset == self._get_endpoint_config().vault_asset_name, spot_balances)
+        total_vault_asset_balance = sum(map(lambda b: b.balance, vault_asset_balances), Decimal(0))
+        return total_vault_asset_balance
 
-    async def withdraw_from_vault(
-        self,
-        shares_amount: Decimal,
-        collateral_amount: Decimal,
-    ) -> None:
+    async def withdraw_from_vault(self, shares_amount: Decimal, collateral_amount: Decimal) -> None:
+        assets = await self._info_module.get_assets_dict()
         account_info = (await self._account_module.get_account()).data
+
         assert account_info is not None
+
         position_id = account_info.l2_vault
-        vault_asset_id = self._get_endpoint_config().vault_asset_on_chain_id
+        collateral_asset = assets[COLLATERAL_ASSET_NAME]
+        vault_asset = assets[self._get_endpoint_config().vault_asset_name]
         settlement, collateral_amount_human, shares_amount_human = self.__create_limit_order(
             collateral_amount=collateral_amount,
             shares_amount=shares_amount,
             position_id=position_id,
-            vault_asset_id=vault_asset_id,
+            collateral_asset_model=collateral_asset,
+            vault_asset_model=vault_asset,
             buying_shares=False,
         )
         withdraw_request = WithdrawRequestModel(
@@ -91,29 +97,39 @@ class VaultModule(BaseModule):
         resp = await send_post_request(
             await self.get_session(),
             url,
-            type(None),
+            NoneType,
             json=withdraw_request.to_api_request_json(exclude_none=True),
             api_key=self._get_api_key(),
         )
 
         if resp.error is not None:
-            raise Exception(f"Withdraw error: {resp.error}")
-        return resp.data
+            raise X10Error(f"Withdraw error: {resp.error}")
 
-    async def invest_in_vault(
-        self,
-        amount: Decimal,
-    ) -> DepositResponseModel:
+    async def deposit_to_vault(self, amount: Decimal) -> None:
         account_info = (await self._account_module.get_account()).data
+        assets = await self._info_module.get_assets_dict()
+        vault_asset_price = (
+            await self._info_module.get_asset_price(asset_name=self._get_endpoint_config().vault_asset_name)
+        ).data
+
         assert account_info is not None
+        assert vault_asset_price is not None
+
         position_id = account_info.l2_vault
-        vault_asset_id = self._get_endpoint_config().vault_asset_on_chain_id
-        vault_shares_expected = Decimal(1)
+        collateral_asset = assets[COLLATERAL_ASSET_NAME]
+        vault_asset = assets[self._get_endpoint_config().vault_asset_name]
+        vault_shares_expected = self.__calc_vault_shares_expected(
+            amount,
+            vault_asset_price,
+            vault_asset.precision,
+        )
+
         settlement, collateral_amount_human, shares_amount_human = self.__create_limit_order(
             collateral_amount=amount,
             shares_amount=vault_shares_expected,
             position_id=position_id,
-            vault_asset_id=vault_asset_id,
+            collateral_asset_model=collateral_asset,
+            vault_asset_model=vault_asset,
             buying_shares=True,
         )
         deposit_request = DepositRequestModel(
@@ -123,49 +139,34 @@ class VaultModule(BaseModule):
             shares=abs(shares_amount_human.value),
             settlement=settlement,
         )
+
         url = self._get_url("/vault/user/deposits")
         resp = await send_post_request(
             await self.get_session(),
             url,
-            DepositResponseModel,
+            NoneType,
             json=deposit_request.to_api_request_json(exclude_none=True),
             api_key=self._get_api_key(),
         )
 
         if resp.error is not None:
-            raise Exception(f"Deposit error: {resp.error}")
-        if resp.data is None:
-            raise Exception("Deposit response invalid")
+            raise X10Error(f"Deposit error: {resp.error}")
 
-        return resp.data
-
-    def __create_limit_order(self, collateral_amount, shares_amount, position_id, vault_asset_id, buying_shares=True):
+    def __create_limit_order(
+        self,
+        *,
+        collateral_amount,
+        shares_amount,
+        position_id,
+        collateral_asset_model: AssetModel,
+        vault_asset_model: AssetModel,
+        buying_shares=True,
+    ):
         if self._account is None:
-            raise Exception("Stark account is required for vault investments")
+            raise X10Error("Stark account is required for vault investments")
 
-        vault_asset = Asset(
-            id=0,
-            name="XLP",
-            precision=self._get_endpoint_config().collateral_decimals,
-            active=True,
-            is_collateral=True,
-            settlement_external_id=vault_asset_id,
-            settlement_resolution=10 ** self._get_endpoint_config().collateral_decimals,
-            l1_external_id=vault_asset_id,
-            l1_resolution=10 ** self._get_endpoint_config().collateral_decimals,
-        )
-
-        collateral_asset = Asset(
-            id=0,
-            name="USD",
-            precision=self._get_endpoint_config().collateral_decimals,
-            active=True,
-            is_collateral=True,
-            settlement_external_id=self._get_endpoint_config().collateral_asset_on_chain_id,
-            settlement_resolution=10 ** self._get_endpoint_config().collateral_decimals,
-            l1_external_id=self._get_endpoint_config().collateral_asset_on_chain_id,
-            l1_resolution=10 ** self._get_endpoint_config().collateral_decimals,
-        )
+        vault_asset = Asset.from_model(vault_asset_model)
+        collateral_asset = Asset.from_model(collateral_asset_model)
 
         collateral_amount_human = HumanReadableAmount(
             asset=collateral_asset,
@@ -179,8 +180,7 @@ class VaultModule(BaseModule):
         collateral_amount_stark = collateral_amount_human.to_stark_amount(decimal.Context(rounding=decimal.ROUND_UP))
         shares_amount_stark = shares_amount_human.to_stark_amount(decimal.Context(rounding=decimal.ROUND_UP))
 
-        nonce = random.randint(0, 2**31 - 1)
-
+        nonce = generate_nonce()
         expire_time = utc_now() + timedelta(hours=1)
         order_hash = hash_limit_order(
             amount_base=shares_amount_stark,
@@ -209,3 +209,10 @@ class VaultModule(BaseModule):
         )
 
         return settlement, collateral_amount_human, shares_amount_human
+
+    @staticmethod
+    def __calc_vault_shares_expected(
+        collateral_amount: Decimal, vault_asset_price: Decimal, vault_asset_precision: int
+    ) -> Decimal:
+        shares = collateral_amount / vault_asset_price * VAULT_SHARES_SLIPPAGE_PCT
+        return shares.quantize(Decimal("10") ** -vault_asset_precision, rounding=decimal.ROUND_FLOOR)
