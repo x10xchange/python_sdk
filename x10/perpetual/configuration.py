@@ -33,11 +33,7 @@ class EndpointConfig:
     collateral_decimals: int
     collateral_asset_id: str
 
-    # FIXME: Remove
-    vault_position: int = 0
-    vault_asset_on_chain_id: str = "0x0"
-    vault_asset_id: int = 0
-    vault_asset_name: str = "UNKNOWN"
+    vault_asset_name: str
 
 
 TESTNET_CONFIG = EndpointConfig(
@@ -52,9 +48,6 @@ TESTNET_CONFIG = EndpointConfig(
     collateral_asset_on_chain_id="0x31857064564ed0ff978e687456963cba09c2c6985d8f9300a1de4962fafa054",
     collateral_decimals=6,
     collateral_asset_id="0x1",
-    vault_position=7,
-    vault_asset_on_chain_id="0x04471D52BA219221ba25A254f771bDA2BC89998895D3640A307D3C49aE262990",
-    vault_asset_id=33,
     vault_asset_name="XVS",
 )
 
@@ -70,4 +63,5 @@ MAINNET_CONFIG = EndpointConfig(
     collateral_asset_on_chain_id="0x1",
     collateral_decimals=6,
     collateral_asset_id="0x1",
+    vault_asset_name="XVS",
 )
