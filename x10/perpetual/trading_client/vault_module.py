@@ -67,7 +67,7 @@ class VaultModule(BaseModule):
         total_vault_asset_balance = sum(map(lambda b: b.balance, vault_asset_balances), Decimal(0))
         return total_vault_asset_balance
 
-    async def withdraw_from_vault(self, shares_amount: Decimal, collateral_amount: Decimal) -> None:
+    async def withdraw_from_vault(self, *, shares_amount: Decimal, collateral_amount: Decimal) -> None:
         assets = await self._info_module.get_assets_dict()
         account_info = (await self._account_module.get_account()).data
 
@@ -103,7 +103,7 @@ class VaultModule(BaseModule):
         if resp.error is not None:
             raise X10Error(f"Withdraw error: {resp.error}")
 
-    async def deposit_to_vault(self, amount: Decimal) -> None:
+    async def deposit_to_vault(self, *, amount: Decimal) -> None:
         account_info = (await self._account_module.get_account()).data
         assets = await self._info_module.get_assets_dict()
         vault_asset_price = (
@@ -138,17 +138,19 @@ class VaultModule(BaseModule):
             settlement=settlement,
         )
 
-        url = self._get_url("/vault/user/deposits")
-        resp = await send_post_request(
-            await self.get_session(),
-            url,
-            NoneType,
-            json=deposit_request.to_api_request_json(exclude_none=True),
-            api_key=self._get_api_key(),
-        )
-
-        if resp.error is not None:
-            raise X10Error(f"Deposit error: {resp.error}")
+        f = deposit_request.to_api_request_json(exclude_none=True)
+        q = 1
+        # url = self._get_url("/vault/user/deposits")
+        # resp = await send_post_request(
+        #     await self.get_session(),
+        #     url,
+        #     NoneType,
+        #     json=deposit_request.to_api_request_json(exclude_none=True),
+        #     api_key=self._get_api_key(),
+        # )
+        #
+        # if resp.error is not None:
+        #     raise X10Error(f"Deposit error: {resp.error}")
 
     def __create_limit_order(
         self,

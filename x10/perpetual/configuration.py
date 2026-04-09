@@ -13,6 +13,7 @@ class StarknetDomain:
 class EndpointConfig:
     """
     Attributes:
+        chain_rpc_url (str): Field is deprecated and will be removed.
         asset_operations_contract (str): Field is deprecated and will be removed.
         collateral_asset_contract (str): Field is deprecated and will be removed.
         collateral_asset_on_chain_id (str): Field is deprecated and will be removed.
