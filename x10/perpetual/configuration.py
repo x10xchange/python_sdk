@@ -46,7 +46,7 @@ TESTNET_CONFIG = EndpointConfig(
     starknet_domain=StarknetDomain(name="Perpetuals", version="v0", chain_id="SN_SEPOLIA", revision="1"),
     asset_operations_contract="",
     collateral_asset_contract="0x05ba91db44b3e6a4485b5dbfcb17d791faa9cb6890a42731b66b3536b28b8ed5",
-    collateral_asset_on_chain_id="0x31857064564ed0ff978e687456963cba09c2c6985d8f9300a1de4962fafa054",
+    collateral_asset_on_chain_id="0x1",
     collateral_decimals=6,
     collateral_asset_id="0x1",
     vault_asset_name="XVS",
