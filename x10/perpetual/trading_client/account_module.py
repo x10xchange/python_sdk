@@ -135,7 +135,7 @@ class AccountModule(BaseModule):
 
     async def get_trades(
         self,
-        market_names: List[str],
+        market_names: Optional[List[str]] = None,
         trade_side: Optional[OrderSide] = None,
         trade_type: Optional[TradeType] = None,
         cursor: Optional[int] = None,
@@ -155,7 +155,7 @@ class AccountModule(BaseModule):
         )
 
     async def get_fees(
-        self, *, market_names: List[str], builder_id: Optional[int] = None
+        self, *, market_names: Optional[List[str]] = None, builder_id: Optional[int] = None
     ) -> WrappedApiResponse[List[TradingFeeModel]]:
         """
         https://api.docs.extended.exchange/#get-fees
@@ -170,7 +170,7 @@ class AccountModule(BaseModule):
         )
         return await send_get_request(await self.get_session(), url, List[TradingFeeModel], api_key=self._get_api_key())
 
-    async def get_leverage(self, market_names: List[str]) -> WrappedApiResponse[List[AccountLeverage]]:
+    async def get_leverage(self, market_names: Optional[List[str]] = None) -> WrappedApiResponse[List[AccountLeverage]]:
         """
         https://api.docs.extended.exchange/#get-current-leverage
         """

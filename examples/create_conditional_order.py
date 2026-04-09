@@ -3,16 +3,23 @@ from asyncio import run
 
 from examples.init_env import init_env
 from examples.utils import find_order_and_cancel, get_adjust_price_by_pct
-from x10.config import ETH_USD_MARKET
+from x10.config import BTC_USD_MARKET
 from x10.perpetual.accounts import StarkPerpetualAccount
-from x10.perpetual.configuration import MAINNET_CONFIG
-from x10.perpetual.order_object import create_order_object
-from x10.perpetual.orders import OrderSide, TimeInForce
+from x10.perpetual.configuration import TESTNET_CONFIG
+from x10.perpetual.order_object import OrderConditionalTriggerParam, create_order_object
+from x10.perpetual.orders import (
+    OrderPriceType,
+    OrderSide,
+    OrderTriggerDirection,
+    OrderTriggerPriceType,
+    OrderType,
+    TimeInForce,
+)
 from x10.perpetual.trading_client import PerpetualTradingClient
 
 LOGGER = logging.getLogger()
-MARKET_NAME = ETH_USD_MARKET
-ENDPOINT_CONFIG = MAINNET_CONFIG  # replace with TESTNET_CONFIG for testnet
+MARKET_NAME = BTC_USD_MARKET
+ENDPOINT_CONFIG = TESTNET_CONFIG
 
 
 async def run_example():
@@ -30,12 +37,14 @@ async def run_example():
     adjust_price_by_pct = get_adjust_price_by_pct(market.trading_config)
 
     order_size = market.trading_config.min_order_size
-    order_price = adjust_price_by_pct(market.market_stats.bid_price, -10.0)
+    order_price = adjust_price_by_pct(market.market_stats.bid_price, -15.0)
+    order_trigger_price = adjust_price_by_pct(market.market_stats.bid_price, -10.0)
 
-    LOGGER.info("Creating LIMIT order object for market: %s", market.name)
+    LOGGER.info("Creating CONDITIONAL order object for market: %s", market.name)
 
     new_order = create_order_object(
         account=stark_account,
+        order_type=OrderType.CONDITIONAL,
         starknet_domain=ENDPOINT_CONFIG.starknet_domain,
         market=market,
         side=OrderSide.BUY,
@@ -44,6 +53,12 @@ async def run_example():
         time_in_force=TimeInForce.GTT,
         reduce_only=False,
         post_only=True,
+        trigger=OrderConditionalTriggerParam(
+            trigger_price=order_trigger_price,
+            trigger_price_type=OrderTriggerPriceType.LAST,
+            direction=OrderTriggerDirection.DOWN,
+            execution_price_type=OrderPriceType.LIMIT,
+        ),
     )
 
     LOGGER.info("Placing order...")

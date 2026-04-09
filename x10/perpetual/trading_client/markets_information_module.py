@@ -37,7 +37,7 @@ class MarketsInformationModule(BaseModule):
         market_name: str,
         candle_type: CandleType,
         interval: CandleInterval,
-        limit: Optional[int] = None,
+        limit: int,
         end_time: Optional[datetime] = None,
     ):
         """

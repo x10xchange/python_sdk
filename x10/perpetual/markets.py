@@ -4,6 +4,7 @@ from typing import List
 
 from x10.perpetual.assets import Asset
 from x10.utils.model import X10BaseModel
+from x10.utils.order import round_price as round_order_price_util
 
 
 class RiskFactorConfig(X10BaseModel):
@@ -77,7 +78,11 @@ class TradingConfigModel(X10BaseModel):
             return Decimal(0)
 
     def round_price(self, price: Decimal, rounding_direction: str = ROUND_CEILING) -> Decimal:
-        return price.quantize(self.min_price_change, rounding=rounding_direction)
+        return round_order_price_util(
+            price=price,
+            min_price_change=self.min_price_change,
+            rounding_direction=rounding_direction,
+        )
 
 
 class L2ConfigModel(X10BaseModel):
