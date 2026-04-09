@@ -19,9 +19,7 @@ from x10.perpetual.stream_client.perpetual_stream_connection import (
     PerpetualStreamConnection,
 )
 from x10.perpetual.stream_client.stream_client import PerpetualStreamClient
-from x10.perpetual.trading_client.markets_information_module import (
-    MarketsInformationModule,
-)
+from x10.perpetual.trading_client.info_markets_module import InfoMarketsModule
 from x10.perpetual.trading_client.order_management_module import OrderManagementModule
 from x10.utils.http import WrappedStreamResponse
 
@@ -81,7 +79,7 @@ class BlockingTradingClient:
             )
         self.__endpoint_config = endpoint_config
         self.__account = account
-        self.__market_module = MarketsInformationModule(endpoint_config, api_key=account.api_key)
+        self.__market_module = InfoMarketsModule(endpoint_config, api_key=account.api_key)
         self.__orders_module = OrderManagementModule(endpoint_config, api_key=account.api_key)
         self.__markets: Union[None, Dict[str, MarketModel]] = None
         self.__stream_client: PerpetualStreamClient = PerpetualStreamClient(api_url=endpoint_config.stream_url)

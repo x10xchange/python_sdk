@@ -4,13 +4,10 @@ from decimal import Decimal
 from types import NoneType
 from typing import Optional
 
-from perpetual.assets import AssetModel
-from utils.nonce import generate_nonce
-
 from x10.errors import X10Error
 from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.amounts import HumanReadableAmount, StarkAmount
-from x10.perpetual.assets import Asset
+from x10.perpetual.assets import Asset, AssetModel
 from x10.perpetual.configuration import EndpointConfig
 from x10.perpetual.order_object_settlement import (
     calculate_order_settlement_expiration,
@@ -23,6 +20,7 @@ from x10.perpetual.trading_client.info_module import InfoModule
 from x10.utils.date import utc_now
 from x10.utils.http import send_post_request
 from x10.utils.model import SettlementSignatureModel, X10BaseModel
+from x10.utils.nonce import generate_nonce
 
 # Protects from an error on shares pricing fluctuations.
 VAULT_SHARES_SLIPPAGE_PCT = Decimal("0.65")
