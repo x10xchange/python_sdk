@@ -4,7 +4,6 @@ from datetime import timedelta
 from decimal import Decimal
 from typing import Optional
 
-
 from x10.perpetual.accounts import StarkPerpetualAccount
 from x10.perpetual.amounts import HumanReadableAmount, StarkAmount
 from x10.perpetual.assets import Asset

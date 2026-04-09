@@ -46,13 +46,11 @@ TESTNET_CONFIG = EndpointConfig(
     onboarding_url="https://api.starknet.sepolia.extended.exchange",
     signing_domain="starknet.sepolia.extended.exchange",
     starknet_domain=StarknetDomain(name="Perpetuals", version="v0", chain_id="SN_SEPOLIA", revision="1"),
-
     asset_operations_contract="",
     collateral_asset_contract="0x05ba91db44b3e6a4485b5dbfcb17d791faa9cb6890a42731b66b3536b28b8ed5",
     collateral_asset_on_chain_id="0x31857064564ed0ff978e687456963cba09c2c6985d8f9300a1de4962fafa054",
     collateral_decimals=6,
     collateral_asset_id="0x1",
-
     vault_position=7,
     vault_asset_on_chain_id="0x04471D52BA219221ba25A254f771bDA2BC89998895D3640A307D3C49aE262990",
     vault_asset_id=33,
@@ -66,7 +64,6 @@ MAINNET_CONFIG = EndpointConfig(
     onboarding_url="https://api.starknet.extended.exchange",
     signing_domain="extended.exchange",
     starknet_domain=StarknetDomain(name="Perpetuals", version="v0", chain_id="SN_MAIN", revision="1"),
-
     asset_operations_contract="",
     collateral_asset_contract="",
     collateral_asset_on_chain_id="0x1",

@@ -14,6 +14,7 @@ class BalanceModel(X10BaseModel):
     margin_ratio: Decimal
     updated_time: int
 
+
 class SpotBalanceModel(X10BaseModel):
     account_id: int
     asset: str
