@@ -24,7 +24,7 @@ def create_order_settlement_data(
     base_asset_model: AssetModel,
     starknet_account: StarkPerpetualAccount,
     starknet_domain: StarknetDomain,
-    is_buy=True,
+    is_buy: bool,
 ):
     quote_asset = Asset.from_model(quote_asset_model)
     base_asset = Asset.from_model(base_asset_model)
