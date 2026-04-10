@@ -13,6 +13,7 @@ from x10.perpetual.orders import (
     OpenOrderModel,
     OrderSide,
     OrderStatus,
+    OrderType,
     TimeInForce,
 )
 from x10.perpetual.stream_client.perpetual_stream_connection import (
@@ -201,6 +202,8 @@ class BlockingTradingClient:
         builder_fee: Decimal | None = None,
         builder_id: int | None = None,
         time_in_force: TimeInForce = TimeInForce.GTT,
+        reduce_only: bool = False,
+        order_type: OrderType = OrderType.LIMIT,
     ) -> TimedOpenOrderModel:
         market = (await self.get_markets()).get(market_name)
         if not market:
@@ -209,10 +212,12 @@ class BlockingTradingClient:
         order: NewOrderModel = create_order_object(
             account=self.__account,
             market=market,
+            order_type=order_type,
             amount_of_synthetic=amount_of_synthetic,
             price=price,
             side=side,
             post_only=post_only,
+            reduce_only=reduce_only,
             previous_order_external_id=previous_order_external_id,
             starknet_domain=self.__endpoint_config.starknet_domain,
             order_external_id=external_id,

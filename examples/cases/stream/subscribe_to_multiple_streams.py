@@ -3,26 +3,23 @@ import logging
 from asyncio import run
 from signal import SIGINT, SIGTERM
 
-from examples.init_env import init_env
-from x10.config import ETH_USD_MARKET
-from x10.perpetual.configuration import MAINNET_CONFIG
-from x10.perpetual.stream_client import PerpetualStreamClient
+from examples.utils import create_stream_client, init_env
+from x10.config import BTC_USD_MARKET
 
 LOGGER = logging.getLogger()
-MARKET_NAME = ETH_USD_MARKET
-ENDPOINT_CONFIG = MAINNET_CONFIG
+MARKET_NAME = BTC_USD_MARKET
 
 
 async def subscribe_to_streams(stop_event: asyncio.Event):
     env_config = init_env()
-    stream_client = PerpetualStreamClient(api_url=ENDPOINT_CONFIG.stream_url)
+    stream_client = create_stream_client()
 
     async def subscribe_to_orderbook():
         async with stream_client.subscribe_to_orderbooks(MARKET_NAME) as orderbook_stream:
             while not stop_event.is_set():
                 try:
                     msg = await asyncio.wait_for(orderbook_stream.recv(), timeout=1)
-                    LOGGER.info("Orderbook: %s#%s", msg.type, msg.seq)
+                    LOGGER.info("Orderbook update %s#%s: %s", msg.type, msg.seq, msg.data.market)
                 except asyncio.TimeoutError:
                     pass
 
@@ -31,7 +28,16 @@ async def subscribe_to_streams(stop_event: asyncio.Event):
             while not stop_event.is_set():
                 try:
                     msg = await asyncio.wait_for(account_stream.recv(), timeout=1)
-                    LOGGER.info("Account: %s#%s", msg.type, msg.seq)
+                    if msg.type == "BALANCE":
+                        LOGGER.info(
+                            "Account balance update %s#%s: %s%s",
+                            msg.type,
+                            msg.seq,
+                            msg.data.balance.collateral_name,
+                            msg.data.balance.balance,
+                        )
+                    else:
+                        LOGGER.info("Account update %s#%s", msg.type, msg.seq)
                 except asyncio.TimeoutError:
                     pass
 

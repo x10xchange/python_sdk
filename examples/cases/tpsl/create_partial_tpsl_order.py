@@ -1,35 +1,29 @@
 import logging
 from asyncio import run
+from decimal import Decimal
 
-from examples.init_env import init_env
-from examples.utils import find_order_and_cancel, get_adjust_price_by_pct
-from x10.config import ETH_USD_MARKET
-from x10.perpetual.accounts import StarkPerpetualAccount
-from x10.perpetual.configuration import MAINNET_CONFIG
+from examples.utils import (
+    create_trading_client,
+    find_order_and_cancel,
+    get_adjust_price_by_pct,
+)
+from x10.config import BTC_USD_MARKET
 from x10.perpetual.order_object import OrderTpslTriggerParam, create_order_object
 from x10.perpetual.orders import (
     OrderPriceType,
     OrderSide,
     OrderTpslType,
     OrderTriggerPriceType,
+    OrderType,
     TimeInForce,
 )
-from x10.perpetual.trading_client import PerpetualTradingClient
 
 LOGGER = logging.getLogger()
-MARKET_NAME = ETH_USD_MARKET
-ENDPOINT_CONFIG = MAINNET_CONFIG
+MARKET_NAME = BTC_USD_MARKET
 
 
 async def run_example():
-    env_config = init_env()
-    stark_account = StarkPerpetualAccount(
-        api_key=env_config.api_key,
-        public_key=env_config.public_key,
-        private_key=env_config.private_key,
-        vault=env_config.vault_id,
-    )
-    trading_client = PerpetualTradingClient(ENDPOINT_CONFIG, stark_account)
+    trading_client = create_trading_client()
     markets_dict = await trading_client.markets_info.get_markets_dict()
 
     market = markets_dict[MARKET_NAME]
@@ -37,24 +31,25 @@ async def run_example():
 
     order_size = market.trading_config.min_order_size
 
-    order_price = adjust_price_by_pct(market.market_stats.bid_price, -10.0)
-    tp_trigger_price = adjust_price_by_pct(order_price, 0.5)
-    tp_price = adjust_price_by_pct(order_price, 1.0)
-    sl_trigger_price = adjust_price_by_pct(order_price, -0.5)
-    sl_price = adjust_price_by_pct(order_price, -1.0)
+    last_price = market.market_stats.last_price
+    tp_trigger_price = adjust_price_by_pct(last_price, -5)
+    tp_price = adjust_price_by_pct(last_price, -10)
+    sl_trigger_price = adjust_price_by_pct(last_price, 5)
+    sl_price = adjust_price_by_pct(last_price, 10)
 
-    LOGGER.info("Creating LIMIT order object with TPSL for market: %s", market.name)
+    LOGGER.info("Creating partial TPSL order object for market: %s", market.name)
 
     new_order = create_order_object(
-        account=stark_account,
-        starknet_domain=ENDPOINT_CONFIG.starknet_domain,
+        account=trading_client.stark_account,
+        starknet_domain=trading_client.config.starknet_domain,
         market=market,
-        side=OrderSide.BUY,
+        order_type=OrderType.TPSL,
+        side=OrderSide.SELL,
         amount_of_synthetic=order_size,
-        price=market.trading_config.round_price(order_price),
+        price=Decimal(0),
         time_in_force=TimeInForce.GTT,
-        reduce_only=False,
-        post_only=True,
+        reduce_only=True,
+        post_only=False,
         tp_sl_type=OrderTpslType.ORDER,
         take_profit=OrderTpslTriggerParam(
             trigger_price=tp_trigger_price,
