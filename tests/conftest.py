@@ -59,6 +59,20 @@ def create_account_update_unknown_message():
 
 
 @pytest.fixture
+def get_asset_usd():
+    from tests.fixtures.assets import get_asset_usd as _get_asset_usd
+
+    return _get_asset_usd
+
+
+@pytest.fixture
+def get_asset_xvs():
+    from tests.fixtures.assets import get_asset_xvs as _get_asset_xvs
+
+    return _get_asset_xvs
+
+
+@pytest.fixture
 def create_asset_operations():
     from tests.fixtures.assets import (
         create_asset_operations as _create_asset_operations,

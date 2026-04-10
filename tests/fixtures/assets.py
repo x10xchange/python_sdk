@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from x10.perpetual.assets import AssetOperationModel
+from x10.perpetual.assets import AssetModel, AssetOperationModel
 
 
 def create_asset_operations():
@@ -27,3 +27,35 @@ def create_asset_operations():
             account_id=3004,
         ),
     ]
+
+
+def get_asset_usd():
+    return AssetModel(
+        id=1,
+        name="USD",
+        symbol="USD",
+        precision=6,
+        is_active=True,
+        is_collateral=True,
+        starkex_id=0x1,
+        starkex_resolution=1000000,
+        l1_id="0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        l1_resolution=1000000,
+        version=3,
+    )
+
+
+def get_asset_xvs():
+    return AssetModel(
+        id=94,
+        name="XVS",
+        symbol="XVS",
+        precision=6,
+        is_active=True,
+        is_collateral=False,
+        starkex_id=0x07DB365513DF1EE2EB8FC2D157D4D1CBA3D4A2EF59B44DD3D61124C88B4F6084,
+        starkex_resolution=1000000,
+        l1_id="0x07DB365513Df1eE2Eb8fC2d157d4D1cBA3d4a2eF59b44Dd3D61124C88b4f6084",
+        l1_resolution=1000000,
+        version=6,
+    )

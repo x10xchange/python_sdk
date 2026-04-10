@@ -11,4 +11,4 @@ test:
 	tox
 
 bump:
-	poetry version patch
+	poetry version minor
