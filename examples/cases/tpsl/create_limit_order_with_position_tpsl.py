@@ -31,9 +31,9 @@ async def run_example():
 
     order_price = adjust_price_by_pct(market.market_stats.bid_price, -10.0)
     tp_trigger_price = adjust_price_by_pct(order_price, 0.5)
-    tp_price = adjust_price_by_pct(order_price, 1.0)
+    tp_price = adjust_price_by_pct(tp_trigger_price, 0.5)
     sl_trigger_price = adjust_price_by_pct(order_price, -0.5)
-    sl_price = adjust_price_by_pct(order_price, -1.0)
+    sl_price = adjust_price_by_pct(sl_trigger_price, -0.5)
 
     LOGGER.info("Creating LIMIT order object with TPSL for market: %s", market.name)
 

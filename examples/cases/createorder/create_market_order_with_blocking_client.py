@@ -1,9 +1,8 @@
 import asyncio
 import logging
-from decimal import Decimal
 
 from examples.utils import create_blocking_client
-from x10.config import BTC_USD_MARKET
+from x10.config import BTC_USD_MARKET, DEFAULT_MARKET_PRICE_SLIPPAGE
 from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.orderbook import OrderBook
 from x10.perpetual.orders import OrderSide, OrderType, TimeInForce
@@ -12,7 +11,6 @@ from x10.utils.order import get_price_with_slippage
 LOGGER = logging.getLogger()
 ENDPOINT_CONFIG = TESTNET_CONFIG
 MARKET_NAME = BTC_USD_MARKET
-SLIPPAGE = Decimal(0.0075)
 
 
 async def get_orderbook_best_ask(market_name: str):
@@ -58,7 +56,7 @@ async def run_example():
         side=order_side,
         price=best_ask_entry.price,
         min_price_change=market.trading_config.min_price_change,
-        slippage=SLIPPAGE,
+        slippage=DEFAULT_MARKET_PRICE_SLIPPAGE,
     )
 
     LOGGER.info("Creating MARKET order for market %s: %s@%s", market.name, order_size, order_price)

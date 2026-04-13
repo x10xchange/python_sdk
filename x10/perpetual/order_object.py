@@ -243,10 +243,7 @@ def __create_order_object(
             return None
 
         if tp_sl_type is None:
-            raise ValueError("`tp_sl_type` must be provided if `take_profit` or `stop_loss` is specified")
-
-        if trigger_param.price_type == OrderPriceType.MARKET:
-            raise NotImplementedError("TPSL `MARKET` price type is not supported yet")
+            raise ValueError("`tp_sl_type` must be provided if `take_profit` and/or `stop_loss` is specified")
 
         return __create_order_tpsl_trigger_model(
             trigger_param=trigger_param,
