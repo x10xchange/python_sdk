@@ -29,8 +29,8 @@ async def run_example():
     adjust_price_by_pct = get_adjust_price_by_pct(market.trading_config)
 
     order_size = market.trading_config.min_order_size
-    order_price = adjust_price_by_pct(market.market_stats.bid_price, -15.0)
     order_trigger_price = adjust_price_by_pct(market.market_stats.bid_price, -10.0)
+    order_price = adjust_price_by_pct(order_trigger_price, -5.0)
 
     LOGGER.info("Creating CONDITIONAL order object for market: %s", market.name)
 

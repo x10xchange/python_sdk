@@ -31,9 +31,9 @@ async def run_example():
 
     last_price = market.market_stats.last_price
     tp_trigger_price = adjust_price_by_pct(last_price, -5)
-    tp_price = adjust_price_by_pct(last_price, -10)
+    tp_price = adjust_price_by_pct(tp_trigger_price, -5)
     sl_trigger_price = adjust_price_by_pct(last_price, 5)
-    sl_price = adjust_price_by_pct(last_price, 10)
+    sl_price = adjust_price_by_pct(sl_trigger_price, 5)
 
     LOGGER.info("Creating entire position TPSL order object for market: %s", market.name)
 

@@ -90,7 +90,7 @@ def create_stream_client(endpoint_config: EndpointConfig = TESTNET_CONFIG):
 
 
 def get_adjust_price_by_pct(config: TradingConfigModel):
-    def adjust_price_by_pct(price: Decimal, pct: int):
+    def adjust_price_by_pct(price: Decimal, pct: Decimal | int):
         return config.round_price(price + price * Decimal(pct) / 100)
 
     return adjust_price_by_pct
