@@ -50,6 +50,7 @@ class X10BaseModel(BaseModel):
         return self.model_dump(mode="json", by_alias=True, exclude_none=exclude_none)
 
 
+# FIXME: Move?
 HexValue = Annotated[
     int,
     PlainSerializer(lambda x: hex(x), return_type=str, when_used="json"),
@@ -57,10 +58,12 @@ HexValue = Annotated[
 ]
 
 
+# FIXME: Move?
 class EmptyModel(X10BaseModel):
     pass
 
 
+# FIXME: Move?
 class SettlementSignatureModel(X10BaseModel):
     r: HexValue
     s: HexValue

@@ -3,7 +3,7 @@ from typing import Optional
 
 from strenum import StrEnum
 
-from x10.utils.model import HexValue, SettlementSignatureModel, X10BaseModel
+from x10.models.base import HexValue, SettlementSignatureModel, X10BaseModel
 
 
 class TimeInForce(StrEnum):

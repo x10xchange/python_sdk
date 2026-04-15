@@ -46,10 +46,10 @@ class StarkAmount:
         return StarkAmount(-self.value, self.asset)
 
 
-@dataclass
-class StarkOrderAmounts:
-    collateral_amount_internal: HumanReadableAmount
-    synthetic_amount_internal: HumanReadableAmount
-    fee_amount_internal: HumanReadableAmount
-    fee_rate: Decimal
-    rounding_context: decimal.Context
+# @dataclass
+# class StarkOrderAmounts:
+#     collateral_amount_internal: HumanReadableAmount
+#     synthetic_amount_internal: HumanReadableAmount
+#     fee_amount_internal: HumanReadableAmount
+#     fee_rate: Decimal
+#     rounding_context: decimal.Context
