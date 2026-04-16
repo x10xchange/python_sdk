@@ -6,9 +6,9 @@ from typing import Set
 
 from examples.utils import create_trading_client
 from x10.config import BTC_USD_MARKET
-from x10.perpetual.markets import MarketModel
+from x10.models.market import MarketModel
+from x10.models.order import OrderSide
 from x10.perpetual.order_object import create_order_object
-from x10.perpetual.orders import OrderSide
 from x10.perpetual.stream_client.stream_client import PerpetualStreamClient
 from x10.perpetual.trading_client import PerpetualTradingClient
 
