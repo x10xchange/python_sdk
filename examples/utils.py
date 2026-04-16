@@ -11,7 +11,7 @@ import yaml
 from dotenv import load_dotenv
 
 from x10.configuration import TESTNET_CONFIG, EndpointConfig
-from x10.core.stark_account import StarkAccount
+from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.market import TradingConfigModel
 from x10.perpetual.simple_client.simple_trading_client import BlockingTradingClient
 from x10.perpetual.stream_client import PerpetualStreamClient
@@ -62,7 +62,7 @@ def init_env(require_private_api: bool = True):
 def create_trading_client(endpoint_config: EndpointConfig = TESTNET_CONFIG):
     env_config = init_env()
 
-    stark_account = StarkAccount(
+    stark_account = StarkPerpetualAccount(
         api_key=env_config.api_key,
         public_key=env_config.public_key,
         private_key=env_config.private_key,
@@ -75,7 +75,7 @@ def create_trading_client(endpoint_config: EndpointConfig = TESTNET_CONFIG):
 def create_blocking_client(endpoint_config: EndpointConfig = TESTNET_CONFIG):
     env_config = init_env()
 
-    stark_account = StarkAccount(
+    stark_account = StarkPerpetualAccount(
         api_key=env_config.api_key,
         public_key=env_config.public_key,
         private_key=env_config.private_key,

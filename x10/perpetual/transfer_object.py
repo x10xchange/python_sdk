@@ -6,7 +6,7 @@ from typing import List
 from fast_stark_crypto import get_transfer_msg_hash
 
 from x10.configuration import EndpointConfig, StarknetDomain
-from x10.core.stark_account import StarkAccount
+from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.account import AccountModel
 from x10.models.base import SettlementSignatureModel
 from x10.models.transfer import (
@@ -38,7 +38,7 @@ def create_transfer_object(
     to_l2_key: int,
     amount: Decimal,
     config: EndpointConfig,
-    stark_account: StarkAccount,
+    stark_account: StarkPerpetualAccount,
     nonce: int | None = None,
 ) -> OnChainPerpetualTransferModel:
     expiration_timestamp = calc_expiration_timestamp()

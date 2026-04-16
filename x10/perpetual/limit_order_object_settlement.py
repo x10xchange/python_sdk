@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from x10.configuration import StarknetDomain
 from x10.core.amount import HumanReadableAmount, StarkAmount
-from x10.core.stark_account import StarkAccount
+from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.asset import Asset, AssetModel
 from x10.models.base import SettlementSignatureModel
 from x10.models.order import LimitOrderSettlementModel
@@ -22,7 +22,7 @@ def create_order_settlement_data(
     position_id,
     quote_asset_model: AssetModel,
     base_asset_model: AssetModel,
-    starknet_account: StarkAccount,
+    starknet_account: StarkPerpetualAccount,
     starknet_domain: StarknetDomain,
     is_buy: bool,
 ):

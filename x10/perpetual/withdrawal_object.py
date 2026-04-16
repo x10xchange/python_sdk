@@ -5,7 +5,7 @@ from decimal import Decimal
 from fast_stark_crypto import get_withdrawal_msg_hash
 
 from x10.configuration import EndpointConfig, StarknetDomain
-from x10.core.stark_account import StarkAccount
+from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.base import SettlementSignatureModel
 from x10.models.withdrawal import (
     StarkWithdrawalSettlementModel,
@@ -26,7 +26,7 @@ def calc_expiration_timestamp():
 def create_withdrawal_object(
     amount: Decimal,
     recipient_stark_address: str,
-    stark_account: StarkAccount,
+    stark_account: StarkPerpetualAccount,
     config: EndpointConfig,
     account_id: int,
     chain_id: str,

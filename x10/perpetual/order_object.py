@@ -5,7 +5,7 @@ from typing import Callable, Optional, Tuple
 
 from x10.config import DEFAULT_FEES
 from x10.configuration import StarknetDomain
-from x10.core.stark_account import StarkAccount
+from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.fee import TradingFeeModel
 from x10.models.market import MarketModel
 from x10.models.order import (
@@ -48,7 +48,7 @@ class OrderTpslTriggerParam:
 
 def create_order_object(
     *,
-    account: StarkAccount,
+    account: StarkPerpetualAccount,
     market: MarketModel,
     amount_of_synthetic: Decimal,
     price: Decimal,

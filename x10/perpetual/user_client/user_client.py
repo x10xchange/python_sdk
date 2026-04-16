@@ -7,9 +7,9 @@ from eth_account import Account
 from eth_account.messages import encode_defunct
 from eth_account.signers.local import LocalAccount
 
+from x10.configuration import EndpointConfig
 from x10.errors import X10Error
-from x10.perpetual.accounts import AccountModel, ApiKeyRequestModel, ApiKeyResponseModel
-from x10.perpetual.configuration import EndpointConfig
+from x10.models.account import AccountModel, ApiKeyRequestModel, ApiKeyResponseModel
 from x10.perpetual.user_client.onboarding import (
     OnboardedClientModel,
     StarkKeyPair,
@@ -17,12 +17,7 @@ from x10.perpetual.user_client.onboarding import (
     get_onboarding_payload,
     get_sub_account_creation_payload,
 )
-from x10.utils.http import (  # WrappedApiResponse,; send_get_request,; send_patch_request,
-    CLIENT_TIMEOUT,
-    get_url,
-    send_get_request,
-    send_post_request,
-)
+from x10.utils.http import CLIENT_TIMEOUT, get_url, send_get_request, send_post_request
 
 L1_AUTH_SIGNATURE_HEADER = "L1_SIGNATURE"
 L1_MESSAGE_TIME_HEADER = "L1_MESSAGE_TIME"

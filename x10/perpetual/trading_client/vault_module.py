@@ -3,16 +3,16 @@ from decimal import Decimal
 from types import NoneType
 from typing import Optional
 
+from x10.configuration import EndpointConfig
+from x10.core.stark_account import StarkPerpetualAccount
 from x10.errors import X10Error
-from x10.perpetual.accounts import StarkPerpetualAccount
-from x10.perpetual.configuration import EndpointConfig
+from x10.models.base import X10BaseModel
+from x10.models.order import LimitOrderSettlementModel
 from x10.perpetual.limit_order_object_settlement import create_order_settlement_data
-from x10.perpetual.orders import LimitOrderSettlementModel
 from x10.perpetual.trading_client.account_module import AccountModule
 from x10.perpetual.trading_client.base_module import BaseModule
 from x10.perpetual.trading_client.info_module import InfoModule
 from x10.utils.http import send_post_request
-from x10.utils.model import X10BaseModel
 
 # Protects from an error on shares pricing fluctuations.
 VAULT_SHARES_SLIPPAGE_PCT = Decimal("0.65")
