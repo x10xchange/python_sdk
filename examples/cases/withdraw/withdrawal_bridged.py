@@ -3,7 +3,7 @@ from asyncio import run
 from decimal import Decimal
 
 from examples.utils import create_trading_client
-from x10.perpetual.configuration import MAINNET_CONFIG
+from x10.configuration import MAINNET_CONFIG
 
 LOGGER = logging.getLogger()
 FEE_THRESHOLD_USDC = 2
