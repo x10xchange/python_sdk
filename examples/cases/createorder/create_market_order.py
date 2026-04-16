@@ -3,8 +3,8 @@ from asyncio import run
 
 from examples.utils import create_trading_client
 from x10.config import BTC_USD_MARKET, DEFAULT_MARKET_PRICE_SLIPPAGE
+from x10.models.order import OrderSide, OrderType, TimeInForce
 from x10.perpetual.order_object import create_order_object
-from x10.perpetual.orders import OrderSide, OrderType, TimeInForce
 from x10.utils.order import get_price_with_slippage
 
 LOGGER = logging.getLogger()
