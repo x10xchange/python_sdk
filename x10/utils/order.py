@@ -1,6 +1,6 @@
 from decimal import ROUND_CEILING, ROUND_FLOOR, Decimal
 
-from x10.perpetual.orders import OrderSide
+from x10.models.order import OrderSide
 
 
 def calc_entire_position_size(

@@ -17,7 +17,7 @@ class AccountStreamDataModel(X10BaseModel):
     balance: Optional[BalanceModel] = None
 
 
-class AccountLeverage(X10BaseModel):
+class AccountLeverageModel(X10BaseModel):
     market: str
     leverage: Decimal
 

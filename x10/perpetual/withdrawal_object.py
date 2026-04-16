@@ -4,15 +4,10 @@ from decimal import Decimal
 
 from fast_stark_crypto import get_withdrawal_msg_hash
 
-from x10.perpetual.accounts import StarkPerpetualAccount
-from x10.perpetual.configuration import EndpointConfig, StarknetDomain
-from x10.perpetual.withdrawals import (
-    StarkWithdrawalSettlement,
-    Timestamp,
-    WithdrawalRequest,
-)
+from models.withdrawal import WithdrawalRequestModel
+from x10.configuration import EndpointConfig
+from x10.core.stark_account import StarkAccount
 from x10.utils.date import utc_now
-from x10.utils.model import SettlementSignatureModel
 from x10.utils.nonce import generate_nonce
 
 
@@ -26,14 +21,14 @@ def calc_expiration_timestamp():
 def create_withdrawal_object(
     amount: Decimal,
     recipient_stark_address: str,
-    stark_account: StarkPerpetualAccount,
+    stark_account: StarkAccount,
     config: EndpointConfig,
     account_id: int,
     chain_id: str,
     description: str | None = None,
     nonce: int | None = None,
     quote_id: str | None = None,
-) -> WithdrawalRequest:
+) -> WithdrawalRequestModel:
     expiration_timestamp = calc_expiration_timestamp()
     scaled_amount = amount.scaleb(config.collateral_decimals)
     stark_amount = scaled_amount.to_integral_exact()
@@ -70,7 +65,7 @@ def create_withdrawal_object(
         ),
     )
 
-    return WithdrawalRequest(
+    return WithdrawalRequestModel(
         account_id=account_id,
         amount=amount,
         description=description,

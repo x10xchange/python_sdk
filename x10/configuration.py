@@ -1,4 +1,4 @@
-# FIXME: Move one level up
+# FIXME: Unify with "config.py"?
 from dataclasses import dataclass
 
 

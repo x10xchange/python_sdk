@@ -2,7 +2,7 @@ from typing import Dict, Tuple
 
 from fast_stark_crypto import sign
 
-from x10.perpetual.fees import TradingFeeModel
+from x10.models.fee import TradingFeeModel
 from x10.utils.string import is_hex_string
 
 
