@@ -2,16 +2,16 @@ from typing import Dict, Optional
 
 import aiohttp
 
+from x10.configuration import EndpointConfig
+from x10.core.stark_account import StarkAccount
 from x10.errors import X10Error
-from x10.perpetual.accounts import StarkPerpetualAccount
-from x10.perpetual.configuration import EndpointConfig
 from x10.utils.http import CLIENT_TIMEOUT, get_url
 
 
 class BaseModule:
     __endpoint_config: EndpointConfig
     __api_key: Optional[str]
-    __stark_account: Optional[StarkPerpetualAccount]
+    __stark_account: Optional[StarkAccount]
     __session: Optional[aiohttp.ClientSession]
 
     def __init__(
@@ -19,7 +19,7 @@ class BaseModule:
         endpoint_config: EndpointConfig,
         *,
         api_key: Optional[str] = None,
-        stark_account: Optional[StarkPerpetualAccount] = None,
+        stark_account: Optional[StarkAccount] = None,
     ):
         super().__init__()
         self.__endpoint_config = endpoint_config

@@ -1,18 +1,21 @@
 from decimal import Decimal
 from typing import List, Optional
 
-from models.account import AccountLeverageModel, AccountModel
-from models.asset import AssetOperationModel, AssetOperationStatus, AssetOperationType
-from models.balance import BalanceModel, SpotBalanceModel
-from models.base import EmptyModel
-from models.bridge import BridgesConfigModel, QuoteModel
-from models.client import ClientModel
-from models.fee import TradingFeeModel
-from models.order import OpenOrderModel, OrderSide, OrderType
-from models.position import PositionHistoryModel, PositionModel, PositionSide
-from models.trade import AccountTradeModel, TradeType
-from models.transfer import TransferResponseModel
-
+from x10.models.account import AccountLeverageModel, AccountModel
+from x10.models.asset import (
+    AssetOperationModel,
+    AssetOperationStatus,
+    AssetOperationType,
+)
+from x10.models.balance import BalanceModel, SpotBalanceModel
+from x10.models.base import EmptyModel
+from x10.models.bridge import BridgesConfigModel, QuoteModel
+from x10.models.client import ClientModel
+from x10.models.fee import TradingFeeModel
+from x10.models.order import OpenOrderModel, OrderSide, OrderType
+from x10.models.position import PositionHistoryModel, PositionModel, PositionSide
+from x10.models.trade import AccountTradeModel, TradeType
+from x10.models.transfer import TransferResponseModel
 from x10.perpetual.trading_client.base_module import BaseModule
 from x10.perpetual.transfer_object import create_transfer_object
 from x10.perpetual.withdrawal_object import create_withdrawal_object

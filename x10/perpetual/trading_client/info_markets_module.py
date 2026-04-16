@@ -1,10 +1,10 @@
 from datetime import datetime
 from typing import List, Optional
 
-from x10.perpetual.candles import CandleInterval, CandleModel, CandleType
-from x10.perpetual.funding_rates import FundingRateModel
-from x10.perpetual.markets import MarketModel, MarketStatsModel
-from x10.perpetual.orderbooks import OrderbookUpdateModel
+from x10.models.candle import CandleInterval, CandleModel, CandleType
+from x10.models.funding_rate import FundingRateModel
+from x10.models.market import MarketModel, MarketStatsModel
+from x10.models.orderbook import OrderbookUpdateModel
 from x10.perpetual.trading_client.base_module import BaseModule
 from x10.utils.date import to_epoch_millis
 from x10.utils.http import send_get_request
