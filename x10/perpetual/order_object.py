@@ -3,15 +3,11 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Callable, Optional, Tuple
 
-from x10.perpetual.accounts import StarkPerpetualAccount
-from x10.perpetual.configuration import StarknetDomain
-from x10.perpetual.fees import DEFAULT_FEES, TradingFeeModel
-from x10.perpetual.markets import MarketModel
-from x10.perpetual.order_object_settlement import (
-    SettlementDataCtx,
-    create_order_settlement_data,
-)
-from x10.perpetual.orders import (
+from x10.config import DEFAULT_FEES
+from x10.configuration import StarknetDomain
+from x10.core.stark_account import StarkAccount
+from x10.models.fee import TradingFeeModel
+from x10.models.order import (
     CreateOrderConditionalTriggerModel,
     CreateOrderTpslTriggerModel,
     NewOrderModel,
@@ -23,6 +19,11 @@ from x10.perpetual.orders import (
     OrderType,
     SelfTradeProtectionLevel,
     TimeInForce,
+)
+from x10.perpetual.markets import MarketModel
+from x10.perpetual.order_object_settlement import (
+    SettlementDataCtx,
+    create_order_settlement_data,
 )
 from x10.utils.date import to_epoch_millis, utc_now
 from x10.utils.nonce import generate_nonce
@@ -47,7 +48,7 @@ class OrderTpslTriggerParam:
 
 def create_order_object(
     *,
-    account: StarkPerpetualAccount,
+    account: StarkAccount,
     market: MarketModel,
     amount_of_synthetic: Decimal,
     price: Decimal,

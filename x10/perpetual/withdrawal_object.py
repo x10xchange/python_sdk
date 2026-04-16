@@ -4,9 +4,14 @@ from decimal import Decimal
 
 from fast_stark_crypto import get_withdrawal_msg_hash
 
-from models.withdrawal import WithdrawalRequestModel
-from x10.configuration import EndpointConfig
+from x10.configuration import EndpointConfig, StarknetDomain
 from x10.core.stark_account import StarkAccount
+from x10.models.base import SettlementSignatureModel
+from x10.models.withdrawal import (
+    StarkWithdrawalSettlementModel,
+    TimestampModel,
+    WithdrawalRequestModel,
+)
 from x10.utils.date import utc_now
 from x10.utils.nonce import generate_nonce
 
@@ -33,6 +38,7 @@ def create_withdrawal_object(
     scaled_amount = amount.scaleb(config.collateral_decimals)
     stark_amount = scaled_amount.to_integral_exact()
     starknet_domain: StarknetDomain = config.starknet_domain
+
     if nonce is None:
         nonce = generate_nonce()
 
@@ -52,12 +58,12 @@ def create_withdrawal_object(
 
     (transfer_signature_r, transfer_signature_s) = stark_account.sign(withdrawal_hash)
 
-    settlement = StarkWithdrawalSettlement(
+    settlement = StarkWithdrawalSettlementModel(
         recipient=int(recipient_stark_address, 16),
         position_id=stark_account.vault,
         collateral_id=int(config.collateral_asset_on_chain_id, base=16),
         amount=int(stark_amount),
-        expiration=Timestamp(seconds=expiration_timestamp),
+        expiration=TimestampModel(seconds=expiration_timestamp),
         salt=nonce,
         signature=SettlementSignatureModel(
             r=transfer_signature_r,
