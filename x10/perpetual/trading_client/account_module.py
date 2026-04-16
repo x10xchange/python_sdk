@@ -1,22 +1,20 @@
 from decimal import Decimal
 from typing import List, Optional
 
-from x10.perpetual.accounts import AccountLeverage, AccountModel
-from x10.perpetual.assets import (
-    AssetOperationModel,
-    AssetOperationStatus,
-    AssetOperationType,
-)
-from x10.perpetual.balances import BalanceModel, SpotBalanceModel
-from x10.perpetual.bridges import BridgesConfig, Quote
-from x10.perpetual.clients import ClientModel
-from x10.perpetual.fees import TradingFeeModel
-from x10.perpetual.orders import OpenOrderModel, OrderSide, OrderType
-from x10.perpetual.positions import PositionHistoryModel, PositionModel, PositionSide
-from x10.perpetual.trades import AccountTradeModel, TradeType
+from models.account import AccountLeverageModel, AccountModel
+from models.asset import AssetOperationModel, AssetOperationStatus, AssetOperationType
+from models.balance import BalanceModel, SpotBalanceModel
+from models.base import EmptyModel
+from models.bridge import BridgesConfigModel, QuoteModel
+from models.client import ClientModel
+from models.fee import TradingFeeModel
+from models.order import OpenOrderModel, OrderSide, OrderType
+from models.position import PositionHistoryModel, PositionModel, PositionSide
+from models.trade import AccountTradeModel, TradeType
+from models.transfer import TransferResponseModel
+
 from x10.perpetual.trading_client.base_module import BaseModule
 from x10.perpetual.transfer_object import create_transfer_object
-from x10.perpetual.transfers import TransferResponseModel
 from x10.perpetual.withdrawal_object import create_withdrawal_object
 from x10.utils.http import (
     WrappedApiResponse,
@@ -24,9 +22,9 @@ from x10.utils.http import (
     send_patch_request,
     send_post_request,
 )
-from x10.utils.model import EmptyModel
 
 
+# FIXME: Switch to Request/Response namings format for models?
 class AccountModule(BaseModule):
     async def get_account(self) -> WrappedApiResponse[AccountModel]:
         url = self._get_url("/user/account/info")
@@ -172,13 +170,17 @@ class AccountModule(BaseModule):
         )
         return await send_get_request(await self.get_session(), url, List[TradingFeeModel], api_key=self._get_api_key())
 
-    async def get_leverage(self, market_names: Optional[List[str]] = None) -> WrappedApiResponse[List[AccountLeverage]]:
+    async def get_leverage(
+        self, market_names: Optional[List[str]] = None
+    ) -> WrappedApiResponse[List[AccountLeverageModel]]:
         """
         https://api.docs.extended.exchange/#get-current-leverage
         """
 
         url = self._get_url("/user/leverage", query={"market": market_names})
-        return await send_get_request(await self.get_session(), url, List[AccountLeverage], api_key=self._get_api_key())
+        return await send_get_request(
+            await self.get_session(), url, List[AccountLeverageModel], api_key=self._get_api_key()
+        )
 
     async def update_leverage(self, market_name: str, leverage: Decimal) -> WrappedApiResponse[EmptyModel]:
         """
@@ -186,7 +188,7 @@ class AccountModule(BaseModule):
         """
 
         url = self._get_url("/user/leverage")
-        request_model = AccountLeverage(market=market_name, leverage=leverage)
+        request_model = AccountLeverageModel(market=market_name, leverage=leverage)
         return await send_patch_request(
             await self.get_session(),
             url,
@@ -195,11 +197,11 @@ class AccountModule(BaseModule):
             api_key=self._get_api_key(),
         )
 
-    async def get_bridge_config(self) -> WrappedApiResponse[BridgesConfig]:
+    async def get_bridge_config(self) -> WrappedApiResponse[BridgesConfigModel]:
         url = self._get_url("/user/bridge/config")
-        return await send_get_request(await self.get_session(), url, BridgesConfig, api_key=self._get_api_key())
+        return await send_get_request(await self.get_session(), url, BridgesConfigModel, api_key=self._get_api_key())
 
-    async def get_bridge_quote(self, chain_in: str, chain_out: str, amount: Decimal) -> WrappedApiResponse[Quote]:
+    async def get_bridge_quote(self, chain_in: str, chain_out: str, amount: Decimal) -> WrappedApiResponse[QuoteModel]:
         url = self._get_url(
             "/user/bridge/quote",
             query={
@@ -208,7 +210,7 @@ class AccountModule(BaseModule):
                 "amount": amount,
             },
         )
-        return await send_get_request(await self.get_session(), url, Quote, api_key=self._get_api_key())
+        return await send_get_request(await self.get_session(), url, QuoteModel, api_key=self._get_api_key())
 
     async def commit_bridge_quote(self, id: str):
         url = self._get_url(

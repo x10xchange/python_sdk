@@ -7,6 +7,7 @@ from x10.config import DEFAULT_FEES
 from x10.configuration import StarknetDomain
 from x10.core.stark_account import StarkAccount
 from x10.models.fee import TradingFeeModel
+from x10.models.market import MarketModel
 from x10.models.order import (
     CreateOrderConditionalTriggerModel,
     CreateOrderTpslTriggerModel,
@@ -20,7 +21,6 @@ from x10.models.order import (
     SelfTradeProtectionLevel,
     TimeInForce,
 )
-from x10.perpetual.markets import MarketModel
 from x10.perpetual.order_object_settlement import (
     SettlementDataCtx,
     create_order_settlement_data,

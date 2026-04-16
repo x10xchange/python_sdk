@@ -1,17 +1,17 @@
 import decimal
 from datetime import timedelta
 
-from x10.perpetual.accounts import StarkPerpetualAccount
-from x10.perpetual.amounts import HumanReadableAmount, StarkAmount
-from x10.perpetual.assets import Asset, AssetModel
-from x10.perpetual.configuration import StarknetDomain
+from x10.configuration import StarknetDomain
+from x10.core.amount import HumanReadableAmount, StarkAmount
+from x10.core.stark_account import StarkAccount
+from x10.models.asset import Asset, AssetModel
+from x10.models.base import SettlementSignatureModel
+from x10.models.order import LimitOrderSettlementModel
 from x10.perpetual.order_object_settlement import (
     calculate_order_settlement_expiration,
     hash_limit_order,
 )
-from x10.perpetual.orders import LimitOrderSettlementModel
 from x10.utils.date import utc_now
-from x10.utils.model import SettlementSignatureModel
 from x10.utils.nonce import generate_nonce
 
 
@@ -22,7 +22,7 @@ def create_order_settlement_data(
     position_id,
     quote_asset_model: AssetModel,
     base_asset_model: AssetModel,
-    starknet_account: StarkPerpetualAccount,
+    starknet_account: StarkAccount,
     starknet_domain: StarknetDomain,
     is_buy: bool,
 ):

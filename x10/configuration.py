@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 
 
+# FIXME: Move to core?
 @dataclass
 class StarknetDomain:
     name: str

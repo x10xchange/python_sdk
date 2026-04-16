@@ -5,9 +5,9 @@ import websockets
 from websockets import WebSocketClientProtocol
 
 from x10.config import USER_AGENT
+from x10.models.base import X10BaseModel
 from x10.utils.http import RequestHeader
 from x10.utils.log import get_logger
-from x10.utils.model import X10BaseModel
 
 LOGGER = get_logger(__name__)
 

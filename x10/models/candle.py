@@ -3,7 +3,7 @@ from typing import Literal, Optional
 
 from pydantic import AliasChoices, Field
 
-from x10.utils.model import X10BaseModel
+from x10.models.base import X10BaseModel
 
 CandleType = Literal["trades", "mark-prices", "index-prices"]
 CandleInterval = Literal["PT1M", "PT5M", "PT15M", "PT30M", "PT1H", "PT2H", "PT4H", "P1D"]

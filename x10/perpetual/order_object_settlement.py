@@ -6,22 +6,22 @@ from typing import Callable, Optional, Tuple
 
 from fast_stark_crypto import get_limit_order_msg_hash, get_order_msg_hash
 
-from x10.perpetual.amounts import (
+from x10.configuration import StarknetDomain
+from x10.core.amount import (
     ROUNDING_BUY_CONTEXT,
     ROUNDING_FEE_CONTEXT,
     ROUNDING_SELL_CONTEXT,
     HumanReadableAmount,
     StarkAmount,
 )
-from x10.perpetual.configuration import StarknetDomain
-from x10.perpetual.fees import TradingFeeModel
-from x10.perpetual.markets import MarketModel
-from x10.perpetual.orders import (
+from x10.models.base import SettlementSignatureModel
+from x10.models.fee import TradingFeeModel
+from x10.models.market import MarketModel
+from x10.models.order import (
     OrderSide,
     StarkDebuggingOrderAmountsModel,
     StarkSettlementModel,
 )
-from x10.utils.model import SettlementSignatureModel
 
 
 @dataclass(kw_only=True)

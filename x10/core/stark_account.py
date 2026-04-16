@@ -6,6 +6,7 @@ from x10.models.fee import TradingFeeModel
 from x10.utils.string import is_hex_string
 
 
+# FIXME: Rename back to StarkPerpetualAccount?
 class StarkAccount:
     __vault: int
     __private_key: int
