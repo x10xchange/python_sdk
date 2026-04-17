@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from x10.perpetual.accounts import AccountModel
+from x10.models.account import AccountModel
 
 
 def create_accounts():
@@ -27,7 +27,7 @@ def create_accounts():
 
 
 def create_trading_account():
-    from x10.perpetual.accounts import StarkPerpetualAccount
+    from x10.core.stark_account import StarkPerpetualAccount
 
     return StarkPerpetualAccount(
         vault=10002,
@@ -38,8 +38,8 @@ def create_trading_account():
 
 
 def create_account_update_trade_message():
-    from x10.perpetual.accounts import AccountStreamDataModel
-    from x10.perpetual.trades import AccountTradeModel
+    from x10.models.account import AccountStreamDataModel
+    from x10.models.trade import AccountTradeModel
     from x10.utils.http import WrappedStreamResponse
 
     return WrappedStreamResponse[AccountStreamDataModel](
@@ -68,7 +68,7 @@ def create_account_update_trade_message():
 
 
 def create_account_update_unknown_message():
-    from x10.perpetual.accounts import AccountStreamDataModel
+    from x10.models.account import AccountStreamDataModel
     from x10.utils.http import WrappedStreamResponse
 
     return WrappedStreamResponse[AccountStreamDataModel](

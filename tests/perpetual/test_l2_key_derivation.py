@@ -1,4 +1,5 @@
 from eth_account import Account
+from hamcrest import assert_that, equal_to
 
 
 def test_known_l2_accounts():
@@ -9,5 +10,6 @@ def test_known_l2_accounts():
     known_l2_public_key = "0x78298687996aff29a0bbcb994e1305db082d084f85ec38bb78c41e6787740ec"
 
     derived_keys = get_l2_keys_from_l1_account(Account.from_key(known_private_key), 0, signing_domain="x10.exchange")
-    assert derived_keys.private_hex == known_l2_private_key
-    assert derived_keys.public_hex == known_l2_public_key
+
+    assert_that(derived_keys.private_hex, equal_to(known_l2_private_key))
+    assert_that(derived_keys.public_hex, equal_to(known_l2_public_key))

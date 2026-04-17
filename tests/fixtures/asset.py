@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from x10.perpetual.assets import AssetModel, AssetOperationModel
+from x10.models.asset import AssetModel, AssetOperationModel
 
 
 def create_asset_operations():
