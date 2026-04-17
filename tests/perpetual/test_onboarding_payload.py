@@ -38,7 +38,7 @@ def test_onboarding_object_generation():
         payload,
         equal_to(
             {
-                "l1Signature": "9a59eb699eb58f2ec975455f33dd7205c8a569f7b6d7647c25b71e7ab7eec3d30f2b8c9038f06f077167eb90e0c002602e4ecbab180fad4b2c91d2259883e6571c",
+                "l1Signature": "9a59eb699eb58f2ec975455f33dd7205c8a569f7b6d7647c25b71e7ab7eec3d30f2b8c9038f06f077167eb90e0c002602e4ecbab180fad4b2c91d2259883e6571c",  # noqa: E501
                 "l2Key": known_l2_public_key,
                 "l2Signature": {
                     "r": "0x70881694c59c7212b1a47fbbc07df4d32678f0326f778861ec3a2a5dbc09157",

@@ -3,8 +3,8 @@ import logging
 
 from examples.utils import create_blocking_client
 from x10.config import BTC_USD_MARKET, DEFAULT_MARKET_PRICE_SLIPPAGE
-from x10.configuration import TESTNET_CONFIG
 from x10.models.order import OrderSide, OrderType, TimeInForce
+from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.orderbook import OrderBook
 from x10.utils.order import get_price_with_slippage
 

@@ -10,9 +10,9 @@ from pathlib import Path
 import yaml
 from dotenv import load_dotenv
 
-from x10.configuration import TESTNET_CONFIG, EndpointConfig
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.market import TradingConfigModel
+from x10.perpetual.configuration import TESTNET_CONFIG, EndpointConfig
 from x10.perpetual.simple_client.simple_trading_client import BlockingTradingClient
 from x10.perpetual.stream_client import PerpetualStreamClient
 from x10.perpetual.trading_client import PerpetualTradingClient
