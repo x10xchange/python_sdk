@@ -16,9 +16,6 @@ from x10.perpetual.configuration import EndpointConfig, StarknetDomain
 from x10.utils.date import utc_now
 from x10.utils.nonce import generate_nonce
 
-# FIXME: Remove
-ASSET_ID_FEE = 0
-
 
 def find_account_by_id(accounts: List[AccountModel], account_id: int):
     return next((account for account in accounts if account.id == account_id), None)
