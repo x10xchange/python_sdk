@@ -44,13 +44,3 @@ class StarkAmount:
 
     def negate(self) -> "StarkAmount":
         return StarkAmount(-self.value, self.asset)
-
-
-# FIXME: Remove
-# @dataclass
-# class StarkOrderAmounts:
-#     collateral_amount_internal: HumanReadableAmount
-#     synthetic_amount_internal: HumanReadableAmount
-#     fee_amount_internal: HumanReadableAmount
-#     fee_rate: Decimal
-#     rounding_context: decimal.Context
