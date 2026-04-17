@@ -6,8 +6,8 @@ from typing import Callable, Iterable, Tuple
 
 from sortedcontainers import SortedDict
 
-from x10.configuration import EndpointConfig
 from x10.models.orderbook import OrderbookUpdateModel
+from x10.perpetual.configuration import EndpointConfig
 from x10.perpetual.stream_client.stream_client import PerpetualStreamClient
 from x10.utils.http import StreamDataType
 

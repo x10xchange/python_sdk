@@ -1,9 +1,7 @@
-# FIXME: Unify with "config.py"?
 from dataclasses import dataclass
 
 
-# FIXME: Move to core?
-@dataclass
+@dataclass(kw_only=True)
 class StarknetDomain:
     name: str
     version: str
@@ -11,7 +9,7 @@ class StarknetDomain:
     revision: str
 
 
-@dataclass
+@dataclass(kw_only=True)
 class EndpointConfig:
     """
     Attributes:

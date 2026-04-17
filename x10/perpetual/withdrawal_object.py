@@ -4,7 +4,6 @@ from decimal import Decimal
 
 from fast_stark_crypto import get_withdrawal_msg_hash
 
-from x10.configuration import EndpointConfig, StarknetDomain
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.base import SettlementSignatureModel
 from x10.models.withdrawal import (
@@ -12,6 +11,7 @@ from x10.models.withdrawal import (
     TimestampModel,
     WithdrawalRequestModel,
 )
+from x10.perpetual.configuration import EndpointConfig, StarknetDomain
 from x10.utils.date import utc_now
 from x10.utils.nonce import generate_nonce
 

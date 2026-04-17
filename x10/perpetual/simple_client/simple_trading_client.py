@@ -4,7 +4,6 @@ import time
 from decimal import Decimal
 from typing import Awaitable, Dict, Union, cast
 
-from x10.configuration import EndpointConfig
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.account import AccountStreamDataModel
 from x10.models.market import MarketModel
@@ -16,6 +15,7 @@ from x10.models.order import (
     OrderType,
     TimeInForce,
 )
+from x10.perpetual.configuration import EndpointConfig
 from x10.perpetual.order_object import create_order_object
 from x10.perpetual.stream_client.perpetual_stream_connection import (
     PerpetualStreamConnection,

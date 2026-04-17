@@ -6,7 +6,6 @@ from typing import Callable, Optional, Tuple
 
 from fast_stark_crypto import get_limit_order_msg_hash, get_order_msg_hash
 
-from x10.configuration import StarknetDomain
 from x10.core.amount import (
     ROUNDING_BUY_CONTEXT,
     ROUNDING_FEE_CONTEXT,
@@ -22,6 +21,7 @@ from x10.models.order import (
     StarkDebuggingOrderAmountsModel,
     StarkSettlementModel,
 )
+from x10.perpetual.configuration import StarknetDomain
 
 
 @dataclass(kw_only=True)

@@ -5,7 +5,6 @@ from typing import List
 
 from fast_stark_crypto import get_transfer_msg_hash
 
-from x10.configuration import EndpointConfig, StarknetDomain
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.account import AccountModel
 from x10.models.base import SettlementSignatureModel
@@ -13,6 +12,7 @@ from x10.models.transfer import (
     OnChainPerpetualTransferModel,
     StarkTransferSettlementModel,
 )
+from x10.perpetual.configuration import EndpointConfig, StarknetDomain
 from x10.utils.date import utc_now
 from x10.utils.nonce import generate_nonce
 

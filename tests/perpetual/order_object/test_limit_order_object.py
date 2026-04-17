@@ -6,7 +6,6 @@ from freezegun import freeze_time
 from hamcrest import assert_that, equal_to
 from pytest_mock import MockerFixture
 
-from x10.configuration import TESTNET_CONFIG
 from x10.models.order import (
     OrderPriceType,
     OrderSide,
@@ -14,6 +13,7 @@ from x10.models.order import (
     OrderTriggerPriceType,
     SelfTradeProtectionLevel,
 )
+from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.utils.date import utc_now
 
 FROZEN_NONCE = 1473459052

@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Dict, Optional
 
-from x10.configuration import EndpointConfig
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.market import MarketModel
 from x10.models.order import (
@@ -12,6 +11,7 @@ from x10.models.order import (
     SelfTradeProtectionLevel,
     TimeInForce,
 )
+from x10.perpetual.configuration import EndpointConfig
 from x10.perpetual.order_object import OrderTpslTriggerParam, create_order_object
 from x10.perpetual.trading_client.account_module import AccountModule
 from x10.perpetual.trading_client.info_markets_module import InfoMarketsModule

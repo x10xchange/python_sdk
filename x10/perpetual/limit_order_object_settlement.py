@@ -1,12 +1,12 @@
 import decimal
 from datetime import timedelta
 
-from x10.configuration import StarknetDomain
 from x10.core.amount import HumanReadableAmount, StarkAmount
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.asset import Asset, AssetModel
 from x10.models.base import SettlementSignatureModel
 from x10.models.order import LimitOrderSettlementModel
+from x10.perpetual.configuration import StarknetDomain
 from x10.perpetual.order_object_settlement import (
     calculate_order_settlement_expiration,
     hash_limit_order,

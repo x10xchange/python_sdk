@@ -2,9 +2,9 @@ from typing import Dict, Optional
 
 import aiohttp
 
-from x10.configuration import EndpointConfig
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.errors import X10Error
+from x10.perpetual.configuration import EndpointConfig
 from x10.utils.http import CLIENT_TIMEOUT, get_url
 
 

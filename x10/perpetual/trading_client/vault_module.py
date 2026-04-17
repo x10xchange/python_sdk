@@ -3,11 +3,11 @@ from decimal import Decimal
 from types import NoneType
 from typing import Optional
 
-from x10.configuration import EndpointConfig
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.errors import X10Error
 from x10.models.base import X10BaseModel
 from x10.models.order import LimitOrderSettlementModel
+from x10.perpetual.configuration import EndpointConfig
 from x10.perpetual.limit_order_object_settlement import create_order_settlement_data
 from x10.perpetual.trading_client.account_module import AccountModule
 from x10.perpetual.trading_client.base_module import BaseModule
