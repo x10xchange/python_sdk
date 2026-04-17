@@ -27,7 +27,6 @@ from x10.utils.http import (
 )
 
 
-# FIXME: Switch to Request/Response namings format for models?
 class AccountModule(BaseModule):
     async def get_account(self) -> WrappedApiResponse[AccountModel]:
         url = self._get_url("/user/account/info")

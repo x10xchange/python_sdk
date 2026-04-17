@@ -42,7 +42,6 @@ class TestnetModule(BaseModule):
             account_module = self._account_module
             claim_to_check = resp.data.id
 
-            # FIXME: Remove `tenacity`?
             @tenacity.retry(
                 stop=tenacity.stop_after_delay(10),
                 wait=tenacity.wait_fixed(1),
