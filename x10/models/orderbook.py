@@ -3,7 +3,7 @@ from typing import List
 
 from pydantic import AliasChoices, Field
 
-from x10.utils.model import X10BaseModel
+from x10.models.base import X10BaseModel
 
 
 class OrderbookQuantityModel(X10BaseModel):

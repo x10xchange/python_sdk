@@ -2,7 +2,7 @@ import decimal
 from dataclasses import dataclass
 from decimal import Decimal
 
-from x10.perpetual.assets import Asset
+from x10.models.asset import Asset
 
 ROUNDING_SELL_CONTEXT = decimal.Context(rounding=decimal.ROUND_DOWN)
 ROUNDING_BUY_CONTEXT = decimal.Context(rounding=decimal.ROUND_UP)
@@ -44,12 +44,3 @@ class StarkAmount:
 
     def negate(self) -> "StarkAmount":
         return StarkAmount(-self.value, self.asset)
-
-
-@dataclass
-class StarkOrderAmounts:
-    collateral_amount_internal: HumanReadableAmount
-    synthetic_amount_internal: HumanReadableAmount
-    fee_amount_internal: HumanReadableAmount
-    fee_rate: Decimal
-    rounding_context: decimal.Context

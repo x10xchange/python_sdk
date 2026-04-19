@@ -1,10 +1,10 @@
 from typing import List, Optional
 
-from x10.perpetual.orders import NewOrderModel, PlacedOrderModel
+from x10.models.base import EmptyModel, X10BaseModel
+from x10.models.order import NewOrderModel, PlacedOrderModel
 from x10.perpetual.trading_client.base_module import BaseModule
 from x10.utils.http import send_delete_request, send_post_request
 from x10.utils.log import get_logger
-from x10.utils.model import EmptyModel, X10BaseModel
 
 LOGGER = get_logger(__name__)
 

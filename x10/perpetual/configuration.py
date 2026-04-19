@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 
-@dataclass
+@dataclass(kw_only=True)
 class StarknetDomain:
     name: str
     version: str
@@ -9,7 +9,7 @@ class StarknetDomain:
     revision: str
 
 
-@dataclass
+@dataclass(kw_only=True)
 class EndpointConfig:
     """
     Attributes:

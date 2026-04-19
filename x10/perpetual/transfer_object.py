@@ -5,17 +5,16 @@ from typing import List
 
 from fast_stark_crypto import get_transfer_msg_hash
 
-from x10.perpetual.accounts import AccountModel, StarkPerpetualAccount
-from x10.perpetual.configuration import EndpointConfig, StarknetDomain
-from x10.perpetual.transfers import (
+from x10.core.stark_account import StarkPerpetualAccount
+from x10.models.account import AccountModel
+from x10.models.base import SettlementSignatureModel
+from x10.models.transfer import (
     OnChainPerpetualTransferModel,
-    StarkTransferSettlement,
+    StarkTransferSettlementModel,
 )
+from x10.perpetual.configuration import EndpointConfig, StarknetDomain
 from x10.utils.date import utc_now
-from x10.utils.model import SettlementSignatureModel
 from x10.utils.nonce import generate_nonce
-
-ASSET_ID_FEE = 0
 
 
 def find_account_by_id(accounts: List[AccountModel], account_id: int):
@@ -43,8 +42,10 @@ def create_transfer_object(
     scaled_amount = amount.scaleb(config.collateral_decimals)
     stark_amount = scaled_amount.to_integral_exact()
     starknet_domain: StarknetDomain = config.starknet_domain
+
     if nonce is None:
         nonce = generate_nonce()
+
     transfer_hash = get_transfer_msg_hash(
         recipient_position_id=to_vault,
         sender_position_id=from_vault,
@@ -60,7 +61,7 @@ def create_transfer_object(
     )
 
     (transfer_signature_r, transfer_signature_s) = stark_account.sign(transfer_hash)
-    settlement = StarkTransferSettlement(
+    settlement = StarkTransferSettlementModel(
         amount=int(stark_amount),
         asset_id=int(config.collateral_asset_on_chain_id, base=16),
         expiration_timestamp=expiration_timestamp,

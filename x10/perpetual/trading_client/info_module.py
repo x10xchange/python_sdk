@@ -1,10 +1,10 @@
 from decimal import Decimal
 from typing import List
 
-from x10.perpetual.assets import AssetModel
+from x10.models.asset import AssetModel
+from x10.models.base import X10BaseModel
 from x10.perpetual.trading_client.base_module import BaseModule
 from x10.utils.http import send_get_request
-from x10.utils.model import X10BaseModel
 
 
 class _SettingsModel(X10BaseModel):

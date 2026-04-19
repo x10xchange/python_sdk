@@ -3,8 +3,8 @@ from decimal import Decimal
 from pydantic import AliasChoices, Field
 from strenum import StrEnum
 
-from x10.perpetual.orders import OrderSide
-from x10.utils.model import X10BaseModel
+from x10.models.base import X10BaseModel
+from x10.models.order import OrderSide
 
 
 class TradeType(StrEnum):

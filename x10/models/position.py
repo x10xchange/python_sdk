@@ -3,7 +3,7 @@ from typing import Optional
 
 from strenum import StrEnum
 
-from x10.utils.model import X10BaseModel
+from x10.models.base import X10BaseModel
 
 
 class ExitType(StrEnum):

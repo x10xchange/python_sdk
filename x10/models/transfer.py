@@ -1,10 +1,9 @@
 from decimal import Decimal
 
-from x10.perpetual.orders import SettlementSignatureModel
-from x10.utils.model import HexValue, X10BaseModel
+from x10.models.base import HexValue, SettlementSignatureModel, X10BaseModel
 
 
-class StarkTransferSettlement(X10BaseModel):
+class StarkTransferSettlementModel(X10BaseModel):
     amount: int
     asset_id: HexValue
     expiration_timestamp: int
@@ -21,14 +20,14 @@ class PerpetualTransferModel(X10BaseModel):
     to_account: int
     amount: Decimal
     transferred_asset: str
-    settlement: StarkTransferSettlement
+    settlement: StarkTransferSettlementModel
 
 
 class OnChainPerpetualTransferModel(X10BaseModel):
     from_vault: int
     to_vault: int
     amount: Decimal
-    settlement: StarkTransferSettlement
+    settlement: StarkTransferSettlementModel
     transferred_asset: str
 
 

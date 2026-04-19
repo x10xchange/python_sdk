@@ -4,7 +4,7 @@ from typing import Optional
 
 from strenum import StrEnum
 
-from x10.utils.model import HexValue, X10BaseModel
+from x10.models.base import HexValue, X10BaseModel
 
 
 class AssetModel(X10BaseModel):

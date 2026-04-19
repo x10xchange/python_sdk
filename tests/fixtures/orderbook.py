@@ -2,7 +2,7 @@ from decimal import Decimal
 
 
 def create_orderbook_message():
-    from x10.perpetual.orderbooks import OrderbookQuantityModel, OrderbookUpdateModel
+    from x10.models.orderbook import OrderbookQuantityModel, OrderbookUpdateModel
     from x10.utils.http import WrappedStreamResponse
 
     return WrappedStreamResponse[OrderbookUpdateModel](

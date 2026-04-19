@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from hamcrest import assert_that, equal_to
 
-from x10.perpetual.orders import OrderSide
+from x10.models.order import OrderSide
 from x10.utils.order import calc_entire_position_size, get_price_with_slippage
 
 

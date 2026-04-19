@@ -365,6 +365,9 @@ def get_private_key_from_eth_signature(eth_signature: str) -> int:
 
 There is a new function `deposit` available on the [`AccountModule`](x10/perpetual/trading_client/account_module.py) which provides the ability to directly deposit USDC into your StarkEx account. For more details check out `call_stark_perpetual_deposit` in [contract.py](x10/perpetual/contract.py)
 
+## Breaking changes
+
+For a detailed list of breaking changes, please refer to the [MIGRATION.md](MIGRATION.md) file.
 
 ## Contributing
 

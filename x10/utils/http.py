@@ -11,8 +11,8 @@ from strenum import StrEnum
 
 from x10.config import DEFAULT_REQUEST_TIMEOUT_SECONDS, USER_AGENT
 from x10.errors import X10Error
+from x10.models.base import X10BaseModel
 from x10.utils.log import get_logger
-from x10.utils.model import X10BaseModel
 
 LOGGER = get_logger(__name__)
 CLIENT_TIMEOUT = ClientTimeout(total=DEFAULT_REQUEST_TIMEOUT_SECONDS)

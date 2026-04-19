@@ -2,12 +2,12 @@ from typing import List, Optional
 
 import tenacity
 
-from x10.perpetual.assets import AssetOperationModel, AssetOperationStatus
+from x10.models.asset import AssetOperationModel, AssetOperationStatus
+from x10.models.base import X10BaseModel
 from x10.perpetual.configuration import EndpointConfig
 from x10.perpetual.trading_client.account_module import AccountModule
 from x10.perpetual.trading_client.base_module import BaseModule
 from x10.utils.http import WrappedApiResponse, send_post_request
-from x10.utils.model import X10BaseModel
 
 
 class ClaimResponseModel(X10BaseModel):

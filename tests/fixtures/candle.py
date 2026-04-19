@@ -1,6 +1,6 @@
 from typing import List
 
-from x10.perpetual.candles import CandleModel
+from x10.models.candle import CandleModel
 from x10.utils.http import WrappedStreamResponse
 
 
