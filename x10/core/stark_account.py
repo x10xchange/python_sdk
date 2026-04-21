@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Tuple
 
 from fast_stark_crypto import sign
 
@@ -6,11 +6,6 @@ from x10.utils.string import is_hex_string
 
 
 class StarkPerpetualAccount:
-    """
-    Attributes:
-        __trading_fee (dict): Field is deprecated and will be removed.
-    """
-
     __vault: int
     __private_key: int
     __public_key: int

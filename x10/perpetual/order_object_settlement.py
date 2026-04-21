@@ -15,7 +15,6 @@ from x10.core.amount import (
     StarkAmount,
 )
 from x10.models.base import SettlementSignatureModel
-from x10.models.fee import TradingFeeModel
 from x10.models.market import MarketModel
 from x10.models.order import (
     OrderSide,
