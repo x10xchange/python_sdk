@@ -38,12 +38,14 @@ class EndpointsConfig:
 
 @dataclass(kw_only=True, frozen=True)
 class Config:
+    # FIXME: Group?
     default_market_price_slippage: Decimal
     default_request_timeout_seconds: int
     default_maker_fee_rate: Decimal
     default_taker_fee_rate: Decimal
     default_builder_fee_rate: Decimal
 
+    # FIXME: Group?
     signing_domain: str
     starknet_domain: StarknetDomain
 
