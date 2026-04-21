@@ -8,7 +8,7 @@ from x10.perpetual.orderbook import OrderBook
 from x10.utils.order import get_price_with_slippage
 
 LOGGER = logging.getLogger()
-ENDPOINT_CONFIG = TESTNET_CONFIG
+CONFIG = TESTNET_CONFIG
 MARKET_NAME = BTC_USD_MARKET
 
 
@@ -20,7 +20,7 @@ async def get_orderbook_best_ask(market_name: str):
             best_ask_condition.notify_all()
 
     orderbook = await OrderBook.create(
-        ENDPOINT_CONFIG,
+        CONFIG,
         market_name=market_name,
         start=True,
         best_ask_change_callback=best_ask_initialised,
@@ -38,7 +38,7 @@ async def get_orderbook_best_ask(market_name: str):
 
 
 async def run_example():
-    blocking_client = create_blocking_client(ENDPOINT_CONFIG)
+    blocking_client = create_blocking_client(CONFIG)
     markets = await blocking_client.get_markets()
     market = markets[MARKET_NAME]
 

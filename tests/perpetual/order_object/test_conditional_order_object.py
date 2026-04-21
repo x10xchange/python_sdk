@@ -12,7 +12,7 @@ from x10.models.order import (
     OrderTriggerPriceType,
     OrderType,
 )
-from x10.perpetual.configuration import TESTNET_CONFIG
+from x10.config import TESTNET_CONFIG
 
 FROZEN_NONCE = 1473459052
 
@@ -36,7 +36,8 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
         amount_of_synthetic=Decimal("0.00100000"),
         price=Decimal("43445.11680000"),
         side=OrderSide.BUY,
-        starknet_domain=TESTNET_CONFIG.starknet_domain,
+        starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
+        taker_fee=TESTNET_CONFIG.defaults.taker_fee,
         trigger=OrderConditionalTriggerParam(
             trigger_price=Decimal("43400"),
             trigger_price_type=OrderTriggerPriceType.INDEX,

@@ -7,7 +7,7 @@ from hamcrest import assert_that, equal_to, has_length
 
 from x10.models.asset import AssetOperationModel
 from x10.models.market import MarketModel
-from x10.perpetual.configuration import TESTNET_CONFIG
+from x10.config import TESTNET_CONFIG
 from x10.utils.http import WrappedApiResponse
 
 
@@ -33,8 +33,9 @@ async def test_get_markets(aiohttp_server, create_btc_usd_market):
     server = await aiohttp_server(app)
     url = f"http://{server.host}:{server.port}"
 
-    endpoint_config = dataclasses.replace(TESTNET_CONFIG, api_base_url=url)
-    trading_client = PerpetualTradingClient(config=endpoint_config)
+    # FIXME
+    config = dataclasses.replace(TESTNET_CONFIG.endpoints, api_base_url=url)
+    trading_client = PerpetualTradingClient(config=config)
     markets = await trading_client.markets_info.get_markets()
 
     assert_that(markets.status, equal_to("OK"))

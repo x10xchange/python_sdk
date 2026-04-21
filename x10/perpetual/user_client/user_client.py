@@ -36,17 +36,17 @@ class OnBoardedAccount:
 
 
 class UserClient:
-    __endpoint_config: Config
+    __config: Config
     __l1_private_key: Callable[[], str]
     __session: Optional[aiohttp.ClientSession] = None
 
     def __init__(
         self,
-        endpoint_config: Config,
+        config: Config,
         l1_private_key: Callable[[], str],
     ):
         super().__init__()
-        self.__endpoint_config = endpoint_config
+        self.__config = config
         self.__l1_private_key = l1_private_key
 
     def _get_url(self, base_url: str, path: str, *, query: Optional[Dict] = None, **path_params) -> str:
@@ -55,7 +55,7 @@ class UserClient:
     async def get_session(self) -> aiohttp.ClientSession:
         if self.__session is None:
             created_session = aiohttp.ClientSession(
-                timeout=ClientTimeout(total=self.__endpoint_config.defaults.request_timeout_seconds)
+                timeout=ClientTimeout(total=self.__config.defaults.request_timeout_seconds)
             )
             self.__session = created_session
 
@@ -69,11 +69,11 @@ class UserClient:
     async def onboard(self, referral_code: Optional[str] = None):
         signing_account: LocalAccount = Account.from_key(self.__l1_private_key())
         key_pair = get_l2_keys_from_l1_account(
-            l1_account=signing_account, account_index=0, signing_domain=self.__endpoint_config.signing.signing_domain
+            l1_account=signing_account, account_index=0, signing_domain=self.__config.signing.signing_domain
         )
         payload = get_onboarding_payload(
             signing_account,
-            signing_domain=self.__endpoint_config.signing.signing_domain,
+            signing_domain=self.__config.signing.signing_domain,
             key_pair=key_pair,
             referral_code=referral_code,
             host=self._get_endpoint_config().onboarding_url,
@@ -103,7 +103,7 @@ class UserClient:
         key_pair = get_l2_keys_from_l1_account(
             l1_account=signing_account,
             account_index=account_index,
-            signing_domain=self.__endpoint_config.signing.signing_domain,
+            signing_domain=self.__config.signing.signing_domain,
         )
         payload = get_sub_account_creation_payload(
             account_index=account_index,
@@ -162,7 +162,7 @@ class UserClient:
                 l2_key_pair=get_l2_keys_from_l1_account(
                     l1_account=signing_account,
                     account_index=account.account_index,
-                    signing_domain=self.__endpoint_config.signing.signing_domain,
+                    signing_domain=self.__config.signing.signing_domain,
                 ),
             )
             for account in accounts
@@ -199,4 +199,4 @@ class UserClient:
         return response_data.key
 
     def _get_endpoint_config(self):
-        return self.__endpoint_config.endpoints
+        return self.__config.endpoints
