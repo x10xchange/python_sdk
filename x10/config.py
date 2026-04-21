@@ -14,7 +14,6 @@ class StarknetDomain:
 class DefaultsConfig:
     market_price_slippage: Decimal
     request_timeout_seconds: int
-    taker_fee: Decimal
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -56,9 +55,7 @@ class Config:
     endpoints: EndpointsConfig
 
 
-DEFAULTS = DefaultsConfig(
-    market_price_slippage=Decimal("0.0075"), request_timeout_seconds=500, taker_fee=Decimal("0.0005")
-)
+DEFAULTS = DefaultsConfig(market_price_slippage=Decimal("0.0075"), request_timeout_seconds=500)
 
 TESTNET_CONFIG = Config(
     defaults=DEFAULTS,

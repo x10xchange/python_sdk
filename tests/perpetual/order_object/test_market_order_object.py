@@ -42,7 +42,6 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
         time_in_force=TimeInForce.IOC,
         nonce=FROZEN_NONCE,
         starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
-        taker_fee=TESTNET_CONFIG.defaults.taker_fee,
     )
 
     assert_that(
@@ -109,7 +108,6 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
         expire_time=utc_now() + timedelta(days=14),
         time_in_force=TimeInForce.IOC,
         starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
-        taker_fee=TESTNET_CONFIG.defaults.taker_fee,
         nonce=FROZEN_NONCE,
     )
 

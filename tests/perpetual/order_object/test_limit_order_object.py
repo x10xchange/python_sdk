@@ -39,7 +39,6 @@ async def test_create_sell_order_with_default_expiration(
         price=Decimal("43445.11680000"),
         side=OrderSide.SELL,
         starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
-        taker_fee=TESTNET_CONFIG.defaults.taker_fee,
     )
     freezer.stop()
     assert_that(
@@ -97,7 +96,6 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
         side=OrderSide.SELL,
         expire_time=utc_now() + timedelta(days=14),
         starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
-        taker_fee=TESTNET_CONFIG.defaults.taker_fee,
         nonce=FROZEN_NONCE,
     )
 
@@ -157,7 +155,6 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
         expire_time=utc_now() + timedelta(days=14),
         self_trade_protection_level=SelfTradeProtectionLevel.CLIENT,
         starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
-        taker_fee=TESTNET_CONFIG.defaults.taker_fee,
     )
 
     assert_that(
@@ -216,7 +213,6 @@ async def test_create_buy_order_with_order_tpsl(mocker: MockerFixture, create_tr
         expire_time=utc_now() + timedelta(days=14),
         self_trade_protection_level=SelfTradeProtectionLevel.CLIENT,
         starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
-        taker_fee=TESTNET_CONFIG.defaults.taker_fee,
         tp_sl_type=OrderTpslType.ORDER,
         take_profit=OrderTpslTriggerParam(
             trigger_price=Decimal("49000"),
@@ -326,7 +322,6 @@ async def test_create_buy_order_with_position_tpsl(
         expire_time=utc_now() + timedelta(days=14),
         self_trade_protection_level=SelfTradeProtectionLevel.CLIENT,
         starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
-        taker_fee=TESTNET_CONFIG.defaults.taker_fee,
         tp_sl_type=OrderTpslType.POSITION,
         take_profit=OrderTpslTriggerParam(
             trigger_price=Decimal("49000"),

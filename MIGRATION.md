@@ -11,4 +11,3 @@ the SDK's inline annotations by default.
 - `x10.perpetual.configuration` has been **deleted**. All config types and pre-built instances now live in `x10.config`.
 - `TESTNET_CONFIG` and `MAINNET_CONFIG` are now instances of the new `Config` dataclass (groups URLs, singing settings, defaults).
 - Market names constants have been removed from `x10.config`. Define market name strings inline in your own code.
-- `taker_fee` is now a required parameter for order creation.

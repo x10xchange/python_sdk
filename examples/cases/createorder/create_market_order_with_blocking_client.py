@@ -69,7 +69,6 @@ async def run_example():
         time_in_force=TimeInForce.IOC,
         reduce_only=False,
         post_only=False,
-        taker_fee=blocking_client.config.defaults.taker_fee,
     )
 
     await blocking_client.close()

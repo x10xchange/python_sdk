@@ -41,7 +41,6 @@ async def run_example():
         time_in_force=TimeInForce.IOC,
         reduce_only=False,
         post_only=False,
-        taker_fee=trading_client.config.defaults.taker_fee,
     )
 
     LOGGER.info("Placing order...")

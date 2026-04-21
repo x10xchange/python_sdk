@@ -37,7 +37,6 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
         price=Decimal("43445.11680000"),
         side=OrderSide.BUY,
         starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
-        taker_fee=TESTNET_CONFIG.defaults.taker_fee,
         trigger=OrderConditionalTriggerParam(
             trigger_price=Decimal("43400"),
             trigger_price_type=OrderTriggerPriceType.INDEX,

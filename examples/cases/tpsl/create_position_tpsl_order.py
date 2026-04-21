@@ -48,7 +48,6 @@ async def run_example():
         time_in_force=TimeInForce.GTT,
         reduce_only=True,
         post_only=False,
-        taker_fee=trading_client.config.defaults.taker_fee,
         tp_sl_type=OrderTpslType.POSITION,
         take_profit=OrderTpslTriggerParam(
             trigger_price=tp_trigger_price,

@@ -49,7 +49,6 @@ async def create_orders_loop(*, trading_client: PerpetualTradingClient, market: 
             starknet_domain=trading_client.config.starknet_domain,
             order_external_id=new_order_external_id,
             post_only=True,
-            taker_fee=trading_client.config.defaults.taker_fee,
         )
 
         async with unconfirmed_order_lock:

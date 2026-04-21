@@ -27,6 +27,8 @@ from x10.utils.date import to_epoch_millis, utc_now
 from x10.utils.nonce import generate_nonce
 from x10.utils.order import calc_entire_position_size
 
+DEFAULT_TAKER_FEE = Decimal("0.0005")
+
 
 @dataclass(kw_only=True)
 class OrderConditionalTriggerParam:
@@ -60,7 +62,7 @@ def create_order_object(
     time_in_force: TimeInForce = TimeInForce.GTT,
     self_trade_protection_level: SelfTradeProtectionLevel = SelfTradeProtectionLevel.ACCOUNT,
     nonce: Optional[int] = None,
-    taker_fee: Decimal,
+    taker_fee: Optional[Decimal] = None,
     builder_fee: Optional[Decimal] = None,
     builder_id: Optional[int] = None,
     reduce_only: bool = False,
@@ -164,7 +166,7 @@ def __create_order_object(
     time_in_force: TimeInForce = TimeInForce.GTT,
     self_trade_protection_level: SelfTradeProtectionLevel = SelfTradeProtectionLevel.ACCOUNT,
     nonce: Optional[int] = None,
-    taker_fee: Decimal,
+    taker_fee: Optional[Decimal] = None,
     builder_fee: Optional[Decimal] = None,
     builder_id: Optional[int] = None,
     reduce_only: bool = False,
@@ -218,6 +220,9 @@ def __create_order_object(
 
     if nonce is None:
         nonce = generate_nonce()
+
+    if taker_fee is None:
+        taker_fee = DEFAULT_TAKER_FEE
 
     settlement_data_ctx = SettlementDataCtx(
         market=market,

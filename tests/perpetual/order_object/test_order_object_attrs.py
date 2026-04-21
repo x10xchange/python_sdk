@@ -31,7 +31,6 @@ async def test_cancel_previous_order(mocker: MockerFixture, create_trading_accou
         expire_time=utc_now() + timedelta(days=14),
         previous_order_external_id="previous_custom_id",
         starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
-        taker_fee=TESTNET_CONFIG.defaults.taker_fee,
     )
 
     assert_that(
@@ -62,7 +61,6 @@ async def test_external_order_id(mocker: MockerFixture, create_trading_account, 
         expire_time=utc_now() + timedelta(days=14),
         order_external_id="custom_id",
         starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
-        taker_fee=TESTNET_CONFIG.defaults.taker_fee,
     )
 
     assert_that(

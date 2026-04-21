@@ -40,7 +40,6 @@ async def test_create_buy_partial_tpsl_order(mocker: MockerFixture, create_tradi
         expire_time=utc_now() + timedelta(days=14),
         self_trade_protection_level=SelfTradeProtectionLevel.CLIENT,
         starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
-        taker_fee=TESTNET_CONFIG.defaults.taker_fee,
         tp_sl_type=OrderTpslType.ORDER,
         take_profit=OrderTpslTriggerParam(
             trigger_price=Decimal("49000"),
@@ -135,7 +134,6 @@ async def test_create_buy_position_tpsl_order(mocker: MockerFixture, create_trad
         expire_time=utc_now() + timedelta(days=14),
         self_trade_protection_level=SelfTradeProtectionLevel.CLIENT,
         starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
-        taker_fee=TESTNET_CONFIG.defaults.taker_fee,
         tp_sl_type=OrderTpslType.POSITION,
         take_profit=OrderTpslTriggerParam(
             trigger_price=Decimal("49000"),
