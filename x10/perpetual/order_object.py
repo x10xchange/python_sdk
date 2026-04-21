@@ -3,9 +3,8 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Callable, Optional, Tuple
 
-from x10.config import DEFAULT_FEES
+from x10.config import StarknetDomain
 from x10.core.stark_account import StarkPerpetualAccount
-from x10.models.fee import TradingFeeModel
 from x10.models.market import MarketModel
 from x10.models.order import (
     CreateOrderConditionalTriggerModel,
@@ -20,7 +19,6 @@ from x10.models.order import (
     SelfTradeProtectionLevel,
     TimeInForce,
 )
-from x10.perpetual.configuration import StarknetDomain
 from x10.perpetual.order_object_settlement import (
     SettlementDataCtx,
     create_order_settlement_data,
@@ -62,6 +60,7 @@ def create_order_object(
     time_in_force: TimeInForce = TimeInForce.GTT,
     self_trade_protection_level: SelfTradeProtectionLevel = SelfTradeProtectionLevel.ACCOUNT,
     nonce: Optional[int] = None,
+    taker_fee: Decimal,
     builder_fee: Optional[Decimal] = None,
     builder_id: Optional[int] = None,
     reduce_only: bool = False,
@@ -77,9 +76,6 @@ def create_order_object(
     if expire_time is None:
         expire_time = utc_now() + timedelta(hours=1)
 
-    # FIXME: Replace with explicit fee param
-    # fees = account.trading_fee.get(market.name, DEFAULT_FEES)
-
     return __create_order_object(
         market=market,
         order_type=order_type,
@@ -87,7 +83,6 @@ def create_order_object(
         price=price,
         side=side,
         collateral_position_id=account.vault,
-        fees=fees,
         signer=account.sign,
         public_key=account.public_key,
         exact_only=False,
@@ -99,6 +94,7 @@ def create_order_object(
         self_trade_protection_level=self_trade_protection_level,
         starknet_domain=starknet_domain,
         nonce=nonce,
+        taker_fee=taker_fee,
         builder_fee=builder_fee,
         builder_id=builder_id,
         reduce_only=reduce_only,
@@ -157,7 +153,6 @@ def __create_order_object(
     price: Decimal,
     side: OrderSide,
     collateral_position_id: int,
-    fees: TradingFeeModel,
     signer: Callable[[int], Tuple[int, int]],
     public_key: int,
     starknet_domain: StarknetDomain,
@@ -169,6 +164,7 @@ def __create_order_object(
     time_in_force: TimeInForce = TimeInForce.GTT,
     self_trade_protection_level: SelfTradeProtectionLevel = SelfTradeProtectionLevel.ACCOUNT,
     nonce: Optional[int] = None,
+    taker_fee: Decimal,
     builder_fee: Optional[Decimal] = None,
     builder_id: Optional[int] = None,
     reduce_only: bool = False,
@@ -223,11 +219,9 @@ def __create_order_object(
     if nonce is None:
         nonce = generate_nonce()
 
-    fee_rate = fees.taker_fee_rate
-
     settlement_data_ctx = SettlementDataCtx(
         market=market,
-        fees=fees,
+        taker_fee=taker_fee,
         builder_fee=builder_fee,
         nonce=nonce,
         collateral_position_id=collateral_position_id,
@@ -268,7 +262,7 @@ def __create_order_object(
         post_only=post_only,
         time_in_force=time_in_force,
         expiry_epoch_millis=to_epoch_millis(expire_time),
-        fee=fee_rate,
+        fee=taker_fee,
         self_trade_protection_level=self_trade_protection_level,
         nonce=Decimal(nonce),
         cancel_id=previous_order_external_id,

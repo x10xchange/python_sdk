@@ -6,6 +6,7 @@ from typing import Callable, Optional, Tuple
 
 from fast_stark_crypto import get_limit_order_msg_hash, get_order_msg_hash
 
+from x10.config import StarknetDomain
 from x10.core.amount import (
     ROUNDING_BUY_CONTEXT,
     ROUNDING_FEE_CONTEXT,
@@ -21,7 +22,6 @@ from x10.models.order import (
     StarkDebuggingOrderAmountsModel,
     StarkSettlementModel,
 )
-from x10.perpetual.configuration import StarknetDomain
 
 
 @dataclass(kw_only=True)
@@ -35,7 +35,7 @@ class OrderSettlementData:
 @dataclass(kw_only=True)
 class SettlementDataCtx:
     market: MarketModel
-    fees: TradingFeeModel
+    taker_fee: Decimal
     builder_fee: Optional[Decimal]
     nonce: int
     collateral_position_id: int
@@ -127,7 +127,7 @@ def create_order_settlement_data(
 
     synthetic_amount_human = HumanReadableAmount(synthetic_amount, ctx.market.synthetic_asset)
     collateral_amount_human = HumanReadableAmount(synthetic_amount * price, ctx.market.collateral_asset)
-    total_fee = ctx.fees.taker_fee_rate + (ctx.builder_fee if ctx.builder_fee is not None else 0)
+    total_fee = ctx.taker_fee + (ctx.builder_fee if ctx.builder_fee is not None else 0)
     fee_amount_human = HumanReadableAmount(
         total_fee * collateral_amount_human.value,
         ctx.market.collateral_asset,
