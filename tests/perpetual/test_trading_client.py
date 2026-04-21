@@ -33,8 +33,8 @@ async def test_get_markets(aiohttp_server, create_btc_usd_market):
     server = await aiohttp_server(app)
     url = f"http://{server.host}:{server.port}"
 
-    # FIXME
-    config = dataclasses.replace(TESTNET_CONFIG.endpoints, api_base_url=url)
+    endpoints_config = dataclasses.replace(TESTNET_CONFIG.endpoints, api_base_url=url)
+    config = dataclasses.replace(TESTNET_CONFIG, endpoints=endpoints_config)
     trading_client = PerpetualTradingClient(config=config)
     markets = await trading_client.markets_info.get_markets()
 
@@ -134,8 +134,9 @@ async def test_get_asset_operations(aiohttp_server, create_asset_operations, cre
     url = f"http://{server.host}:{server.port}"
 
     stark_account = create_trading_account()
-    endpoint_config = endpoint_config = dataclasses.replace(TESTNET_CONFIG, api_base_url=url)
-    trading_client = PerpetualTradingClient(config=endpoint_config, stark_account=stark_account)
+    endpoints_config = dataclasses.replace(TESTNET_CONFIG.endpoints, api_base_url=url)
+    config = dataclasses.replace(TESTNET_CONFIG, endpoints=endpoints_config)
+    trading_client = PerpetualTradingClient(config=config, stark_account=stark_account)
     operations = await trading_client.account.asset_operations()
 
     assert_that(operations.status, equal_to("OK"))
