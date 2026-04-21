@@ -170,3 +170,24 @@ async def test_get_asset_operations(aiohttp_server, create_asset_operations, cre
             ]
         ),
     )
+
+
+@pytest.mark.asyncio
+async def test_close_closes_all_module_sessions():
+    from x10.perpetual.trading_client import PerpetualTradingClient
+
+    trading_client = PerpetualTradingClient(endpoint_config=TESTNET_CONFIG)
+
+    sessions = [
+        await trading_client.info.get_session(),
+        await trading_client.markets_info.get_session(),
+        await trading_client.account.get_session(),
+        await trading_client.orders.get_session(),
+        await trading_client.vault.get_session(),
+        await trading_client.testnet.get_session(),
+    ]
+
+    await trading_client.close()
+
+    for session in sessions:
+        assert session.closed
