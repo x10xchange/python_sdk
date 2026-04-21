@@ -10,13 +10,15 @@ from pathlib import Path
 import yaml
 from dotenv import load_dotenv
 
+from x10.config import TESTNET_CONFIG, Config
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.market import TradingConfigModel
-from x10.perpetual.configuration import TESTNET_CONFIG, EndpointConfig
 from x10.perpetual.simple_client.simple_trading_client import BlockingTradingClient
 from x10.perpetual.stream_client import PerpetualStreamClient
 from x10.perpetual.trading_client import PerpetualTradingClient
 from x10.utils.string import is_hex_string
+
+BTC_USD_MARKET = "BTC-USD"
 
 
 @dataclass
@@ -59,7 +61,7 @@ def init_env(require_private_api: bool = True):
     )
 
 
-def create_trading_client(endpoint_config: EndpointConfig = TESTNET_CONFIG):
+def create_trading_client(config: Config = TESTNET_CONFIG):
     env_config = init_env()
 
     stark_account = StarkPerpetualAccount(
@@ -69,10 +71,10 @@ def create_trading_client(endpoint_config: EndpointConfig = TESTNET_CONFIG):
         vault=env_config.vault_id,
     )
 
-    return PerpetualTradingClient(endpoint_config, stark_account)
+    return PerpetualTradingClient(config, stark_account)
 
 
-def create_blocking_client(endpoint_config: EndpointConfig = TESTNET_CONFIG):
+def create_blocking_client(config: Config = TESTNET_CONFIG):
     env_config = init_env()
 
     stark_account = StarkPerpetualAccount(
@@ -82,11 +84,11 @@ def create_blocking_client(endpoint_config: EndpointConfig = TESTNET_CONFIG):
         vault=env_config.vault_id,
     )
 
-    return BlockingTradingClient(endpoint_config, stark_account)
+    return BlockingTradingClient(config, stark_account)
 
 
-def create_stream_client(endpoint_config: EndpointConfig = TESTNET_CONFIG):
-    return PerpetualStreamClient(api_url=endpoint_config.stream_url)
+def create_stream_client(config: Config = TESTNET_CONFIG):
+    return PerpetualStreamClient(api_url=config.endpoints.stream_url)
 
 
 def get_adjust_price_by_pct(config: TradingConfigModel):

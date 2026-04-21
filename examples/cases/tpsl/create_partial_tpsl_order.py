@@ -3,11 +3,11 @@ from asyncio import run
 from decimal import Decimal
 
 from examples.utils import (
+    BTC_USD_MARKET,
     create_trading_client,
     find_order_and_cancel,
     get_adjust_price_by_pct,
 )
-from x10.config import BTC_USD_MARKET
 from x10.models.order import (
     OrderPriceType,
     OrderSide,
@@ -63,6 +63,7 @@ async def run_example():
             price=sl_price,
             price_type=OrderPriceType.LIMIT,
         ),
+        taker_fee=trading_client.config.defaults.taker_fee,
     )
 
     LOGGER.info("Placing order...")

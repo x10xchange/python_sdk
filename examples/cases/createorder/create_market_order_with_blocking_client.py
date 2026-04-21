@@ -1,10 +1,9 @@
 import asyncio
 import logging
 
-from examples.utils import create_blocking_client
-from x10.config import BTC_USD_MARKET, DEFAULT_MARKET_PRICE_SLIPPAGE
+from examples.utils import BTC_USD_MARKET, create_blocking_client
+from x10.config import TESTNET_CONFIG
 from x10.models.order import OrderSide, OrderType, TimeInForce
-from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.orderbook import OrderBook
 from x10.utils.order import get_price_with_slippage
 
@@ -56,7 +55,7 @@ async def run_example():
         side=order_side,
         price=best_ask_entry.price,
         min_price_change=market.trading_config.min_price_change,
-        slippage=DEFAULT_MARKET_PRICE_SLIPPAGE,
+        slippage=blocking_client.config.defaults.market_price_slippage,
     )
 
     LOGGER.info("Creating MARKET order for market %s: %s@%s", market.name, order_size, order_price)
@@ -70,6 +69,7 @@ async def run_example():
         time_in_force=TimeInForce.IOC,
         reduce_only=False,
         post_only=False,
+        taker_fee=blocking_client.config.defaults.taker_fee,
     )
 
     await blocking_client.close()
