@@ -8,11 +8,11 @@ from aiohttp import ClientResponse
 from pydantic import GetCoreSchemaHandler
 from pydantic_core import CoreSchema, core_schema
 from strenum import StrEnum
-from version import SDK_VERSION
 
 from x10.errors import X10Error
 from x10.models.base import X10BaseModel
 from x10.utils.log import get_logger
+from x10.version import SDK_VERSION
 
 LOGGER = get_logger(__name__)
 USER_AGENT = f"X10PythonTradingClient/{SDK_VERSION}"

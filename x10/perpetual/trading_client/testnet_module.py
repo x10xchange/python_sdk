@@ -2,9 +2,9 @@ from typing import List, Optional
 
 import tenacity
 
+from x10.config import Config
 from x10.models.asset import AssetOperationModel, AssetOperationStatus
 from x10.models.base import X10BaseModel
-from x10.perpetual.configuration import EndpointConfig
 from x10.perpetual.trading_client.account_module import AccountModule
 from x10.perpetual.trading_client.base_module import BaseModule
 from x10.utils.http import WrappedApiResponse, send_post_request
@@ -17,11 +17,11 @@ class ClaimResponseModel(X10BaseModel):
 class TestnetModule(BaseModule):
     def __init__(
         self,
-        endpoint_config: EndpointConfig,
+        config: Config,
         api_key: Optional[str] = None,
         account_module: Optional[AccountModule] = None,
     ):
-        super().__init__(endpoint_config, api_key=api_key)
+        super().__init__(config, api_key=api_key)
         self._account_module = account_module
 
     async def claim_testing_funds(

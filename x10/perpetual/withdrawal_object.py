@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from fast_stark_crypto import get_withdrawal_msg_hash
 
+from x10.config import Config, StarknetDomain
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.base import SettlementSignatureModel
 from x10.models.withdrawal import (
@@ -11,7 +12,6 @@ from x10.models.withdrawal import (
     TimestampModel,
     WithdrawalRequestModel,
 )
-from x10.perpetual.configuration import EndpointConfig, StarknetDomain
 from x10.utils.date import utc_now
 from x10.utils.nonce import generate_nonce
 
@@ -27,7 +27,7 @@ def create_withdrawal_object(
     amount: Decimal,
     recipient_stark_address: str,
     stark_account: StarkPerpetualAccount,
-    config: EndpointConfig,
+    config: Config,
     account_id: int,
     chain_id: str,
     description: str | None = None,
@@ -35,9 +35,9 @@ def create_withdrawal_object(
     quote_id: str | None = None,
 ) -> WithdrawalRequestModel:
     expiration_timestamp = calc_expiration_timestamp()
-    scaled_amount = amount.scaleb(config.collateral_decimals)
+    scaled_amount = amount.scaleb(config.endpoints.collateral_decimals)
     stark_amount = scaled_amount.to_integral_exact()
-    starknet_domain: StarknetDomain = config.starknet_domain
+    starknet_domain: StarknetDomain = config.signing.starknet_domain
 
     if nonce is None:
         nonce = generate_nonce()
@@ -53,7 +53,7 @@ def create_withdrawal_object(
         domain_version=starknet_domain.version,
         domain_chain_id=starknet_domain.chain_id,
         domain_revision=starknet_domain.revision,
-        collateral_id=int(config.collateral_asset_on_chain_id, base=16),
+        collateral_id=int(config.endpoints.collateral_asset_on_chain_id, base=16),
     )
 
     (transfer_signature_r, transfer_signature_s) = stark_account.sign(withdrawal_hash)
@@ -61,7 +61,7 @@ def create_withdrawal_object(
     settlement = StarkWithdrawalSettlementModel(
         recipient=int(recipient_stark_address, 16),
         position_id=stark_account.vault,
-        collateral_id=int(config.collateral_asset_on_chain_id, base=16),
+        collateral_id=int(config.endpoints.collateral_asset_on_chain_id, base=16),
         amount=int(stark_amount),
         expiration=TimestampModel(seconds=expiration_timestamp),
         salt=nonce,

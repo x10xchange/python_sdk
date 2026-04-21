@@ -10,20 +10,20 @@ from x10.utils.http import get_url
 
 
 class BaseModule:
-    __endpoint_config: Config
+    __config: Config
     __api_key: Optional[str]
     __stark_account: Optional[StarkPerpetualAccount]
     __session: Optional[aiohttp.ClientSession]
 
     def __init__(
         self,
-        endpoint_config: Config,
+        config: Config,
         *,
         api_key: Optional[str] = None,
         stark_account: Optional[StarkPerpetualAccount] = None,
     ):
         super().__init__()
-        self.__endpoint_config = endpoint_config
+        self.__config = config
         self.__api_key = api_key
         self.__stark_account = stark_account
         self.__session = None
@@ -32,7 +32,7 @@ class BaseModule:
         return get_url(f"{self._get_endpoint_config().api_base_url}{path}", query=query, **path_params)
 
     def _get_endpoint_config(self):
-        return self.__endpoint_config.endpoints
+        return self.__config.endpoints
 
     def _get_api_key(self):
         if not self.__api_key:
@@ -49,7 +49,7 @@ class BaseModule:
     async def get_session(self) -> aiohttp.ClientSession:
         if self.__session is None:
             created_session = aiohttp.ClientSession(
-                timeout=ClientTimeout(total=self.__endpoint_config.defaults.request_timeout_seconds)
+                timeout=ClientTimeout(total=self.__config.defaults.request_timeout_seconds)
             )
             self.__session = created_session
 
