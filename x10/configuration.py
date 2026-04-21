@@ -1,7 +1,8 @@
 from dataclasses import dataclass
+from decimal import Decimal
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class StarknetDomain:
     name: str
     version: str
@@ -9,7 +10,7 @@ class StarknetDomain:
     revision: str
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class EndpointsConfig:
     """
     Attributes:
@@ -34,45 +35,64 @@ class EndpointsConfig:
 
     vault_asset_name: str
 
+# DEFAULT_MARKET_PRICE_SLIPPAGE = Decimal("0.0075")
+# DEFAULT_REQUEST_TIMEOUT_SECONDS = 500
+#
+#
+# # FIXME: Move to config
+# DEFAULT_FEES = TradingFeeModel(
+#     market="BTC-USD",
+#     maker_fee_rate=(Decimal("2") / Decimal("10000")),
+#     taker_fee_rate=(Decimal("5") / Decimal("10000")),
+#     builder_fee_rate=Decimal("0"),
+# )
 
-@dataclass(kw_only=True)
-class SigningConfig:
+@dataclass(kw_only=True, frozen=True)
+class Config:
+    default_market_price_slippage: Decimal
+    default_request_timeout_seconds: int
+    default_maker_fee_rate: Decimal
+    default_maker_fee_rate: Decimal
+
     signing_domain: str
     starknet_domain: StarknetDomain
 
-
-@dataclass(kw_only=True)
-class Config:
     endpoints: EndpointsConfig
-    signing: SigningConfig
 
 
-TESTNET_CONFIG = EndpointsConfig(
-    chain_rpc_url="https://rpc.sepolia.org",
-    api_base_url="https://api.starknet.sepolia.extended.exchange/api/v1",
-    stream_url="wss://api.starknet.sepolia.extended.exchange/stream.extended.exchange/v1",
-    onboarding_url="https://api.starknet.sepolia.extended.exchange",
+TESTNET_CONFIG = Config(
     signing_domain="starknet.sepolia.extended.exchange",
     starknet_domain=StarknetDomain(name="Perpetuals", version="v0", chain_id="SN_SEPOLIA", revision="1"),
-    asset_operations_contract="",
-    collateral_asset_contract="0x05ba91db44b3e6a4485b5dbfcb17d791faa9cb6890a42731b66b3536b28b8ed5",
-    collateral_asset_on_chain_id="0x1",
-    collateral_decimals=6,
-    collateral_asset_id="0x1",
-    vault_asset_name="XVS",
+
+    endpoints=EndpointsConfig(
+        chain_rpc_url="https://rpc.sepolia.org",
+        api_base_url="https://api.starknet.sepolia.extended.exchange/api/v1",
+        stream_url="wss://api.starknet.sepolia.extended.exchange/stream.extended.exchange/v1",
+        onboarding_url="https://api.starknet.sepolia.extended.exchange",
+        asset_operations_contract="",
+        collateral_asset_contract="0x05ba91db44b3e6a4485b5dbfcb17d791faa9cb6890a42731b66b3536b28b8ed5",
+        collateral_asset_on_chain_id="0x1",
+        collateral_decimals=6,
+        collateral_asset_id="0x1",
+        vault_asset_name="XVS",
+    )
 )
 
-MAINNET_CONFIG = EndpointsConfig(
-    chain_rpc_url="",
-    api_base_url="https://api.starknet.extended.exchange/api/v1",
-    stream_url="wss://api.starknet.extended.exchange/stream.extended.exchange/v1",
-    onboarding_url="https://api.starknet.extended.exchange",
+
+MAINNET_CONFIG = Config(
     signing_domain="extended.exchange",
     starknet_domain=StarknetDomain(name="Perpetuals", version="v0", chain_id="SN_MAIN", revision="1"),
-    asset_operations_contract="",
-    collateral_asset_contract="",
-    collateral_asset_on_chain_id="0x1",
-    collateral_decimals=6,
-    collateral_asset_id="0x1",
-    vault_asset_name="XVS",
+
+    endpoints=EndpointsConfig(
+        chain_rpc_url="",
+        api_base_url="https://api.starknet.extended.exchange/api/v1",
+        stream_url="wss://api.starknet.extended.exchange/stream.extended.exchange/v1",
+        onboarding_url="https://api.starknet.extended.exchange",
+        asset_operations_contract="",
+        collateral_asset_contract="",
+        collateral_asset_on_chain_id="0x1",
+        collateral_decimals=6,
+        collateral_asset_id="0x1",
+        vault_asset_name="XVS",
+    )
 )

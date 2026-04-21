@@ -77,7 +77,8 @@ def create_order_object(
     if expire_time is None:
         expire_time = utc_now() + timedelta(hours=1)
 
-    fees = account.trading_fee.get(market.name, DEFAULT_FEES)
+    # FIXME: Replace with explicit fee param
+    # fees = account.trading_fee.get(market.name, DEFAULT_FEES)
 
     return __create_order_object(
         market=market,

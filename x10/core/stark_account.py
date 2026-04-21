@@ -15,7 +15,7 @@ class StarkPerpetualAccount:
     __vault: int
     __private_key: int
     __public_key: int
-    __trading_fee: Dict[str, TradingFeeModel]
+    # __trading_fee: Dict[str, TradingFeeModel]
 
     def __init__(self, vault: int | str, private_key: str, public_key: str, api_key: str):
         assert is_hex_string(private_key)
@@ -32,7 +32,7 @@ class StarkPerpetualAccount:
         self.__private_key = int(private_key, base=16)
         self.__public_key = int(public_key, base=16)
         self.__api_key = api_key
-        self.__trading_fee = {}
+        # self.__trading_fee = {}
 
     @property
     def vault(self):
@@ -46,9 +46,9 @@ class StarkPerpetualAccount:
     def api_key(self):
         return self.__api_key
 
-    @property
-    def trading_fee(self):
-        return self.__trading_fee
+    # @property
+    # def trading_fee(self):
+    #     return self.__trading_fee
 
     def sign(self, msg_hash: int) -> Tuple[int, int]:
         return sign(private_key=self.__private_key, msg_hash=msg_hash)
