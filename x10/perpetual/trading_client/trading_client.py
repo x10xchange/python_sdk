@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Dict, Optional
 
+from x10.config import Config
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.market import MarketModel
 from x10.models.order import (
@@ -11,7 +12,6 @@ from x10.models.order import (
     SelfTradeProtectionLevel,
     TimeInForce,
 )
-from x10.perpetual.configuration import EndpointConfig
 from x10.perpetual.order_object import OrderTpslTriggerParam, create_order_object
 from x10.perpetual.trading_client.account_module import AccountModule
 from x10.perpetual.trading_client.info_markets_module import InfoMarketsModule
@@ -33,7 +33,7 @@ class PerpetualTradingClient:
 
     __markets: Dict[str, MarketModel] | None
 
-    __config: EndpointConfig
+    __config: Config
     __stark_account: StarkPerpetualAccount | None
 
     __info_module: InfoModule
@@ -87,7 +87,7 @@ class PerpetualTradingClient:
             expire_time=expire_time,
             time_in_force=time_in_force,
             self_trade_protection_level=self_trade_protection_level,
-            starknet_domain=self.__config.starknet_domain,
+            starknet_domain=self.__config.signing.starknet_domain,
             order_external_id=external_id,
             builder_fee=builder_fee,
             builder_id=builder_id,
@@ -109,25 +109,25 @@ class PerpetualTradingClient:
     async def __aexit__(self, exc_type, exc_value, traceback):
         await self.close()
 
-    def __init__(self, endpoint_config: EndpointConfig, stark_account: StarkPerpetualAccount | None = None):
+    def __init__(self, config: Config, stark_account: StarkPerpetualAccount | None = None):
         api_key = stark_account.api_key if stark_account else None
 
-        self.__config = endpoint_config
+        self.__config = config
         self.__markets = None
         self.__stark_account = stark_account
 
-        self.__info_module = InfoModule(endpoint_config)
-        self.__info_markets_module = InfoMarketsModule(endpoint_config, api_key=api_key)
-        self.__account_module = AccountModule(endpoint_config, api_key=api_key, stark_account=stark_account)
-        self.__order_management_module = OrderManagementModule(endpoint_config, api_key=api_key)
+        self.__info_module = InfoModule(config)
+        self.__info_markets_module = InfoMarketsModule(config, api_key=api_key)
+        self.__account_module = AccountModule(config, api_key=api_key, stark_account=stark_account)
+        self.__order_management_module = OrderManagementModule(config, api_key=api_key)
         self.__vault_module = VaultModule(
-            endpoint_config,
+            config,
             info_module=self.__info_module,
             account_module=self.__account_module,
             account=stark_account,
             api_key=api_key,
         )
-        self.__testnet_module = TestnetModule(endpoint_config, api_key=api_key, account_module=self.__account_module)
+        self.__testnet_module = TestnetModule(config, api_key=api_key, account_module=self.__account_module)
 
     @property
     def config(self):

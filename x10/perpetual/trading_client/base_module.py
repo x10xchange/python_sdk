@@ -1,22 +1,23 @@
 from typing import Dict, Optional
 
 import aiohttp
+from aiohttp import ClientTimeout
 
+from x10.config import Config
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.errors import X10Error
-from x10.perpetual.configuration import EndpointConfig
-from x10.utils.http import CLIENT_TIMEOUT, get_url
+from x10.utils.http import get_url
 
 
 class BaseModule:
-    __endpoint_config: EndpointConfig
+    __endpoint_config: Config
     __api_key: Optional[str]
     __stark_account: Optional[StarkPerpetualAccount]
     __session: Optional[aiohttp.ClientSession]
 
     def __init__(
         self,
-        endpoint_config: EndpointConfig,
+        endpoint_config: Config,
         *,
         api_key: Optional[str] = None,
         stark_account: Optional[StarkPerpetualAccount] = None,
@@ -28,10 +29,10 @@ class BaseModule:
         self.__session = None
 
     def _get_url(self, path: str, *, query: Optional[Dict] = None, **path_params) -> str:
-        return get_url(f"{self.__endpoint_config.api_base_url}{path}", query=query, **path_params)
+        return get_url(f"{self._get_endpoint_config().api_base_url}{path}", query=query, **path_params)
 
-    def _get_endpoint_config(self) -> EndpointConfig:
-        return self.__endpoint_config
+    def _get_endpoint_config(self):
+        return self.__endpoint_config.endpoints
 
     def _get_api_key(self):
         if not self.__api_key:
@@ -47,7 +48,9 @@ class BaseModule:
 
     async def get_session(self) -> aiohttp.ClientSession:
         if self.__session is None:
-            created_session = aiohttp.ClientSession(timeout=CLIENT_TIMEOUT)
+            created_session = aiohttp.ClientSession(
+                timeout=ClientTimeout(total=self.__endpoint_config.defaults.request_timeout_seconds)
+            )
             self.__session = created_session
 
         return self.__session

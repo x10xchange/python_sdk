@@ -1,4 +1,3 @@
-import importlib.metadata
 from decimal import Decimal
 
 from x10.models.fee import TradingFeeModel
