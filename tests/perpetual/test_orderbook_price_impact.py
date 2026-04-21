@@ -9,10 +9,9 @@ from x10.perpetual.orderbook import OrderBook
 
 class TestOrderBook(TestCase):
     def setUp(self):
-        self.endpoint_config = TESTNET_CONFIG
         self.market_name = "dummy-market"
         self.orderbook = OrderBook(
-            self.endpoint_config,
+            TESTNET_CONFIG,
             self.market_name,
             best_ask_change_callback=None,
             best_bid_change_callback=None,
