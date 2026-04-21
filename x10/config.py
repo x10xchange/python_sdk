@@ -11,6 +11,21 @@ class StarknetDomain:
 
 
 @dataclass(kw_only=True, frozen=True)
+class DefaultsConfig:
+    market_price_slippage: Decimal
+    request_timeout_seconds: int
+    maker_fee_rate: Decimal
+    taker_fee_rate: Decimal
+    builder_fee_rate: Decimal
+
+
+@dataclass(kw_only=True, frozen=True)
+class SigningConfig:
+    signing_domain: str
+    starknet_domain: StarknetDomain
+
+
+@dataclass(kw_only=True, frozen=True)
 class EndpointsConfig:
     """
     Attributes:
@@ -38,29 +53,25 @@ class EndpointsConfig:
 
 @dataclass(kw_only=True, frozen=True)
 class Config:
-    # FIXME: Group?
-    default_market_price_slippage: Decimal
-    default_request_timeout_seconds: int
-    default_maker_fee_rate: Decimal
-    default_taker_fee_rate: Decimal
-    default_builder_fee_rate: Decimal
-
-    # FIXME: Group?
-    signing_domain: str
-    starknet_domain: StarknetDomain
-
+    defaults: DefaultsConfig
+    signing: SigningConfig
     endpoints: EndpointsConfig
 
 
+DEFAULTS = DefaultsConfig(
+    market_price_slippage=Decimal("0.0075"),
+    request_timeout_seconds=500,
+    maker_fee_rate=Decimal("0.0002"),
+    taker_fee_rate=Decimal("0.0005"),
+    builder_fee_rate=Decimal("0"),
+)
+
 TESTNET_CONFIG = Config(
-    default_market_price_slippage=Decimal("0.0075"),
-    # FIXME: Reduce
-    default_request_timeout_seconds=500,
-    default_maker_fee_rate=Decimal("0.0002"),
-    default_taker_fee_rate=Decimal("0.0005"),
-    default_builder_fee_rate=Decimal("0"),
-    signing_domain="starknet.sepolia.extended.exchange",
-    starknet_domain=StarknetDomain(name="Perpetuals", version="v0", chain_id="SN_SEPOLIA", revision="1"),
+    defaults=DEFAULTS,
+    signing=SigningConfig(
+        signing_domain="starknet.sepolia.extended.exchange",
+        starknet_domain=StarknetDomain(name="Perpetuals", version="v0", chain_id="SN_SEPOLIA", revision="1"),
+    ),
     endpoints=EndpointsConfig(
         chain_rpc_url="https://rpc.sepolia.org",
         api_base_url="https://api.starknet.sepolia.extended.exchange/api/v1",
@@ -77,14 +88,11 @@ TESTNET_CONFIG = Config(
 
 
 MAINNET_CONFIG = Config(
-    default_market_price_slippage=Decimal("0.0075"),
-    # FIXME: Reduce
-    default_request_timeout_seconds=500,
-    default_maker_fee_rate=Decimal("0.0002"),
-    default_taker_fee_rate=Decimal("0.0005"),
-    default_builder_fee_rate=Decimal("0"),
-    signing_domain="extended.exchange",
-    starknet_domain=StarknetDomain(name="Perpetuals", version="v0", chain_id="SN_MAIN", revision="1"),
+    defaults=DEFAULTS,
+    signing=SigningConfig(
+        signing_domain="extended.exchange",
+        starknet_domain=StarknetDomain(name="Perpetuals", version="v0", chain_id="SN_MAIN", revision="1"),
+    ),
     endpoints=EndpointsConfig(
         chain_rpc_url="",
         api_base_url="https://api.starknet.extended.exchange/api/v1",
