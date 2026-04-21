@@ -5,9 +5,9 @@ import pytest
 from aiohttp import web
 from hamcrest import assert_that, equal_to, has_length
 
+from x10.config import TESTNET_CONFIG
 from x10.models.asset import AssetOperationModel
 from x10.models.market import MarketModel
-from x10.config import TESTNET_CONFIG
 from x10.utils.http import WrappedApiResponse
 
 

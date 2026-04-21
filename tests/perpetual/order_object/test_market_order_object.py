@@ -6,8 +6,8 @@ from freezegun import freeze_time
 from hamcrest import assert_that, equal_to
 from pytest_mock import MockerFixture
 
-from x10.models.order import OrderSide, OrderType, TimeInForce
 from x10.config import TESTNET_CONFIG
+from x10.models.order import OrderSide, OrderType, TimeInForce
 from x10.utils.date import utc_now
 from x10.utils.order import get_price_with_slippage
 
