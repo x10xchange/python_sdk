@@ -45,13 +45,13 @@ async def run_example():
         time_in_force=TimeInForce.GTT,
         reduce_only=False,
         post_only=True,
+        taker_fee=trading_client.config.defaults.taker_fee,
         trigger=OrderConditionalTriggerParam(
             trigger_price=order_trigger_price,
             trigger_price_type=OrderTriggerPriceType.LAST,
             direction=OrderTriggerDirection.DOWN,
             execution_price_type=OrderPriceType.LIMIT,
         ),
-        taker_fee=trading_client.config.defaults.taker_fee,
     )
 
     LOGGER.info("Placing order...")
