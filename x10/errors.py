@@ -1,20 +1,16 @@
-class X10Error(Exception):
+class SdkError(Exception):
     pass
 
 
-class SdkError(X10Error):
+class ValidationError(SdkError, ValueError):
     pass
 
 
-class SdkValidationError(SdkError, ValueError):
+class NotSupportedError(SdkError, NotImplementedError):
     pass
 
 
-class SdkNotImplementedError(SdkError, NotImplementedError):
-    pass
-
-
-class ApiError(X10Error):
+class ApiError(SdkError):
     pass
 
 

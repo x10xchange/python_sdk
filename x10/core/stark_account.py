@@ -2,7 +2,7 @@ from typing import Tuple
 
 from fast_stark_crypto import sign
 
-from x10.errors import SdkValidationError
+from x10.errors import ValidationError
 from x10.utils.string import is_hex_string
 
 
@@ -20,7 +20,7 @@ class StarkPerpetualAccount:
         elif isinstance(vault, int):
             self.__vault = vault
         else:
-            raise SdkValidationError("Invalid vault type")
+            raise ValidationError("Invalid vault type")
 
         self.__vault = vault
         self.__private_key = int(private_key, base=16)

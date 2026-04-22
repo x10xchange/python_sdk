@@ -6,7 +6,7 @@ from typing import Awaitable, Dict, Union, cast
 
 from x10.config import Config
 from x10.core.stark_account import StarkPerpetualAccount
-from x10.errors import SdkError, SdkValidationError
+from x10.errors import SdkError, ValidationError
 from x10.models.account import AccountStreamDataModel
 from x10.models.market import MarketModel
 from x10.models.order import (
@@ -175,7 +175,7 @@ class BlockingTradingClient:
             markets = await self.__market_module.get_markets()
             market_data = markets.data
             if not market_data:
-                raise SdkValidationError("Core market data is empty, check your connection or API key.")
+                raise ValidationError("Core market data is empty, check your connection or API key.")
             self.__markets = {m.name: m for m in market_data}
         return self.__markets
 
@@ -211,7 +211,7 @@ class BlockingTradingClient:
     ) -> TimedOpenOrderModel:
         market = (await self.get_markets()).get(market_name)
         if not market:
-            raise SdkValidationError(f"Market '{market_name}' not found.")
+            raise ValidationError(f"Market '{market_name}' not found.")
 
         order: NewOrderModel = create_order_object(
             account=self.__account,
@@ -232,7 +232,7 @@ class BlockingTradingClient:
         )
 
         if order.id in self.__order_waiters:
-            raise SdkValidationError(f"order with {order.id} hash already placed")
+            raise ValidationError(f"order with {order.id} hash already placed")
 
         self.__order_waiters[order.id] = OrderWaiter(asyncio.Condition(), None, start_nanos=time.time_ns())
         placed_order_task = asyncio.create_task(self.__orders_module.place_order(order))
@@ -248,7 +248,7 @@ class BlockingTradingClient:
             open_model = self.__order_waiters[order.id].open_order
             del self.__order_waiters[order.id]
             if not open_model:
-                raise SdkValidationError("No Fill or Placement received for order")
+                raise ValidationError("No Fill or Placement received for order")
             return open_model
 
     async def close(self):

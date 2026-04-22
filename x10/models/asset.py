@@ -4,7 +4,7 @@ from typing import Optional
 
 from strenum import StrEnum
 
-from x10.errors import SdkValidationError
+from x10.errors import ValidationError
 from x10.models.base import HexValue, X10BaseModel
 
 
@@ -50,7 +50,7 @@ class Asset:
 
     def convert_internal_quantity_to_l1_quantity(self, internal: Decimal) -> int:
         if not self.is_collateral:
-            raise SdkValidationError("Only collateral assets have an L1 representation")
+            raise ValidationError("Only collateral assets have an L1 representation")
         return int(internal * Decimal(self.l1_resolution))
 
     @staticmethod

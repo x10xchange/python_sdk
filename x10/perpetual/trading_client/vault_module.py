@@ -5,7 +5,7 @@ from typing import Optional
 
 from x10.config import Config
 from x10.core.stark_account import StarkPerpetualAccount
-from x10.errors import ApiError, SdkValidationError
+from x10.errors import ApiError, ValidationError
 from x10.models.base import X10BaseModel
 from x10.models.order import LimitOrderSettlementModel
 from x10.perpetual.limit_order_object_settlement import create_order_settlement_data
@@ -54,14 +54,14 @@ class VaultModule(BaseModule):
     async def get_vault_share_balance(self) -> Decimal:
         spot_balances = (await self._account_module.get_spot_balances()).data
         if spot_balances is None:
-            raise SdkValidationError("Failed to get spot balances")
+            raise ValidationError("Failed to get spot balances")
         vault_asset_balances = filter(lambda b: b.asset == self._get_endpoint_config().vault_asset_name, spot_balances)
         total_vault_asset_balance = sum(map(lambda b: b.balance, vault_asset_balances), Decimal(0))
         return total_vault_asset_balance
 
     async def deposit_to_vault(self, *, collateral_amount: Decimal) -> None:
         if self._account is None:
-            raise SdkValidationError("Stark account is required for vault operations")
+            raise ValidationError("Stark account is required for vault operations")
 
         account_info = (await self._account_module.get_account()).data
         assets = await self._info_module.get_assets_dict()
@@ -113,7 +113,7 @@ class VaultModule(BaseModule):
 
     async def withdraw_from_vault(self, *, shares_amount: Decimal) -> None:
         if self._account is None:
-            raise SdkValidationError("Stark account is required for vault operations")
+            raise ValidationError("Stark account is required for vault operations")
 
         assets = await self._info_module.get_assets_dict()
         account_info = (await self._account_module.get_account()).data

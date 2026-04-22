@@ -4,7 +4,7 @@ from typing import Dict, Optional
 
 from x10.config import Config
 from x10.core.stark_account import StarkPerpetualAccount
-from x10.errors import SdkValidationError
+from x10.errors import ValidationError
 from x10.models.market import MarketModel
 from x10.models.order import (
     OrderSide,
@@ -65,7 +65,7 @@ class PerpetualTradingClient:
         stop_loss: Optional[OrderTpslTriggerParam] = None,
     ) -> WrappedApiResponse[PlacedOrderModel]:
         if not self.__stark_account:
-            raise SdkValidationError("Stark account is not set")
+            raise ValidationError("Stark account is not set")
 
         if not self.__markets:
             self.__markets = await self.__info_markets_module.get_markets_dict()
@@ -73,7 +73,7 @@ class PerpetualTradingClient:
         market = self.__markets.get(market_name)
 
         if not market:
-            raise SdkValidationError(f"Market {market_name} not found")
+            raise ValidationError(f"Market {market_name} not found")
 
         if expire_time is None:
             expire_time = utc_now() + timedelta(hours=1)
