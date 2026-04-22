@@ -2,12 +2,12 @@ import logging.handlers
 from asyncio import run
 
 from examples.utils import (
+    BTC_USD_MARKET,
     create_trading_client,
     find_order_and_cancel,
     get_adjust_price_by_pct,
     init_env,
 )
-from x10.config import BTC_USD_MARKET
 from x10.models.order import OrderSide, TimeInForce
 from x10.perpetual.order_object import create_order_object
 
@@ -45,8 +45,8 @@ async def run_example():
         time_in_force=TimeInForce.GTT,
         reduce_only=False,
         post_only=True,
-        builder_id=builder_id,
         builder_fee=builder_fee,
+        builder_id=builder_id,
     )
 
     LOGGER.info("Placing order...")

@@ -2,17 +2,16 @@ import asyncio
 import decimal
 from unittest import TestCase
 
+from x10.config import TESTNET_CONFIG
 from x10.models.orderbook import OrderbookUpdateModel
-from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.orderbook import OrderBook
 
 
 class TestOrderBook(TestCase):
     def setUp(self):
-        self.endpoint_config = TESTNET_CONFIG
         self.market_name = "dummy-market"
         self.orderbook = OrderBook(
-            self.endpoint_config,
+            TESTNET_CONFIG,
             self.market_name,
             best_ask_change_callback=None,
             best_bid_change_callback=None,

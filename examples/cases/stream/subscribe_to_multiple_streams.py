@@ -3,8 +3,7 @@ import logging
 from asyncio import run
 from signal import SIGINT, SIGTERM
 
-from examples.utils import create_stream_client, init_env
-from x10.config import BTC_USD_MARKET
+from examples.utils import BTC_USD_MARKET, create_stream_client, init_env
 
 LOGGER = logging.getLogger()
 MARKET_NAME = BTC_USD_MARKET

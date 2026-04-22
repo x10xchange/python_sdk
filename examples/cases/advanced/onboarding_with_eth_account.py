@@ -5,14 +5,14 @@ from eth_account import Account
 from eth_account.signers.local import LocalAccount
 
 from examples.utils import init_env
+from x10.config import TESTNET_CONFIG
 from x10.core.stark_account import StarkPerpetualAccount
-from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.perpetual.trading_client.trading_client import PerpetualTradingClient
 from x10.perpetual.user_client.user_client import UserClient
 from x10.utils.string import is_hex_string
 
 LOGGER = logging.getLogger()
-ENDPOINT_CONFIG = TESTNET_CONFIG
+CONFIG = TESTNET_CONFIG
 
 
 async def run_example():
@@ -23,7 +23,7 @@ async def run_example():
     assert is_hex_string(eth_account_private_key), "`eth_account_private_key` must be a hex string"
 
     eth_local_account: LocalAccount = Account.from_key(eth_account_private_key)
-    user_client = UserClient(endpoint_config=ENDPOINT_CONFIG, l1_private_key=eth_local_account.key.hex)
+    user_client = UserClient(config=CONFIG, l1_private_key=eth_local_account.key.hex)
 
     LOGGER.info("Onboarding with ETH account %s...", eth_local_account.address)
 
@@ -36,7 +36,7 @@ async def run_example():
         private_key=main_account.l2_key_pair.private_hex,
         vault=main_account.account.l2_vault,
     )
-    trading_client = PerpetualTradingClient(ENDPOINT_CONFIG, starknet_account)
+    trading_client = PerpetualTradingClient(CONFIG, starknet_account)
 
     LOGGER.info("StarkNet public key: %s", starknet_account.public_key)
 

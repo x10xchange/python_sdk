@@ -5,6 +5,7 @@ from typing import List
 
 from fast_stark_crypto import get_transfer_msg_hash
 
+from x10.config import Config, StarknetDomain
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.account import AccountModel
 from x10.models.base import SettlementSignatureModel
@@ -12,7 +13,6 @@ from x10.models.transfer import (
     OnChainPerpetualTransferModel,
     StarkTransferSettlementModel,
 )
-from x10.perpetual.configuration import EndpointConfig, StarknetDomain
 from x10.utils.date import utc_now
 from x10.utils.nonce import generate_nonce
 
@@ -34,14 +34,14 @@ def create_transfer_object(
     to_vault: int,
     to_l2_key: int,
     amount: Decimal,
-    config: EndpointConfig,
+    config: Config,
     stark_account: StarkPerpetualAccount,
     nonce: int | None = None,
 ) -> OnChainPerpetualTransferModel:
     expiration_timestamp = calc_expiration_timestamp()
-    scaled_amount = amount.scaleb(config.collateral_decimals)
+    scaled_amount = amount.scaleb(config.endpoints.collateral_decimals)
     stark_amount = scaled_amount.to_integral_exact()
-    starknet_domain: StarknetDomain = config.starknet_domain
+    starknet_domain: StarknetDomain = config.signing.starknet_domain
 
     if nonce is None:
         nonce = generate_nonce()
@@ -57,13 +57,13 @@ def create_transfer_object(
         domain_version=starknet_domain.version,
         domain_chain_id=starknet_domain.chain_id,
         domain_revision=starknet_domain.revision,
-        collateral_id=int(config.collateral_asset_on_chain_id, base=16),
+        collateral_id=int(config.endpoints.collateral_asset_on_chain_id, base=16),
     )
 
     (transfer_signature_r, transfer_signature_s) = stark_account.sign(transfer_hash)
     settlement = StarkTransferSettlementModel(
         amount=int(stark_amount),
-        asset_id=int(config.collateral_asset_on_chain_id, base=16),
+        asset_id=int(config.endpoints.collateral_asset_on_chain_id, base=16),
         expiration_timestamp=expiration_timestamp,
         nonce=nonce,
         receiver_position_id=to_vault,
@@ -78,5 +78,5 @@ def create_transfer_object(
         to_vault=to_vault,
         amount=amount,
         settlement=settlement,
-        transferred_asset=config.collateral_asset_on_chain_id,
+        transferred_asset=config.endpoints.collateral_asset_on_chain_id,
     )

@@ -4,18 +4,18 @@ from types import NoneType
 from typing import Any, Dict, Generic, List, Optional, Sequence, Type, TypeVar, Union
 
 import aiohttp
-from aiohttp import ClientResponse, ClientTimeout
+from aiohttp import ClientResponse
 from pydantic import GetCoreSchemaHandler
 from pydantic_core import CoreSchema, core_schema
 from strenum import StrEnum
 
-from x10.config import DEFAULT_REQUEST_TIMEOUT_SECONDS, USER_AGENT
 from x10.errors import X10Error
 from x10.models.base import X10BaseModel
 from x10.utils.log import get_logger
+from x10.version import SDK_VERSION
 
 LOGGER = get_logger(__name__)
-CLIENT_TIMEOUT = ClientTimeout(total=DEFAULT_REQUEST_TIMEOUT_SECONDS)
+USER_AGENT = f"X10PythonTradingClient/{SDK_VERSION}"
 
 ApiResponseType = TypeVar("ApiResponseType", bound=Union[int, X10BaseModel, Sequence[X10BaseModel], None])
 

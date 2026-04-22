@@ -6,6 +6,7 @@ from freezegun import freeze_time
 from hamcrest import assert_that, equal_to
 from pytest_mock import MockerFixture
 
+from x10.config import TESTNET_CONFIG
 from x10.models.order import (
     OrderPriceType,
     OrderSide,
@@ -14,7 +15,6 @@ from x10.models.order import (
     OrderType,
     SelfTradeProtectionLevel,
 )
-from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.utils.date import utc_now
 
 FROZEN_NONCE = 1473459052
@@ -39,7 +39,7 @@ async def test_create_buy_partial_tpsl_order(mocker: MockerFixture, create_tradi
         reduce_only=True,
         expire_time=utc_now() + timedelta(days=14),
         self_trade_protection_level=SelfTradeProtectionLevel.CLIENT,
-        starknet_domain=TESTNET_CONFIG.starknet_domain,
+        starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
         tp_sl_type=OrderTpslType.ORDER,
         take_profit=OrderTpslTriggerParam(
             trigger_price=Decimal("49000"),
@@ -133,7 +133,7 @@ async def test_create_buy_position_tpsl_order(mocker: MockerFixture, create_trad
         reduce_only=True,
         expire_time=utc_now() + timedelta(days=14),
         self_trade_protection_level=SelfTradeProtectionLevel.CLIENT,
-        starknet_domain=TESTNET_CONFIG.starknet_domain,
+        starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
         tp_sl_type=OrderTpslType.POSITION,
         take_profit=OrderTpslTriggerParam(
             trigger_price=Decimal("49000"),

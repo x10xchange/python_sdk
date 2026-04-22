@@ -4,9 +4,8 @@ from typing import AsyncIterator, Generic, Optional, Type, TypeVar
 import websockets
 from websockets import WebSocketClientProtocol
 
-from x10.config import USER_AGENT
 from x10.models.base import X10BaseModel
-from x10.utils.http import RequestHeader
+from x10.utils.http import USER_AGENT, RequestHeader
 from x10.utils.log import get_logger
 
 LOGGER = get_logger(__name__)

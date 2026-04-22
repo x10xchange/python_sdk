@@ -6,6 +6,7 @@ from freezegun import freeze_time
 from hamcrest import assert_that, equal_to
 from pytest_mock import MockerFixture
 
+from x10.config import TESTNET_CONFIG
 from x10.models.order import (
     OrderPriceType,
     OrderSide,
@@ -13,7 +14,6 @@ from x10.models.order import (
     OrderTriggerPriceType,
     SelfTradeProtectionLevel,
 )
-from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.utils.date import utc_now
 
 FROZEN_NONCE = 1473459052
@@ -38,7 +38,7 @@ async def test_create_sell_order_with_default_expiration(
         amount_of_synthetic=Decimal("0.00100000"),
         price=Decimal("43445.11680000"),
         side=OrderSide.SELL,
-        starknet_domain=TESTNET_CONFIG.starknet_domain,
+        starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
     )
     freezer.stop()
     assert_that(
@@ -95,7 +95,7 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
         price=Decimal("43445.11680000"),
         side=OrderSide.SELL,
         expire_time=utc_now() + timedelta(days=14),
-        starknet_domain=TESTNET_CONFIG.starknet_domain,
+        starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
         nonce=FROZEN_NONCE,
     )
 
@@ -154,7 +154,7 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
         side=OrderSide.BUY,
         expire_time=utc_now() + timedelta(days=14),
         self_trade_protection_level=SelfTradeProtectionLevel.CLIENT,
-        starknet_domain=TESTNET_CONFIG.starknet_domain,
+        starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
     )
 
     assert_that(
@@ -212,7 +212,7 @@ async def test_create_buy_order_with_order_tpsl(mocker: MockerFixture, create_tr
         side=OrderSide.BUY,
         expire_time=utc_now() + timedelta(days=14),
         self_trade_protection_level=SelfTradeProtectionLevel.CLIENT,
-        starknet_domain=TESTNET_CONFIG.starknet_domain,
+        starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
         tp_sl_type=OrderTpslType.ORDER,
         take_profit=OrderTpslTriggerParam(
             trigger_price=Decimal("49000"),
@@ -321,7 +321,7 @@ async def test_create_buy_order_with_position_tpsl(
         side=OrderSide.BUY,
         expire_time=utc_now() + timedelta(days=14),
         self_trade_protection_level=SelfTradeProtectionLevel.CLIENT,
-        starknet_domain=TESTNET_CONFIG.starknet_domain,
+        starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
         tp_sl_type=OrderTpslType.POSITION,
         take_profit=OrderTpslTriggerParam(
             trigger_price=Decimal("49000"),

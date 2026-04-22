@@ -3,11 +3,11 @@ from asyncio import run
 from decimal import Decimal
 
 from examples.utils import (
+    BTC_USD_MARKET,
     create_trading_client,
     find_order_and_cancel,
     get_adjust_price_by_pct,
 )
-from x10.config import BTC_USD_MARKET, DEFAULT_MARKET_PRICE_SLIPPAGE
 from x10.models.order import (
     OrderPriceType,
     OrderSide,
@@ -34,7 +34,9 @@ async def run_example():
     tp_trigger_price = adjust_price_by_pct(order_price, 0.5)
     tp_price = adjust_price_by_pct(tp_trigger_price, 0.5)
     sl_trigger_price = adjust_price_by_pct(order_price, -0.5)
-    sl_price = adjust_price_by_pct(sl_trigger_price, -DEFAULT_MARKET_PRICE_SLIPPAGE * Decimal("100"))
+    sl_price = adjust_price_by_pct(
+        sl_trigger_price, -trading_client.config.defaults.market_price_slippage * Decimal("100")
+    )
 
     LOGGER.info("Creating LIMIT order object with TPSL for market: %s", market.name)
 

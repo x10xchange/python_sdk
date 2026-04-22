@@ -4,8 +4,7 @@ import random
 from asyncio import run
 from typing import Set
 
-from examples.utils import create_trading_client
-from x10.config import BTC_USD_MARKET
+from examples.utils import BTC_USD_MARKET, create_trading_client
 from x10.models.market import MarketModel
 from x10.models.order import OrderSide
 from x10.perpetual.order_object import create_order_object

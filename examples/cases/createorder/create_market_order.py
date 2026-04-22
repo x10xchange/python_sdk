@@ -1,8 +1,7 @@
 import logging
 from asyncio import run
 
-from examples.utils import create_trading_client
-from x10.config import BTC_USD_MARKET, DEFAULT_MARKET_PRICE_SLIPPAGE
+from examples.utils import BTC_USD_MARKET, create_trading_client
 from x10.models.order import OrderSide, OrderType, TimeInForce
 from x10.perpetual.order_object import create_order_object
 from x10.utils.order import get_price_with_slippage
@@ -26,7 +25,7 @@ async def run_example():
         side=order_side,
         price=best_market_price,
         min_price_change=market.trading_config.min_price_change,
-        slippage=DEFAULT_MARKET_PRICE_SLIPPAGE,
+        slippage=trading_client.config.defaults.market_price_slippage,
     )
 
     LOGGER.info("Creating MARKET order object for market: %s", market.name)

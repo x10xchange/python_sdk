@@ -6,8 +6,8 @@ from freezegun import freeze_time
 from hamcrest import assert_that, equal_to
 from pytest_mock import MockerFixture
 
+from x10.config import TESTNET_CONFIG
 from x10.models.order import OrderSide, OrderType, TimeInForce
-from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.utils.date import utc_now
 from x10.utils.order import get_price_with_slippage
 
@@ -40,8 +40,8 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
         side=order_side,
         expire_time=utc_now() + timedelta(days=14),
         time_in_force=TimeInForce.IOC,
-        starknet_domain=TESTNET_CONFIG.starknet_domain,
         nonce=FROZEN_NONCE,
+        starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
     )
 
     assert_that(
@@ -107,7 +107,7 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
         side=order_side,
         expire_time=utc_now() + timedelta(days=14),
         time_in_force=TimeInForce.IOC,
-        starknet_domain=TESTNET_CONFIG.starknet_domain,
+        starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
         nonce=FROZEN_NONCE,
     )
 

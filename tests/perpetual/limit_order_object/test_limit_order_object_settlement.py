@@ -15,7 +15,7 @@ async def test_create_buy_limit_order_settlement_data(
 ):
     mocker.patch("x10.utils.nonce.generate_nonce", return_value=FROZEN_NONCE)
 
-    from x10.perpetual.configuration import MAINNET_CONFIG
+    from x10.config import MAINNET_CONFIG
     from x10.perpetual.limit_order_object_settlement import create_order_settlement_data
 
     trading_account = create_trading_account()
@@ -29,7 +29,7 @@ async def test_create_buy_limit_order_settlement_data(
         quote_asset_model=collateral_asset,
         base_asset_model=vault_asset,
         starknet_account=trading_account,
-        starknet_domain=MAINNET_CONFIG.starknet_domain,
+        starknet_domain=MAINNET_CONFIG.signing.starknet_domain,
         is_buy=True,
     )
 

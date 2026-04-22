@@ -6,8 +6,8 @@ from typing import Callable, Iterable, Tuple
 
 from sortedcontainers import SortedDict
 
+from x10.config import Config
 from x10.models.orderbook import OrderbookUpdateModel
-from x10.perpetual.configuration import EndpointConfig
 from x10.perpetual.stream_client.stream_client import PerpetualStreamClient
 from x10.utils.http import StreamDataType
 
@@ -30,27 +30,27 @@ class ImpactDetails:
 class OrderBook:
     @staticmethod
     async def create(
-        endpoint_config: EndpointConfig,
+        config: Config,
         market_name: str,
         best_ask_change_callback: Callable[[OrderBookEntry | None], Awaitable[None]] | None = None,
         best_bid_change_callback: Callable[[OrderBookEntry | None], Awaitable[None]] | None = None,
         start=False,
         depth: int | None = None,
     ) -> "OrderBook":
-        ob = OrderBook(endpoint_config, market_name, best_ask_change_callback, best_bid_change_callback, depth)
+        ob = OrderBook(config, market_name, best_ask_change_callback, best_bid_change_callback, depth)
         if start:
             await ob.start_orderbook()
         return ob
 
     def __init__(
         self,
-        endpoint_config: EndpointConfig,
+        config: Config,
         market_name: str,
         best_ask_change_callback: Callable[[OrderBookEntry | None], Awaitable[None]] | None = None,
         best_bid_change_callback: Callable[[OrderBookEntry | None], Awaitable[None]] | None = None,
         depth: int | None = None,
     ) -> None:
-        self.__stream_client = PerpetualStreamClient(api_url=endpoint_config.stream_url)
+        self.__stream_client = PerpetualStreamClient(api_url=config.endpoints.stream_url)
         self.__market_name = market_name
         self.__task: asyncio.Task | None = None
         self._bid_prices: "SortedDict[decimal.Decimal, OrderBookEntry]" = SortedDict()  # type: ignore

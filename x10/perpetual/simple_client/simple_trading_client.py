@@ -4,6 +4,7 @@ import time
 from decimal import Decimal
 from typing import Awaitable, Dict, Union, cast
 
+from x10.config import Config
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.account import AccountStreamDataModel
 from x10.models.market import MarketModel
@@ -15,7 +16,6 @@ from x10.models.order import (
     OrderType,
     TimeInForce,
 )
-from x10.perpetual.configuration import EndpointConfig
 from x10.perpetual.order_object import create_order_object
 from x10.perpetual.stream_client.perpetual_stream_connection import (
     PerpetualStreamConnection,
@@ -74,17 +74,17 @@ class CancelWaiter:
 
 
 class BlockingTradingClient:
-    def __init__(self, endpoint_config: EndpointConfig, account: StarkPerpetualAccount):
+    def __init__(self, config: Config, account: StarkPerpetualAccount):
         if not asyncio.get_event_loop().is_running():
             raise RuntimeError(
                 "BlockingTradingClient must be initialized from an async function, use BlockingTradingClient.create()"
             )
-        self.__endpoint_config = endpoint_config
+        self.__config = config
         self.__account = account
-        self.__market_module = InfoMarketsModule(endpoint_config, api_key=account.api_key)
-        self.__orders_module = OrderManagementModule(endpoint_config, api_key=account.api_key)
+        self.__market_module = InfoMarketsModule(config, api_key=account.api_key)
+        self.__orders_module = OrderManagementModule(config, api_key=account.api_key)
         self.__markets: Union[None, Dict[str, MarketModel]] = None
-        self.__stream_client: PerpetualStreamClient = PerpetualStreamClient(api_url=endpoint_config.stream_url)
+        self.__stream_client: PerpetualStreamClient = PerpetualStreamClient(api_url=config.endpoints.stream_url)
         self.__account_stream: Union[
             None,
             PerpetualStreamConnection[WrappedStreamResponse[AccountStreamDataModel]],
@@ -94,8 +94,8 @@ class BlockingTradingClient:
         self.__stream_task = asyncio.create_task(self.___order_stream())
 
     @staticmethod
-    async def create(endpoint_config: EndpointConfig, account: StarkPerpetualAccount) -> "BlockingTradingClient":
-        client = BlockingTradingClient(endpoint_config, account)
+    async def create(config: Config, account: StarkPerpetualAccount) -> "BlockingTradingClient":
+        client = BlockingTradingClient(config, account)
         await client.__stream_client.subscribe_to_account_updates(account.api_key)
         return client
 
@@ -197,6 +197,7 @@ class BlockingTradingClient:
         amount_of_synthetic: Decimal,
         price: Decimal,
         side: OrderSide,
+        taker_fee: Decimal,
         post_only: bool = False,
         previous_order_external_id: str | None = None,
         external_id: str | None = None,
@@ -220,11 +221,12 @@ class BlockingTradingClient:
             post_only=post_only,
             reduce_only=reduce_only,
             previous_order_external_id=previous_order_external_id,
-            starknet_domain=self.__endpoint_config.starknet_domain,
+            starknet_domain=self.__config.signing.starknet_domain,
             order_external_id=external_id,
             builder_fee=builder_fee,
             builder_id=builder_id,
             time_in_force=time_in_force,
+            taker_fee=taker_fee,
         )
 
         if order.id in self.__order_waiters:
@@ -252,3 +254,7 @@ class BlockingTradingClient:
             self.__stream_task.cancel()
         if self.__account_stream:
             await self.__account_stream.close()
+
+    @property
+    def config(self):
+        return self.__config

@@ -6,8 +6,8 @@ from freezegun import freeze_time
 from hamcrest import assert_that, equal_to, has_entries
 from pytest_mock import MockerFixture
 
+from x10.config import TESTNET_CONFIG
 from x10.models.order import OrderSide
-from x10.perpetual.configuration import TESTNET_CONFIG
 from x10.utils.date import utc_now
 
 FROZEN_NONCE = 1473459052
@@ -30,7 +30,7 @@ async def test_cancel_previous_order(mocker: MockerFixture, create_trading_accou
         side=OrderSide.BUY,
         expire_time=utc_now() + timedelta(days=14),
         previous_order_external_id="previous_custom_id",
-        starknet_domain=TESTNET_CONFIG.starknet_domain,
+        starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
     )
 
     assert_that(
@@ -60,7 +60,7 @@ async def test_external_order_id(mocker: MockerFixture, create_trading_account, 
         side=OrderSide.BUY,
         expire_time=utc_now() + timedelta(days=14),
         order_external_id="custom_id",
-        starknet_domain=TESTNET_CONFIG.starknet_domain,
+        starknet_domain=TESTNET_CONFIG.signing.starknet_domain,
     )
 
     assert_that(
