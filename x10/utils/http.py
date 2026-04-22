@@ -5,7 +5,13 @@ from typing import Any, Dict, Generic, List, Optional, Sequence, Type, TypeVar, 
 
 import aiohttp
 from aiohttp import ClientResponse
-from aiohttp.web_exceptions import HTTPOk, HTTPTooManyRequests, HTTPUnauthorized
+from aiohttp.web_exceptions import (
+    HTTPCreated,
+    HTTPNoContent,
+    HTTPOk,
+    HTTPTooManyRequests,
+    HTTPUnauthorized,
+)
 from pydantic import GetCoreSchemaHandler
 from pydantic_core import CoreSchema, core_schema
 from strenum import StrEnum
@@ -17,6 +23,11 @@ from x10.version import SDK_VERSION
 
 LOGGER = get_logger(__name__)
 USER_AGENT = f"X10PythonTradingClient/{SDK_VERSION}"
+SUCCESS_HTTP_CODES = [
+    HTTPOk.status_code,
+    HTTPCreated.status_code,
+    HTTPNoContent.status_code,
+]
 
 ApiResponseType = TypeVar("ApiResponseType", bound=Union[int, X10BaseModel, Sequence[X10BaseModel], None])
 
@@ -231,7 +242,7 @@ def handle_known_errors(
     if response_code_handler and response.status in response_code_handler:
         raise response_code_handler[response.status](response_text)
 
-    if response.status != HTTPOk.status_code:
+    if response.status not in SUCCESS_HTTP_CODES:
         LOGGER.error("Error response from %s: %s", url, response_text)
         raise ApiError(f"Error response from {url}: code {response.status} - {response_text}")
 

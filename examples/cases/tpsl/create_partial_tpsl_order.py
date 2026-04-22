@@ -41,7 +41,7 @@ async def run_example():
 
     new_order = create_order_object(
         account=trading_client.stark_account,
-        starknet_domain=trading_client.config.starknet_domain,
+        starknet_domain=trading_client.config.signing.starknet_domain,
         market=market,
         order_type=OrderType.TPSL,
         side=OrderSide.SELL,

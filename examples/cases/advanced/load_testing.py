@@ -46,7 +46,7 @@ async def create_orders_loop(*, trading_client: PerpetualTradingClient, market: 
             amount_of_synthetic=new_order_size,
             price=new_order_price,
             side=new_order_side,
-            starknet_domain=trading_client.config.starknet_domain,
+            starknet_domain=trading_client.config.signing.starknet_domain,
             order_external_id=new_order_external_id,
             post_only=True,
         )
@@ -106,7 +106,7 @@ async def run_example():
 
     orders_confirmation_task = asyncio.create_task(
         order_confirmation_loop(
-            stream_url=trading_client.config.stream_url,
+            stream_url=trading_client.config.endpoints.stream_url,
             api_key=trading_client.stark_account.api_key,
         )
     )

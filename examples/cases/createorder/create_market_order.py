@@ -33,7 +33,7 @@ async def run_example():
     new_order = create_order_object(
         account=trading_client.stark_account,
         order_type=OrderType.MARKET,
-        starknet_domain=trading_client.config.starknet_domain,
+        starknet_domain=trading_client.config.signing.starknet_domain,
         market=market,
         side=order_side,
         amount_of_synthetic=order_size,
