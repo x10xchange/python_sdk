@@ -5,27 +5,31 @@ from typing import Any, Dict, Generic, List, Optional, Sequence, Type, TypeVar, 
 
 import aiohttp
 from aiohttp import ClientResponse
+from aiohttp.web_exceptions import (
+    HTTPCreated,
+    HTTPNoContent,
+    HTTPOk,
+    HTTPTooManyRequests,
+    HTTPUnauthorized,
+)
 from pydantic import GetCoreSchemaHandler
 from pydantic_core import CoreSchema, core_schema
 from strenum import StrEnum
 
-from x10.errors import X10Error
+from x10.errors import ApiError, ApiNotAuthorizedError, ApiRateLimitError
 from x10.models.base import X10BaseModel
 from x10.utils.log import get_logger
 from x10.version import SDK_VERSION
 
 LOGGER = get_logger(__name__)
 USER_AGENT = f"X10PythonTradingClient/{SDK_VERSION}"
+SUCCESS_HTTP_CODES = [
+    HTTPOk.status_code,
+    HTTPCreated.status_code,
+    HTTPNoContent.status_code,
+]
 
 ApiResponseType = TypeVar("ApiResponseType", bound=Union[int, X10BaseModel, Sequence[X10BaseModel], None])
-
-
-class RateLimitException(X10Error):
-    pass
-
-
-class NotAuthorizedException(X10Error):
-    pass
 
 
 class RequestHeader(StrEnum):
@@ -175,7 +179,7 @@ async def send_post_request(
 
         if (response_model.status != ResponseStatus.OK) or (response_model.error is not None):
             LOGGER.error("Error response from POST %s: %s", url, response_model.error)
-            raise ValueError(f"Error response from POST {url}: {response_model.error}")
+            raise ApiError(f"Error response from POST {url}: {response_model.error}")
 
         return response_model
 
@@ -227,20 +231,20 @@ async def send_delete_request(
 def handle_known_errors(
     url, response_code_handler: Optional[Dict[int, Type[Exception]]], response: ClientResponse, response_text: str
 ):
-    if response.status == 401:
+    if response.status == HTTPUnauthorized.status_code:
         LOGGER.error("Unauthorized response from POST %s: %s", url, response_text)
-        raise NotAuthorizedException(f"Unauthorized response from POST {url}: {response_text}")
+        raise ApiNotAuthorizedError(f"Unauthorized response from POST {url}: {response_text}")
 
-    if response.status == 429:
+    if response.status == HTTPTooManyRequests.status_code:
         LOGGER.error("Rate limited response from POST %s: %s", url, response_text)
-        raise RateLimitException(f"Rate limited response from POST {url}: {response}")
+        raise ApiRateLimitError(f"Rate limited response from POST {url}: {response}")
 
     if response_code_handler and response.status in response_code_handler:
         raise response_code_handler[response.status](response_text)
 
-    if response.status > 299:
+    if response.status not in SUCCESS_HTTP_CODES:
         LOGGER.error("Error response from %s: %s", url, response_text)
-        raise ValueError(f"Error response from {url}: code {response.status} - {response_text}")
+        raise ApiError(f"Error response from {url}: code {response.status} - {response_text}")
 
 
 def __get_headers(*, api_key: Optional[str] = None, request_headers: Optional[Dict[str, str]] = None) -> Dict[str, str]:

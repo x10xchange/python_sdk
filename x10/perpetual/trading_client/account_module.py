@@ -1,6 +1,7 @@
 from decimal import Decimal
 from typing import List, Optional
 
+from x10.errors import ValidationError
 from x10.models.account import AccountLeverageModel, AccountModel
 from x10.models.asset import (
     AssetOperationModel,
@@ -265,25 +266,25 @@ class AccountModule(BaseModule):
         url = self._get_url("/user/withdrawal")
         account = (await self.get_account()).data
         if account is None:
-            raise ValueError("Account not found")
+            raise ValidationError("Account not found")
         if quote_id is None and chain_id != "STRK":
-            raise ValueError("quote_id is required for EVM withdrawals")
+            raise ValidationError("quote_id is required for EVM withdrawals")
 
         recipient_stark_address = None
         if stark_address is None:
             if chain_id == "STRK":
                 client = (await self.get_client()).data
                 if client is None:
-                    raise ValueError("Client not found")
+                    raise ValidationError("Client not found")
                 if client.starknet_wallet_address is None:
-                    raise ValueError(
+                    raise ValidationError(
                         "Client does not have attached starknet_wallet_address. Can't determine withdrawal address."
                     )
                 else:
                     recipient_stark_address = client.starknet_wallet_address
             else:
                 if account.bridge_starknet_address is None:
-                    raise ValueError("Account bridge_starknet_address not found")
+                    raise ValidationError("Account bridge_starknet_address not found")
                 recipient_stark_address = account.bridge_starknet_address
         else:
             recipient_stark_address = stark_address

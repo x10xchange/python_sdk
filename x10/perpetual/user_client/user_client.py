@@ -4,12 +4,13 @@ from typing import Callable, Dict, List, Optional
 
 import aiohttp
 from aiohttp import ClientTimeout
+from aiohttp.web_exceptions import HTTPConflict
 from eth_account import Account
 from eth_account.messages import encode_defunct
 from eth_account.signers.local import LocalAccount
 
 from x10.config import Config
-from x10.errors import X10Error
+from x10.errors import SdkError, ValidationError
 from x10.models.account import AccountModel, ApiKeyRequestModel, ApiKeyResponseModel
 from x10.perpetual.user_client.onboarding import (
     OnboardedClientModel,
@@ -25,7 +26,7 @@ L1_MESSAGE_TIME_HEADER = "L1_MESSAGE_TIME"
 ACTIVE_ACCOUNT_HEADER = "X-X10-ACTIVE-ACCOUNT"
 
 
-class SubAccountExists(X10Error):
+class SubAccountExists(SdkError):
     pass
 
 
@@ -85,7 +86,7 @@ class UserClient:
 
         onboarded_client = onboarding_response.data
         if onboarded_client is None:
-            raise ValueError("No account data returned from onboarding")
+            raise ValidationError("No account data returned from onboarding")
 
         return OnBoardedAccount(account=onboarded_client.default_account, l2_key_pair=key_pair)
 
@@ -125,7 +126,7 @@ class UserClient:
                 AccountModel,
                 json=payload.to_json(),
                 request_headers=headers,
-                response_code_to_exception={409: SubAccountExists},
+                response_code_to_exception={HTTPConflict.status_code: SubAccountExists},
             )
             onboarded_account = onboarding_response.data
         except SubAccountExists:
@@ -134,10 +135,10 @@ class UserClient:
                 account for account in client_accounts if account.account.account_index == account_index
             ]
             if not account_with_index:
-                raise SubAccountExists("Subaccount already exists but not found in client accounts")
+                raise ValidationError("Subaccount already exists but not found in client accounts")
             onboarded_account = account_with_index[0].account
         if onboarded_account is None:
-            raise ValueError("No account data returned from onboarding")
+            raise ValidationError("No account data returned from onboarding")
         return OnBoardedAccount(account=onboarded_account, l2_key_pair=key_pair)
 
     async def get_accounts(self) -> List[OnBoardedAccount]:
@@ -195,7 +196,7 @@ class UserClient:
         )
         response_data = response.data
         if response_data is None:
-            raise ValueError("No API key data returned from onboarding")
+            raise ValidationError("No API key data returned from onboarding")
         return response_data.key
 
     def _get_endpoint_config(self):

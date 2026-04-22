@@ -5,6 +5,7 @@ from typing import Callable, Optional, Tuple
 
 from x10.config import StarknetDomain
 from x10.core.stark_account import StarkPerpetualAccount
+from x10.errors import NotSupportedError, ValidationError
 from x10.models.market import MarketModel
 from x10.models.order import (
     CreateOrderConditionalTriggerModel,
@@ -177,39 +178,39 @@ def __create_order_object(
 ) -> NewOrderModel:
     def validate_market_order():
         if post_only:
-            raise ValueError("MARKET orders must not be post-only")
+            raise ValidationError("MARKET orders must not be post-only")
 
         if time_in_force != TimeInForce.IOC:
-            raise ValueError("MARKET orders must have `time_in_force` set to IOC")
+            raise ValidationError("MARKET orders must have `time_in_force` set to IOC")
 
     def validate_conditional_order():
         if not trigger:
-            raise ValueError("CONDITIONAL orders must have `trigger` specified")
+            raise ValidationError("CONDITIONAL orders must have `trigger` specified")
 
     def validate_tpsl_order():
         if not reduce_only:
-            raise ValueError("TPSL orders must be reduce-only")
+            raise ValidationError("TPSL orders must be reduce-only")
 
         if post_only:
-            raise ValueError("TPSL orders must not be post-only")
+            raise ValidationError("TPSL orders must not be post-only")
 
         if tp_sl_type == OrderTpslType.POSITION and synthetic_amount != Decimal(0):
-            raise ValueError("`synthetic_amount` must be 0 for entire position TPSL orders")
+            raise ValidationError("`synthetic_amount` must be 0 for entire position TPSL orders")
 
         if price != Decimal(0):
-            raise ValueError("`price` must be 0 for TPSL orders")
+            raise ValidationError("`price` must be 0 for TPSL orders")
 
     if order_type not in [OrderType.LIMIT, OrderType.MARKET, OrderType.CONDITIONAL, OrderType.TPSL]:
-        raise NotImplementedError(f"{order_type} order type is not supported yet")
+        raise NotSupportedError(f"{order_type} order type is not supported yet")
 
     if exact_only:
-        raise NotImplementedError("`exact_only` option is not supported yet")
+        raise NotSupportedError("`exact_only` option is not supported yet")
 
     if time_in_force == TimeInForce.FOK:
-        raise ValueError("FOK `time_in_force` value is deprecated")
+        raise ValidationError("FOK `time_in_force` value is deprecated")
 
     if expire_time is None:
-        raise ValueError("`expire_time` must be provided")
+        raise ValidationError("`expire_time` must be provided")
 
     if order_type == OrderType.MARKET:
         validate_market_order()
@@ -244,7 +245,7 @@ def __create_order_object(
             return None
 
         if tp_sl_type is None:
-            raise ValueError("`tp_sl_type` must be provided if `take_profit` and/or `stop_loss` is specified")
+            raise ValidationError("`tp_sl_type` must be provided if `take_profit` and/or `stop_loss` is specified")
 
         return __create_order_tpsl_trigger_model(
             trigger_param=trigger_param,
