@@ -5,7 +5,7 @@ from aiohttp import ClientTimeout
 
 from x10.config import Config
 from x10.core.stark_account import StarkPerpetualAccount
-from x10.errors import X10Error
+from x10.errors import SdkValidationError
 from x10.utils.http import get_url
 
 
@@ -36,13 +36,13 @@ class BaseModule:
 
     def _get_api_key(self):
         if not self.__api_key:
-            raise X10Error("API key is not set")
+            raise SdkValidationError("API key is not set")
 
         return self.__api_key
 
     def _get_stark_account(self):
         if not self.__stark_account:
-            raise X10Error("Stark account is not set")
+            raise SdkValidationError("Stark account is not set")
 
         return self.__stark_account
 
