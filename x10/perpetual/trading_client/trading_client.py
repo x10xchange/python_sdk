@@ -102,9 +102,12 @@ class PerpetualTradingClient:
         return await self.__order_management_module.place_order(order)
 
     async def close(self):
+        await self.__info_module.close_session()
         await self.__info_markets_module.close_session()
         await self.__account_module.close_session()
         await self.__order_management_module.close_session()
+        await self.__vault_module.close_session()
+        await self.__testnet_module.close_session()
 
     async def __aenter__(self):
         return self
