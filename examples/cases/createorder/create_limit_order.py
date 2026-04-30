@@ -15,6 +15,10 @@ MARKET_NAME = BTC_USD_MARKET
 
 
 async def run_example():
+    # rest_client.account.get_account_info()
+    # stream_client
+    # simple_client -- move to contrib
+    # add Claude generated openapi spec to repo?
     trading_client = create_trading_client()
     markets_dict = await trading_client.markets_info.get_markets_dict()
 

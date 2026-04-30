@@ -31,7 +31,7 @@ from x10.utils.order import calc_entire_position_size
 DEFAULT_TAKER_FEE = Decimal("0.0005")
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class OrderConditionalTriggerParam:
     trigger_price: Decimal
     trigger_price_type: OrderTriggerPriceType
@@ -39,7 +39,7 @@ class OrderConditionalTriggerParam:
     execution_price_type: OrderPriceType
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class OrderTpslTriggerParam:
     trigger_price: Decimal
     trigger_price_type: OrderTriggerPriceType

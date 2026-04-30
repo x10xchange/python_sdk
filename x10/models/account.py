@@ -32,9 +32,9 @@ class AccountModel(X10BaseModel):
     bridge_starknet_address: Optional[str] = None
 
 
-class ApiKeyResponseModel(X10BaseModel):
-    key: str
-
-
 class ApiKeyRequestModel(X10BaseModel):
     description: str
+
+
+class ApiKeyResponseModel(X10BaseModel):
+    key: str

@@ -1,18 +1,18 @@
 import asyncio
-import dataclasses
 import decimal
 from collections.abc import Awaitable
+from dataclasses import dataclass
 from typing import Callable, Iterable, Tuple
 
 from sortedcontainers import SortedDict
 
 from x10.config import Config
+from x10.models.http import StreamDataType
 from x10.models.orderbook import OrderbookUpdateModel
 from x10.perpetual.stream_client.stream_client import PerpetualStreamClient
-from x10.utils.http import StreamDataType
 
 
-@dataclasses.dataclass
+@dataclass
 class OrderBookEntry:
     price: decimal.Decimal
     amount: decimal.Decimal
@@ -21,7 +21,7 @@ class OrderBookEntry:
         return f"OrderBookEntry(price={self.price}, amount={self.amount})"
 
 
-@dataclasses.dataclass
+@dataclass(frozen=True)
 class ImpactDetails:
     price: decimal.Decimal
     amount: decimal.Decimal

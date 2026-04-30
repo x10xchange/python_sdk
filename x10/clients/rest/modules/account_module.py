@@ -1,6 +1,7 @@
 from decimal import Decimal
 from typing import List, Optional
 
+from x10.clients.rest.modules.base_module import BaseModule
 from x10.errors import ValidationError
 from x10.models.account import AccountLeverageModel, AccountModel
 from x10.models.asset import (
@@ -17,7 +18,6 @@ from x10.models.order import OpenOrderModel, OrderSide, OrderType
 from x10.models.position import PositionHistoryModel, PositionModel, PositionSide
 from x10.models.trade import AccountTradeModel, TradeType
 from x10.models.transfer import TransferResponseModel
-from x10.perpetual.trading_client.base_module import BaseModule
 from x10.perpetual.transfer_object import create_transfer_object
 from x10.perpetual.withdrawal_object import create_withdrawal_object
 from x10.utils.http import (

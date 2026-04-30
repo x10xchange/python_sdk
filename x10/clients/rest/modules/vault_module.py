@@ -3,36 +3,19 @@ from decimal import Decimal
 from types import NoneType
 from typing import Optional
 
+from x10.clients.rest.modules.account_module import AccountModule
+from x10.clients.rest.modules.base_module import BaseModule
+from x10.clients.rest.modules.info_module import InfoModule
 from x10.config import Config
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.errors import ApiError, ValidationError
-from x10.models.base import X10BaseModel
-from x10.models.order import LimitOrderSettlementModel
+from x10.models.vault import DepositRequestModel, WithdrawRequestModel
 from x10.perpetual.limit_order_object_settlement import create_order_settlement_data
-from x10.perpetual.trading_client.account_module import AccountModule
-from x10.perpetual.trading_client.base_module import BaseModule
-from x10.perpetual.trading_client.info_module import InfoModule
 from x10.utils.http import send_post_request
 
 # Protects from an error on shares pricing fluctuations.
 VAULT_SHARES_SLIPPAGE_PCT = Decimal("0.65")
 COLLATERAL_ASSET_NAME = "USD"
-
-
-class DepositRequestModel(X10BaseModel):
-    from_account_id: int
-    to_account_id: int
-    collateral: Decimal
-    shares: Decimal
-    settlement: LimitOrderSettlementModel
-
-
-class WithdrawRequestModel(X10BaseModel):
-    from_account_id: int
-    to_account_id: int
-    collateral: Decimal
-    shares: Decimal
-    settlement: LimitOrderSettlementModel
 
 
 class VaultModule(BaseModule):

@@ -3,13 +3,14 @@ from typing import Dict, List, Optional, Type
 from x10.models.account import AccountStreamDataModel
 from x10.models.candle import CandleInterval, CandleModel, CandleType
 from x10.models.funding_rate import FundingRateModel
+from x10.models.http import WrappedStreamResponse
 from x10.models.orderbook import OrderbookUpdateModel
 from x10.models.trade import PublicTradeModel
 from x10.perpetual.stream_client.perpetual_stream_connection import (
     PerpetualStreamConnection,
     StreamMsgResponseType,
 )
-from x10.utils.http import WrappedStreamResponse, get_url
+from x10.utils.http import get_url
 
 
 class PerpetualStreamClient:

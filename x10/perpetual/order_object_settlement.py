@@ -23,7 +23,7 @@ from x10.models.order import (
 )
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class OrderSettlementData:
     synthetic_amount_human: HumanReadableAmount
     order_hash: int
@@ -31,7 +31,7 @@ class OrderSettlementData:
     debugging_amounts: StarkDebuggingOrderAmountsModel
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class SettlementDataCtx:
     market: MarketModel
     taker_fee: Decimal

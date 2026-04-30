@@ -9,7 +9,7 @@ ROUNDING_BUY_CONTEXT = decimal.Context(rounding=decimal.ROUND_UP)
 ROUNDING_FEE_CONTEXT = decimal.Context(rounding=decimal.ROUND_UP)
 
 
-@dataclass
+@dataclass(frozen=True)
 class HumanReadableAmount:
     value: Decimal
     asset: Asset
@@ -23,7 +23,7 @@ class HumanReadableAmount:
         return StarkAmount(converted_value, self.asset)
 
 
-@dataclass
+@dataclass(frozen=True)
 class L1Amount:
     value: int
     asset: Asset
@@ -33,7 +33,7 @@ class L1Amount:
         return HumanReadableAmount(converted_value, self.asset)
 
 
-@dataclass
+@dataclass(frozen=True)
 class StarkAmount:
     value: int
     asset: Asset
