@@ -186,9 +186,9 @@ def get_btc_usd_market_json_data():
 
 def create_btc_usd_market(json_data: str):
     from x10.models.market import MarketModel
-    from x10.utils.http import WrappedApiResponse
+    from x10.utils.http import WrappedApiResponseModel
 
-    result = WrappedApiResponse[List[MarketModel]].model_validate_json(json_data)
+    result = WrappedApiResponseModel[List[MarketModel]].model_validate_json(json_data)
 
     assert result.data
 

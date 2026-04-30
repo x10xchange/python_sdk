@@ -15,7 +15,7 @@ from aiohttp.web_exceptions import (
 from strenum import StrEnum
 
 from x10.errors import ApiError, ApiNotAuthorizedError, ApiRateLimitError
-from x10.models.http import ApiResponseType, ResponseStatus, WrappedApiResponse
+from x10.models.http import ApiResponseType, ResponseStatus, WrappedApiResponseModel
 from x10.utils.log import get_logger
 from x10.version import SDK_VERSION
 
@@ -37,17 +37,17 @@ class RequestHeader(StrEnum):
 
 def parse_response_to_model(
     response_text: str, model_class: Type[ApiResponseType]
-) -> WrappedApiResponse[ApiResponseType]:
+) -> WrappedApiResponseModel[ApiResponseType]:
     # Read this to get more context re the type ignore:
     # https://github.com/python/mypy/issues/13619
 
     if model_class == NoneType:
-        return WrappedApiResponse[None](
+        return WrappedApiResponseModel[None](
             status=ResponseStatus.OK,
             data=None,
         )  # type: ignore
 
-    return WrappedApiResponse[model_class].model_validate_json(response_text)  # type: ignore[valid-type]
+    return WrappedApiResponseModel[model_class].model_validate_json(response_text)  # type: ignore[valid-type]
 
 
 def get_url(template: str, *, query: Optional[Dict[str, str | List[str]]] = None, **path_params):
@@ -93,7 +93,7 @@ async def send_get_request(
     api_key: Optional[str] = None,
     request_headers: Optional[Dict[str, str]] = None,
     response_code_to_exception: Optional[Dict[int, Type[Exception]]] = None,
-) -> WrappedApiResponse[ApiResponseType]:
+) -> WrappedApiResponseModel[ApiResponseType]:
     headers = __get_headers(api_key=api_key, request_headers=request_headers)
 
     LOGGER.debug("Sending GET %s", url)
@@ -113,7 +113,7 @@ async def send_post_request(
     api_key: Optional[str] = None,
     request_headers: Optional[Dict[str, str]] = None,
     response_code_to_exception: Optional[Dict[int, Type[Exception]]] = None,
-) -> WrappedApiResponse[ApiResponseType]:
+) -> WrappedApiResponseModel[ApiResponseType]:
     headers = __get_headers(api_key=api_key, request_headers=request_headers)
 
     LOGGER.debug("Sending POST %s, headers=%s", url, headers)
@@ -139,7 +139,7 @@ async def send_patch_request(
     api_key: Optional[str] = None,
     request_headers: Optional[Dict[str, str]] = None,
     response_code_to_exception: Optional[Dict[int, Type[Exception]]] = None,
-) -> WrappedApiResponse[ApiResponseType]:
+) -> WrappedApiResponseModel[ApiResponseType]:
     headers = __get_headers(api_key=api_key, request_headers=request_headers)
 
     LOGGER.debug("Sending PATCH %s, headers=%s, data=%s", url, headers, json)

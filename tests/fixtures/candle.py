@@ -1,11 +1,11 @@
 from typing import List
 
 from x10.models.candle import CandleModel
-from x10.models.http import WrappedStreamResponse
+from x10.models.http import WrappedStreamResponseModel
 
 
 def create_candle_stream_message():
-    return WrappedStreamResponse[List[CandleModel]](
+    return WrappedStreamResponseModel[List[CandleModel]](
         data=[
             CandleModel(
                 open="3458.64", low="3399.07", high="3476.89", close="3414.85", volume="3.938", timestamp=1721106000000

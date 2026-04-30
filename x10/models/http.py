@@ -14,22 +14,22 @@ class ResponseStatus(StrEnum):
     ERROR = "ERROR"
 
 
-class ResponseError(X10BaseModel):
+class ResponseErrorModel(X10BaseModel):
     code: int
     message: str
     debug_info: Optional[str] = None
 
 
-class Pagination(X10BaseModel):
+class PaginationModel(X10BaseModel):
     cursor: Optional[int] = None
     count: int
 
 
-class WrappedApiResponse(X10BaseModel, Generic[ApiResponseType]):
+class WrappedApiResponseModel(X10BaseModel, Generic[ApiResponseType]):
     status: ResponseStatus
     data: Optional[ApiResponseType] = None
-    error: Optional[ResponseError] = None
-    pagination: Optional[Pagination] = None
+    error: Optional[ResponseErrorModel] = None
+    pagination: Optional[PaginationModel] = None
 
 
 class StreamDataType(StrEnum):
@@ -51,7 +51,7 @@ class StreamDataType(StrEnum):
         return core_schema.no_info_plain_validator_function(lambda v: v if v in cls._value2member_map_ else cls.UNKNOWN)
 
 
-class WrappedStreamResponse(X10BaseModel, Generic[ApiResponseType]):
+class WrappedStreamResponseModel(X10BaseModel, Generic[ApiResponseType]):
     type: Optional[StreamDataType] = None
     data: Optional[ApiResponseType] = None
     error: Optional[str] = None

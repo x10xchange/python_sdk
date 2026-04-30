@@ -8,7 +8,7 @@ from hamcrest import assert_that, equal_to, has_length
 from x10.config import TESTNET_CONFIG
 from x10.models.asset import AssetOperationModel
 from x10.models.market import MarketModel
-from x10.utils.http import WrappedApiResponse
+from x10.utils.http import WrappedApiResponseModel
 
 
 def serve_data(data):
@@ -23,7 +23,7 @@ async def test_get_markets(aiohttp_server, create_btc_usd_market):
     from x10.clients.rest import RestApiClient
 
     expected_market = create_btc_usd_market()
-    expected_markets = WrappedApiResponse[List[MarketModel]].model_validate(
+    expected_markets = WrappedApiResponseModel[List[MarketModel]].model_validate(
         {"status": "OK", "data": [expected_market.model_dump()]}
     )
 
@@ -123,7 +123,7 @@ async def test_get_asset_operations(aiohttp_server, create_asset_operations, cre
     from x10.clients.rest import RestApiClient
 
     expected_operations = create_asset_operations()
-    expected_response = WrappedApiResponse[List[AssetOperationModel]].model_validate(
+    expected_response = WrappedApiResponseModel[List[AssetOperationModel]].model_validate(
         {"status": "OK", "data": [op.model_dump() for op in expected_operations]}
     )
 

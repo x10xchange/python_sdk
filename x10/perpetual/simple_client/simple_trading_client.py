@@ -10,7 +10,7 @@ from x10.config import Config
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.errors import SdkError, ValidationError
 from x10.models.account import AccountStreamDataModel
-from x10.models.http import WrappedStreamResponse
+from x10.models.http import WrappedStreamResponseModel
 from x10.models.market import MarketModel
 from x10.models.order import (
     NewOrderModel,
@@ -89,7 +89,7 @@ class BlockingTradingClient:
         self.__stream_client: PerpetualStreamClient = PerpetualStreamClient(api_url=config.endpoints.stream_url)
         self.__account_stream: Union[
             None,
-            PerpetualStreamConnection[WrappedStreamResponse[AccountStreamDataModel]],
+            PerpetualStreamConnection[WrappedStreamResponseModel[AccountStreamDataModel]],
         ] = None
         self.__order_waiters: Dict[str, OrderWaiter] = {}
         self.__cancel_waiters: Dict[str, CancelWaiter] = {}

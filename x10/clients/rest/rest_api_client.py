@@ -20,7 +20,7 @@ from x10.models.order import (
 )
 from x10.perpetual.order_object import OrderTpslTriggerParam, create_order_object
 from x10.utils.date import utc_now
-from x10.utils.http import WrappedApiResponse
+from x10.utils.http import WrappedApiResponseModel
 from x10.utils.log import get_logger
 
 LOGGER = get_logger(__name__)
@@ -73,7 +73,7 @@ class RestApiClient:
         tp_sl_type: Optional[OrderTpslType] = None,
         take_profit: Optional[OrderTpslTriggerParam] = None,
         stop_loss: Optional[OrderTpslTriggerParam] = None,
-    ) -> WrappedApiResponse[PlacedOrderModel]:
+    ) -> WrappedApiResponseModel[PlacedOrderModel]:
         # FIXME: Remove all the checks, should proxy the request?
         if not self.__stark_account:
             raise ValidationError("Stark account is not set")
