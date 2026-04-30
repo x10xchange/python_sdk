@@ -20,7 +20,7 @@ def serve_data(data):
 
 @pytest.mark.asyncio
 async def test_get_markets(aiohttp_server, create_btc_usd_market):
-    from x10.perpetual.trading_client import PerpetualTradingClient
+    from x10.clients.rest import RestApiClient
 
     expected_market = create_btc_usd_market()
     expected_markets = WrappedApiResponse[List[MarketModel]].model_validate(
@@ -35,8 +35,8 @@ async def test_get_markets(aiohttp_server, create_btc_usd_market):
 
     endpoints_config = dataclasses.replace(TESTNET_CONFIG.endpoints, api_base_url=url)
     config = dataclasses.replace(TESTNET_CONFIG, endpoints=endpoints_config)
-    trading_client = PerpetualTradingClient(config=config)
-    markets = await trading_client.markets_info.get_markets()
+    rest_client = RestApiClient(config=config)
+    markets = await rest_client.info.get_markets()
 
     assert_that(markets.status, equal_to("OK"))
     assert_that(markets.data, has_length(1))
@@ -120,7 +120,7 @@ async def test_get_markets(aiohttp_server, create_btc_usd_market):
 
 @pytest.mark.asyncio
 async def test_get_asset_operations(aiohttp_server, create_asset_operations, create_trading_account):
-    from x10.perpetual.trading_client import PerpetualTradingClient
+    from x10.clients.rest import RestApiClient
 
     expected_operations = create_asset_operations()
     expected_response = WrappedApiResponse[List[AssetOperationModel]].model_validate(
@@ -136,8 +136,8 @@ async def test_get_asset_operations(aiohttp_server, create_asset_operations, cre
     stark_account = create_trading_account()
     endpoints_config = dataclasses.replace(TESTNET_CONFIG.endpoints, api_base_url=url)
     config = dataclasses.replace(TESTNET_CONFIG, endpoints=endpoints_config)
-    trading_client = PerpetualTradingClient(config=config, stark_account=stark_account)
-    operations = await trading_client.account.asset_operations()
+    rest_client = RestApiClient(config=config, stark_account=stark_account)
+    operations = await rest_client.account.asset_operations()
 
     assert_that(operations.status, equal_to("OK"))
     assert_that(operations.data, has_length(2))

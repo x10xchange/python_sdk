@@ -39,8 +39,8 @@ def create_trading_account():
 
 def create_account_update_trade_message():
     from x10.models.account import AccountStreamDataModel
+    from x10.models.http import WrappedStreamResponse
     from x10.models.trade import AccountTradeModel
-    from x10.utils.http import WrappedStreamResponse
 
     return WrappedStreamResponse[AccountStreamDataModel](
         type="TRADE",
@@ -69,7 +69,7 @@ def create_account_update_trade_message():
 
 def create_account_update_unknown_message():
     from x10.models.account import AccountStreamDataModel
-    from x10.utils.http import WrappedStreamResponse
+    from x10.models.http import WrappedStreamResponse
 
     return WrappedStreamResponse[AccountStreamDataModel](
         type="UNEXPECTED",

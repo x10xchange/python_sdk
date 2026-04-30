@@ -1,7 +1,7 @@
 from typing import List
 
 from x10.models.candle import CandleModel
-from x10.utils.http import WrappedStreamResponse
+from x10.models.http import WrappedStreamResponse
 
 
 def create_candle_stream_message():
