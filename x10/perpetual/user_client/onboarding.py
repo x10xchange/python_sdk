@@ -1,5 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from functools import cached_property
 
 from eth_account.messages import SignableMessage, encode_typed_data
 from eth_account.signers.local import LocalAccount
@@ -33,8 +34,9 @@ class AccountRegistration:
     action: str
     host: str
 
-    def __post_init__(self):
-        self.time_string = self.time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    @cached_property
+    def time_string(self):
+        return self.time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     def to_signable_message(self, signing_domain) -> SignableMessage:
         domain = {"name": signing_domain}
