@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from examples.utils import (
     BTC_USD_MARKET,
-    create_trading_client,
+    create_rest_client,
     find_order_and_cancel,
     get_adjust_price_by_pct,
 )
@@ -22,8 +22,8 @@ MARKET_NAME = BTC_USD_MARKET
 
 
 async def run_example():
-    trading_client = create_trading_client()
-    markets_dict = await trading_client.markets_info.get_markets_dict()
+    rest_client = create_rest_client()
+    markets_dict = await rest_client.markets_info.get_markets_dict()
 
     market = markets_dict[MARKET_NAME]
     adjust_price_by_pct = get_adjust_price_by_pct(market.trading_config)
@@ -35,14 +35,14 @@ async def run_example():
     tp_price = adjust_price_by_pct(tp_trigger_price, 0.5)
     sl_trigger_price = adjust_price_by_pct(order_price, -0.5)
     sl_price = adjust_price_by_pct(
-        sl_trigger_price, -trading_client.config.defaults.market_price_slippage * Decimal("100")
+        sl_trigger_price, -rest_client.config.defaults.market_price_slippage * Decimal("100")
     )
 
     LOGGER.info("Creating LIMIT order object with TPSL for market: %s", market.name)
 
     new_order = create_order_object(
-        account=trading_client.stark_account,
-        starknet_domain=trading_client.config.signing.starknet_domain,
+        account=rest_client.stark_account,
+        starknet_domain=rest_client.config.signing.starknet_domain,
         market=market,
         side=OrderSide.BUY,
         amount_of_synthetic=order_size,
@@ -67,11 +67,11 @@ async def run_example():
 
     LOGGER.info("Placing order...")
 
-    placed_order = await trading_client.orders.place_order(order=new_order)
+    placed_order = await rest_client.orders.place_order(order=new_order)
 
     LOGGER.info(f"Order is placed: {placed_order.to_pretty_json()}")
 
-    await find_order_and_cancel(trading_client=trading_client, logger=LOGGER, order_id=placed_order.data.id)
+    await find_order_and_cancel(rest_client=rest_client, logger=LOGGER, order_id=placed_order.data.id)
 
 
 if __name__ == "__main__":

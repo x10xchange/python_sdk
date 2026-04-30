@@ -61,7 +61,7 @@ def init_env(require_private_api: bool = True):
     )
 
 
-def create_trading_client(config: Config = TESTNET_CONFIG):
+def create_rest_client(config: Config = TESTNET_CONFIG):
     env_config = init_env()
 
     stark_account = StarkPerpetualAccount(
@@ -98,12 +98,12 @@ def get_adjust_price_by_pct(config: TradingConfigModel):
     return adjust_price_by_pct
 
 
-async def find_order_and_cancel(*, trading_client: RestClient, logger: Logger, order_id: str):
-    open_order = await trading_client.account.get_order_by_id(order_id)
+async def find_order_and_cancel(*, rest_client: RestClient, logger: Logger, order_id: str):
+    open_order = await rest_client.account.get_order_by_id(order_id)
 
     logger.info("Found placed order: %s", open_order.to_pretty_json())
     logger.info("Cancelling placed order...")
 
-    await trading_client.orders.cancel_order(order_id)
+    await rest_client.orders.cancel_order(order_id)
 
     logger.info("Placed order is cancelled")

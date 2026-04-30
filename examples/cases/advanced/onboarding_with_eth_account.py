@@ -36,15 +36,15 @@ async def run_example():
         private_key=main_account.l2_key_pair.private_hex,
         vault=main_account.account.l2_vault,
     )
-    trading_client = RestClient(CONFIG, starknet_account)
+    rest_client = RestClient(CONFIG, starknet_account)
 
     LOGGER.info("StarkNet public key: %s", starknet_account.public_key)
 
-    claim = await trading_client.testnet.claim_testing_funds()
+    claim = await rest_client.testnet.claim_testing_funds()
     claim_id = claim.data.id if claim.data else None
 
     if claim_id:
-        asset_operations = await trading_client.account.asset_operations(id=claim_id)
+        asset_operations = await rest_client.account.asset_operations(id=claim_id)
         LOGGER.info("Test funds asset operation: %s", asset_operations.data[0].to_pretty_json())
 
 

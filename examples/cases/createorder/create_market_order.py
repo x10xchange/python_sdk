@@ -1,7 +1,7 @@
 import logging
 from asyncio import run
 
-from examples.utils import BTC_USD_MARKET, create_trading_client
+from examples.utils import BTC_USD_MARKET, create_rest_client
 from x10.models.order import OrderSide, OrderType, TimeInForce
 from x10.perpetual.order_object import create_order_object
 from x10.utils.order import get_price_with_slippage
@@ -11,9 +11,9 @@ MARKET_NAME = BTC_USD_MARKET
 
 
 async def run_example():
-    trading_client = create_trading_client()
-    markets_dict = await trading_client.markets_info.get_markets_dict()
-    market_stats = await trading_client.markets_info.get_market_statistics(market_name=MARKET_NAME)
+    rest_client = create_rest_client()
+    markets_dict = await rest_client.markets_info.get_markets_dict()
+    market_stats = await rest_client.markets_info.get_market_statistics(market_name=MARKET_NAME)
 
     market = markets_dict[MARKET_NAME]
 
@@ -25,15 +25,15 @@ async def run_example():
         side=order_side,
         price=best_market_price,
         min_price_change=market.trading_config.min_price_change,
-        slippage=trading_client.config.defaults.market_price_slippage,
+        slippage=rest_client.config.defaults.market_price_slippage,
     )
 
     LOGGER.info("Creating MARKET order object for market: %s", market.name)
 
     new_order = create_order_object(
-        account=trading_client.stark_account,
+        account=rest_client.stark_account,
         order_type=OrderType.MARKET,
-        starknet_domain=trading_client.config.signing.starknet_domain,
+        starknet_domain=rest_client.config.signing.starknet_domain,
         market=market,
         side=order_side,
         amount_of_synthetic=order_size,
@@ -45,7 +45,7 @@ async def run_example():
 
     LOGGER.info("Placing order...")
 
-    placed_order = await trading_client.orders.place_order(order=new_order)
+    placed_order = await rest_client.orders.place_order(order=new_order)
 
     LOGGER.info("Order is placed: %s", placed_order.to_pretty_json())
     LOGGER.warning("Don't forget to reduce/close your position!")

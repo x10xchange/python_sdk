@@ -23,17 +23,22 @@ from x10.utils.date import utc_now
 from x10.utils.http import WrappedApiResponse
 from x10.utils.log import get_logger
 
-# , TypeAlias, Literal, TypedDict, Unpack)
-
-
 LOGGER = get_logger(__name__)
 
+# , TypeAlias, Literal, TypedDict, Unpack)
 # class ExampleKeysDict(TypedDict):
 #     example_key: int
 #     foo: int
+# FIXME
+# async def get_xxx(self, **args: Unpack[ExampleKeysDict]) -> None:
+#     await self.get_xxx(
+#         example_key=args["example_key"],
+#         foo=args["foo"],
+#     )
+#     pass
 
 
-class RestClient:
+class RestApiClient:
     """
     X10 REST API Client.
     """
@@ -48,14 +53,6 @@ class RestClient:
     __order_management_module: OrderManagementModule
     __vault_module: VaultModule
     __testnet_module: TestnetModule
-
-    # FIXME
-    # async def get_xxx(self, **args: Unpack[ExampleKeysDict]) -> None:
-    #     await self.get_xxx(
-    #         example_key=args["example_key"],
-    #         foo=args["foo"],
-    #     )
-    #     pass
 
     async def place_order(
         self,

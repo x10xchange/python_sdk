@@ -5,7 +5,7 @@ from decimal import Decimal
 from signal import SIGINT, SIGTERM
 from typing import Awaitable, Callable, List
 
-from examples.utils import BTC_USD_MARKET, create_trading_client
+from examples.utils import BTC_USD_MARKET, create_rest_client
 from x10.models.order import OrderSide
 from x10.perpetual.orderbook import OrderBook, OrderBookEntry
 
@@ -25,8 +25,8 @@ async def create_orders_task(
     side: OrderSide,
     get_best_price: Callable[[], Awaitable[Decimal | None]],
 ):
-    trading_client = create_trading_client()
-    markets_dict = await trading_client.markets_info.get_markets_dict()
+    rest_client = create_rest_client()
+    markets_dict = await rest_client.markets_info.get_markets_dict()
 
     market = markets_dict[MARKET_NAME]
 
@@ -72,14 +72,14 @@ async def create_orders_task(
                 LOGGER.info("Cancelling previous order with external id %s", prev_order_external_id)
 
                 asyncio.create_task(
-                    trading_client.orders.cancel_order_by_external_id(order_external_id=prev_order_external_id)
+                    rest_client.orders.cancel_order_by_external_id(order_external_id=prev_order_external_id)
                 )
 
             new_order_external_id = generate_external_id()
             new_order_size = market.trading_config.min_order_size
 
             try:
-                await trading_client.place_order(
+                await rest_client.place_order(
                     market_name=market.name,
                     amount_of_synthetic=new_order_size,
                     price=target_price,
@@ -125,8 +125,8 @@ async def run_example():
     loop.add_signal_handler(SIGINT, signal_handler)
     loop.add_signal_handler(SIGTERM, signal_handler)
 
-    trading_client = create_trading_client()
-    markets_dict = await trading_client.markets_info.get_markets_dict()
+    rest_client = create_rest_client()
+    markets_dict = await rest_client.markets_info.get_markets_dict()
 
     market = markets_dict[MARKET_NAME]
 
@@ -144,7 +144,7 @@ async def run_example():
             best_bid_condition.notify_all()
 
     orderbook = await OrderBook.create(
-        trading_client.config,
+        rest_client.config,
         market.name,
         start=True,
         best_ask_change_callback=on_best_ask_change,

@@ -4,7 +4,7 @@ import random
 from asyncio import run
 from typing import Set
 
-from examples.utils import BTC_USD_MARKET, create_trading_client
+from examples.utils import BTC_USD_MARKET, create_rest_client
 from x10.clients.rest.rest_client import RestClient
 from x10.models.market import MarketModel
 from x10.models.order import OrderSide
@@ -25,7 +25,7 @@ def generate_external_id():
     return str(random.randint(0, 10000000000000000000000000))
 
 
-async def create_orders_loop(*, trading_client: RestClient, market: MarketModel, level: int):
+async def create_orders_loop(*, rest_client: RestClient, market: MarketModel, level: int):
     market_mid_price = market.trading_config.round_price(
         (market.market_stats.bid_price + market.market_stats.ask_price) / 2
     )
@@ -41,12 +41,12 @@ async def create_orders_loop(*, trading_client: RestClient, market: MarketModel,
         new_order_size = market.trading_config.min_order_size
 
         new_order = create_order_object(
-            account=trading_client.stark_account,
+            account=rest_client.stark_account,
             market=market,
             amount_of_synthetic=new_order_size,
             price=new_order_price,
             side=new_order_side,
-            starknet_domain=trading_client.config.signing.starknet_domain,
+            starknet_domain=rest_client.config.signing.starknet_domain,
             order_external_id=new_order_external_id,
             post_only=True,
         )
@@ -54,7 +54,7 @@ async def create_orders_loop(*, trading_client: RestClient, market: MarketModel,
         async with unconfirmed_order_lock:
             unconfirmed_order_external_ids.add(new_order_external_id)
 
-        await trading_client.orders.place_order(order=new_order)
+        await rest_client.orders.place_order(order=new_order)
 
 
 async def order_confirmation_loop(*, stream_url: str, api_key: str):
@@ -81,20 +81,20 @@ async def order_confirmation_loop(*, stream_url: str, api_key: str):
                 pass
 
 
-async def cancel_open_orders(trading_client: RestClient):
-    positions = await trading_client.account.get_positions(market_names=[MARKET_NAME])
-    balance = await trading_client.account.get_balance()
+async def cancel_open_orders(rest_client: RestClient):
+    positions = await rest_client.account.get_positions(market_names=[MARKET_NAME])
+    balance = await rest_client.account.get_balance()
 
     LOGGER.info("Balance: %s", balance.to_pretty_json())
     LOGGER.info("Positions: %s", positions.to_pretty_json())
 
-    await trading_client.orders.mass_cancel(markets=[MARKET_NAME])
+    await rest_client.orders.mass_cancel(markets=[MARKET_NAME])
 
 
 async def run_example():
-    trading_client = create_trading_client()
+    rest_client = create_rest_client()
 
-    markets_dict = await trading_client.markets_info.get_markets_dict()
+    markets_dict = await rest_client.markets_info.get_markets_dict()
     market = markets_dict[MARKET_NAME]
 
     LOGGER.info("Starting load testing:")
@@ -102,23 +102,23 @@ async def run_example():
     LOGGER.info("- Levels: %s", NUM_PRICE_LEVELS)
     LOGGER.info("- Orders per level: %s", NUM_ORDERS_PER_PRICE_LEVEL)
 
-    await cancel_open_orders(trading_client)
+    await cancel_open_orders(rest_client)
 
     orders_confirmation_task = asyncio.create_task(
         order_confirmation_loop(
-            stream_url=trading_client.config.endpoints.stream_url,
-            api_key=trading_client.stark_account.api_key,
+            stream_url=rest_client.config.endpoints.stream_url,
+            api_key=rest_client.stark_account.api_key,
         )
     )
     orders_creation_tasks = []
 
     for level in range(NUM_PRICE_LEVELS):
-        task = create_orders_loop(trading_client=trading_client, market=market, level=level)
+        task = create_orders_loop(rest_client=rest_client, market=market, level=level)
         orders_creation_tasks.append(asyncio.create_task(task))
 
     await asyncio.gather(*orders_creation_tasks)
     await orders_confirmation_task
-    await cancel_open_orders(trading_client)
+    await cancel_open_orders(rest_client)
 
     LOGGER.info("Load testing finished")
 
