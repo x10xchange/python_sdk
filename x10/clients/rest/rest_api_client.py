@@ -25,18 +25,6 @@ from x10.utils.log import get_logger
 
 LOGGER = get_logger(__name__)
 
-# , TypeAlias, Literal, TypedDict, Unpack)
-# class ExampleKeysDict(TypedDict):
-#     example_key: int
-#     foo: int
-# FIXME
-# async def get_xxx(self, **args: Unpack[ExampleKeysDict]) -> None:
-#     await self.get_xxx(
-#         example_key=args["example_key"],
-#         foo=args["foo"],
-#     )
-#     pass
-
 
 class RestApiClient:
     """

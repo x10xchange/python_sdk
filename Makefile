@@ -6,8 +6,6 @@ lint:
 	black --check --diff --target-version py310 --line-length 120 ./examples ./tests ./x10
 	flake8 ./examples ./tests ./x10
 	mypy ./examples ./x10
-	#FIXME
-	#mypy --explicit-package-bases ./tests
 
 test:
 	tox
