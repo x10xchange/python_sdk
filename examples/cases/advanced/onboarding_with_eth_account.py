@@ -5,7 +5,7 @@ from eth_account import Account
 from eth_account.signers.local import LocalAccount
 
 from examples.utils import init_env
-from x10.clients.rest.rest_client import RestClient
+from x10.clients.rest import RestApiClient
 from x10.config import TESTNET_CONFIG
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.perpetual.user_client.user_client import UserClient
@@ -36,7 +36,7 @@ async def run_example():
         private_key=main_account.l2_key_pair.private_hex,
         vault=main_account.account.l2_vault,
     )
-    rest_client = RestClient(CONFIG, starknet_account)
+    rest_client = RestApiClient(CONFIG, starknet_account)
 
     LOGGER.info("StarkNet public key: %s", starknet_account.public_key)
 

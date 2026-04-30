@@ -5,7 +5,7 @@ from asyncio import run
 from typing import Set
 
 from examples.utils import BTC_USD_MARKET, create_rest_client
-from x10.clients.rest.rest_client import RestClient
+from x10.clients.rest import RestApiClient
 from x10.models.market import MarketModel
 from x10.models.order import OrderSide
 from x10.perpetual.order_object import create_order_object
@@ -25,7 +25,7 @@ def generate_external_id():
     return str(random.randint(0, 10000000000000000000000000))
 
 
-async def create_orders_loop(*, rest_client: RestClient, market: MarketModel, level: int):
+async def create_orders_loop(*, rest_client: RestApiClient, market: MarketModel, level: int):
     market_mid_price = market.trading_config.round_price(
         (market.market_stats.bid_price + market.market_stats.ask_price) / 2
     )
@@ -81,7 +81,7 @@ async def order_confirmation_loop(*, stream_url: str, api_key: str):
                 pass
 
 
-async def cancel_open_orders(rest_client: RestClient):
+async def cancel_open_orders(rest_client: RestApiClient):
     positions = await rest_client.account.get_positions(market_names=[MARKET_NAME])
     balance = await rest_client.account.get_balance()
 

@@ -10,7 +10,7 @@ from pathlib import Path
 import yaml
 from dotenv import load_dotenv
 
-from x10.clients.rest.rest_client import RestClient
+from x10.clients.rest import RestApiClient
 from x10.config import TESTNET_CONFIG, Config
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.market import TradingConfigModel
@@ -71,7 +71,7 @@ def create_rest_client(config: Config = TESTNET_CONFIG):
         vault=env_config.vault_id,
     )
 
-    return RestClient(config, stark_account)
+    return RestApiClient(config, stark_account)
 
 
 def create_blocking_client(config: Config = TESTNET_CONFIG):
@@ -98,7 +98,7 @@ def get_adjust_price_by_pct(config: TradingConfigModel):
     return adjust_price_by_pct
 
 
-async def find_order_and_cancel(*, rest_client: RestClient, logger: Logger, order_id: str):
+async def find_order_and_cancel(*, rest_client: RestApiClient, logger: Logger, order_id: str):
     open_order = await rest_client.account.get_order_by_id(order_id)
 
     logger.info("Found placed order: %s", open_order.to_pretty_json())

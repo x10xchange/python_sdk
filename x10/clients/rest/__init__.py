@@ -1,1 +1,1 @@
-from x10.clients.rest.rest_client import RestClient  # noqa: F401
+from x10.clients.rest.rest_api_client import RestApiClient  # noqa: F401
