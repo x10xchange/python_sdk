@@ -37,6 +37,7 @@ async def run_example():
         vault=main_account.account.l2_vault,
     )
     rest_client = RestApiClient(CONFIG, starknet_account)
+    rest_client.account.create_api_key("Onboarding example API key")
 
     LOGGER.info("StarkNet public key: %s", starknet_account.public_key)
 

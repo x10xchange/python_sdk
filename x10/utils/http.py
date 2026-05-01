@@ -34,6 +34,10 @@ class RequestHeader(StrEnum):
     CONTENT_TYPE = "Content-Type"
     USER_AGENT = "User-Agent"
 
+    AUTH_ACTIVE_ACCOUNT = "X-X10-ACTIVE-ACCOUNT"
+    AUTH_L1_SIGNATURE = "L1_SIGNATURE"
+    AUTH_L1_MESSAGE_TIME = "L1_MESSAGE_TIME"
+
 
 def parse_response_to_model(
     response_text: str, model_class: Type[ApiResponseType]

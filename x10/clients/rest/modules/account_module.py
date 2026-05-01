@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import List, Optional
+from typing import List, Optional, Callable
 
 from x10.clients.rest.modules.base_module import BaseModule
 from x10.errors import ValidationError
@@ -267,30 +267,36 @@ class AccountModule(BaseModule):
     ) -> WrappedApiResponseModel[int]:
         url = self._get_url("/user/withdrawal")
         account = (await self.get_account()).data
+
         if account is None:
             raise ValidationError("Account not found")
+
         if quote_id is None and chain_id != "STRK":
             raise ValidationError("quote_id is required for EVM withdrawals")
 
-        recipient_stark_address = None
-        if stark_address is None:
+        async def get_recipient_stark_address() -> str:
+            if stark_address:
+                return stark_address
+
             if chain_id == "STRK":
                 client = (await self.get_client()).data
+
                 if client is None:
                     raise ValidationError("Client not found")
+
                 if client.starknet_wallet_address is None:
                     raise ValidationError(
-                        "Client does not have attached starknet_wallet_address. Can't determine withdrawal address."
+                        "Client does not have attached `starknet_wallet_address`. Can't determine withdrawal address."
                     )
-                else:
-                    recipient_stark_address = client.starknet_wallet_address
-            else:
-                if account.bridge_starknet_address is None:
-                    raise ValidationError("Account bridge_starknet_address not found")
-                recipient_stark_address = account.bridge_starknet_address
-        else:
-            recipient_stark_address = stark_address
 
+                return client.starknet_wallet_address
+
+            if account.bridge_starknet_address is None:
+                raise ValidationError("Account `bridge_starknet_address` not found")
+
+            return account.bridge_starknet_address
+
+        recipient_stark_address = await get_recipient_stark_address()
         request_model = create_withdrawal_object(
             amount=amount,
             recipient_stark_address=recipient_stark_address,

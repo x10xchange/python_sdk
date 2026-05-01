@@ -14,15 +14,15 @@ class TestnetModule(BaseModule):
     def __init__(
         self,
         config: Config,
-        api_key: Optional[str] = None,
+        *,
         account_module: Optional[AccountModule] = None,
+        api_key: Optional[str] = None,
     ):
         super().__init__(config, api_key=api_key)
+
         self._account_module = account_module
 
-    async def claim_testing_funds(
-        self,
-    ) -> WrappedApiResponseModel[ClaimResponseModel]:
+    async def claim_testing_funds(self) -> WrappedApiResponseModel[ClaimResponseModel]:
         url = self._get_url("/user/claim")
         resp = await send_post_request(
             await self.get_session(),
@@ -34,6 +34,7 @@ class TestnetModule(BaseModule):
 
         if resp.error:
             return resp
+
         if self._account_module and resp.data:
             account_module = self._account_module
             claim_to_check = resp.data.id
@@ -61,4 +62,5 @@ class TestnetModule(BaseModule):
                 await wait_for_claim_to_complete()
             except tenacity.RetryError:
                 pass
+
         return resp
