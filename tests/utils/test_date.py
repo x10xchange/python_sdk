@@ -15,5 +15,5 @@ def test_throw_on_non_utc_timezone():
     dt1 = datetime.fromisoformat("2024-01-08 11:35:20.447")
     dt2 = datetime.fromisoformat("2024-01-08 11:35:20.447+02:00")
 
-    assert_that(lambda: to_epoch_millis(dt1), raises(AssertionError, "`value` must be in UTC"))
-    assert_that(lambda: to_epoch_millis(dt2), raises(AssertionError, "`value` must be in UTC"))
+    assert_that(lambda: to_epoch_millis(dt1), raises(AssertionError, "`value` must be in UTC"))  # type: ignore[misc]
+    assert_that(lambda: to_epoch_millis(dt2), raises(AssertionError, "`value` must be in UTC"))  # type: ignore[misc]

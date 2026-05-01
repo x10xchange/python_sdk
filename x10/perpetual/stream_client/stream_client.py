@@ -10,7 +10,7 @@ from x10.perpetual.stream_client.perpetual_stream_connection import (
     PerpetualStreamConnection,
     StreamMsgResponseType,
 )
-from x10.utils.http import get_url
+from x10.utils.http import UrlQueryParam, get_url
 
 
 class PerpetualStreamClient:
@@ -72,7 +72,7 @@ class PerpetualStreamClient:
         url = self.__get_url("/account")
         return self.__connect(url, WrappedStreamResponseModel[AccountStreamDataModel], api_key)
 
-    def __get_url(self, path: str, *, query: Optional[Dict[str, str | List[str]]] = None, **path_params) -> str:
+    def __get_url(self, path: str, *, query: Optional[Dict[str, UrlQueryParam]] = None, **path_params) -> str:
         return get_url(f"{self.__api_url}{path}", query=query, **path_params)
 
     @staticmethod
