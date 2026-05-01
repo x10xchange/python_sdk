@@ -67,29 +67,6 @@ class UserClient:
             await self.__session.close()
             self.__session = None
 
-    async def onboard(self, referral_code: Optional[str] = None):
-        signing_account: LocalAccount = Account.from_key(self.__l1_private_key())
-        key_pair = get_l2_keys_from_l1_account(
-            l1_account=signing_account, account_index=0, signing_domain=self.__config.signing.signing_domain
-        )
-        payload = get_onboarding_payload(
-            signing_account,
-            signing_domain=self.__config.signing.signing_domain,
-            key_pair=key_pair,
-            referral_code=referral_code,
-            host=self._get_endpoint_config().onboarding_url,
-        )
-        url = self._get_url(self._get_endpoint_config().onboarding_url, path="/auth/onboard")
-        onboarding_response = await send_post_request(
-            await self.get_session(), url, OnboardedClientModel, json=payload.to_json()
-        )
-
-        onboarded_client = onboarding_response.data
-        if onboarded_client is None:
-            raise ValidationError("No account data returned from onboarding")
-
-        return OnBoardedAccount(account=onboarded_client.default_account, l2_key_pair=key_pair)
-
     async def onboard_subaccount(self, account_index: int, description: str | None = None):
         request_path = "/auth/onboard/subaccount"
         if description is None:
