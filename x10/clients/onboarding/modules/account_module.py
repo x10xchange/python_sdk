@@ -1,3 +1,8 @@
+from typing import Callable
+
+from clients.onboarding.modules.base_module import BaseModule
+
+
 class AccountModule(BaseModule):
     async def create_api_key(self, description: str, sign: Callable[[str], str]) -> str:
         request_path = "/api/v1/user/account/api-key"

@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import List, Optional, Callable
+from typing import Callable, List, Optional
 
 from x10.clients.rest.modules.base_module import BaseModule
 from x10.errors import ValidationError

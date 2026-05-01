@@ -4,7 +4,6 @@ from typing import Callable
 from eth_account import Account
 from eth_account.messages import encode_defunct
 from eth_account.signers.local import LocalAccount
-
 from utils.date import utc_now
 
 

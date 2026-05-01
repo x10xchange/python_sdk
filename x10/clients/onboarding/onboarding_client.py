@@ -4,6 +4,7 @@ from x10.clients.onboarding.modules.account_module import AccountModule
 from x10.clients.onboarding.modules.auth_module import AuthModule
 from x10.config import Config
 
+
 class OnboardingClient:
     __config: Config
     __get_l1_private_key: Callable[[], str]

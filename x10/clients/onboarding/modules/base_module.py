@@ -1,51 +1,34 @@
-from typing import Dict, Optional
+from typing import Callable, Dict, Optional
 
 import aiohttp
 from aiohttp import ClientTimeout
 
 from x10.config import Config
-from x10.core.stark_account import StarkPerpetualAccount
-from x10.errors import ValidationError
 from x10.utils.http import get_url
 
 
 class BaseModule:
     __config: Config
-    __api_key: Optional[str]
-    __stark_account: Optional[StarkPerpetualAccount]
     __session: Optional[aiohttp.ClientSession]
+    __get_l1_private_key: Callable[[], str]
 
     def __init__(
         self,
         config: Config,
         *,
-        api_key: Optional[str] = None,
-        stark_account: Optional[StarkPerpetualAccount] = None,
+        get_l1_private_key: Callable[[], str],
     ):
         super().__init__()
 
         self.__config = config
-        self.__api_key = api_key
-        self.__stark_account = stark_account
+        self.__get_l1_private_key = get_l1_private_key
         self.__session = None
 
     def _get_url(self, path: str, *, query: Optional[Dict] = None, **path_params) -> str:
-        return get_url(f"{self._get_endpoint_config().api_base_url}{path}", query=query, **path_params)
+        return get_url(f"{self.__config.endpoints.api_base_url}{path}", query=query, **path_params)
 
-    def _get_endpoint_config(self):
-        return self.__config.endpoints
-
-    def _get_api_key(self):
-        if not self.__api_key:
-            raise ValidationError("API key is not set")
-
-        return self.__api_key
-
-    def _get_stark_account(self):
-        if not self.__stark_account:
-            raise ValidationError("Stark account is not set")
-
-        return self.__stark_account
+    def _get_l1_private_key(self):
+        return self.__get_l1_private_key()
 
     async def get_session(self) -> aiohttp.ClientSession:
         if self.__session is None:

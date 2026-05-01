@@ -1,4 +1,4 @@
-from clients.rest.modules.base_module import BaseModule
+from clients.onboarding.modules.base_module import BaseModule
 
 
 class AuthModule(BaseModule):
