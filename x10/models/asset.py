@@ -23,7 +23,7 @@ class AssetModel(X10BaseModel):
 
 
 # FIXME: Replace with AssetModel
-@dataclass
+@dataclass(frozen=True)
 class Asset:
     id: int
     name: str

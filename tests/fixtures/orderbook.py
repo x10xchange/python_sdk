@@ -2,10 +2,10 @@ from decimal import Decimal
 
 
 def create_orderbook_message():
+    from x10.models.http import WrappedStreamResponseModel
     from x10.models.orderbook import OrderbookQuantityModel, OrderbookUpdateModel
-    from x10.utils.http import WrappedStreamResponse
 
-    return WrappedStreamResponse[OrderbookUpdateModel](
+    return WrappedStreamResponseModel[OrderbookUpdateModel](
         type="SNAPSHOT",
         data=OrderbookUpdateModel(
             market="BTC-USD",

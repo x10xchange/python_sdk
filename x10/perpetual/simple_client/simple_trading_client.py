@@ -1,13 +1,16 @@
 import asyncio
-import dataclasses
 import time
+from dataclasses import dataclass
 from decimal import Decimal
 from typing import Awaitable, Dict, Union, cast
 
+from x10.clients.rest.modules.info_module import InfoModule
+from x10.clients.rest.modules.order_management_module import OrderManagementModule
 from x10.config import Config
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.errors import SdkError, ValidationError
 from x10.models.account import AccountStreamDataModel
+from x10.models.http import WrappedStreamResponseModel
 from x10.models.market import MarketModel
 from x10.models.order import (
     NewOrderModel,
@@ -22,9 +25,6 @@ from x10.perpetual.stream_client.perpetual_stream_connection import (
     PerpetualStreamConnection,
 )
 from x10.perpetual.stream_client.stream_client import PerpetualStreamClient
-from x10.perpetual.trading_client.info_markets_module import InfoMarketsModule
-from x10.perpetual.trading_client.order_management_module import OrderManagementModule
-from x10.utils.http import WrappedStreamResponse
 
 
 def condition_to_awaitable(condition: asyncio.Condition) -> Awaitable:
@@ -53,21 +53,21 @@ class TimedOpenOrderModel(OpenOrderModel):
         )
 
 
-@dataclasses.dataclass
+@dataclass
 class TimedCancel:
     start_nanos: int
     end_nanos: int
     operation_ms: float
 
 
-@dataclasses.dataclass
+@dataclass
 class OrderWaiter:
     condition: asyncio.Condition
     open_order: None | TimedOpenOrderModel
     start_nanos: int
 
 
-@dataclasses.dataclass
+@dataclass
 class CancelWaiter:
     condition: asyncio.Condition
     start_nanos: int
@@ -83,13 +83,13 @@ class BlockingTradingClient:
 
         self.__config = config
         self.__account = account
-        self.__market_module = InfoMarketsModule(config, api_key=account.api_key)
+        self.__info_module = InfoModule(config, api_key=account.api_key)
         self.__orders_module = OrderManagementModule(config, api_key=account.api_key)
         self.__markets: Union[None, Dict[str, MarketModel]] = None
         self.__stream_client: PerpetualStreamClient = PerpetualStreamClient(api_url=config.endpoints.stream_url)
         self.__account_stream: Union[
             None,
-            PerpetualStreamConnection[WrappedStreamResponse[AccountStreamDataModel]],
+            PerpetualStreamConnection[WrappedStreamResponseModel[AccountStreamDataModel]],
         ] = None
         self.__order_waiters: Dict[str, OrderWaiter] = {}
         self.__cancel_waiters: Dict[str, CancelWaiter] = {}
@@ -172,7 +172,7 @@ class BlockingTradingClient:
 
     async def get_markets(self) -> Dict[str, MarketModel]:
         if not self.__markets:
-            markets = await self.__market_module.get_markets()
+            markets = await self.__info_module.get_markets()
             market_data = markets.data
             if not market_data:
                 raise ValidationError("Core market data is empty, check your connection or API key.")

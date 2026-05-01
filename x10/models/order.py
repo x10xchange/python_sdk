@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Optional
+from typing import List, Optional
 
 from strenum import StrEnum
 
@@ -212,3 +212,10 @@ class OpenOrderModel(X10BaseModel):
     tp_sl_type: Optional[OrderTpslType] = None
     take_profit: Optional[OpenOrderTpslTriggerModel] = None
     stop_loss: Optional[OpenOrderTpslTriggerModel] = None
+
+
+class MassCancelRequestModel(X10BaseModel):
+    order_ids: Optional[List[int]] = None
+    external_order_ids: Optional[List[str]] = None
+    markets: Optional[List[str]] = None
+    cancel_all: Optional[bool] = None

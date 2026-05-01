@@ -1,6 +1,7 @@
 from decimal import Decimal
 from typing import List, Optional
 
+from x10.clients.rest.modules.base_module import BaseModule
 from x10.errors import ValidationError
 from x10.models.account import AccountLeverageModel, AccountModel
 from x10.models.asset import (
@@ -17,11 +18,10 @@ from x10.models.order import OpenOrderModel, OrderSide, OrderType
 from x10.models.position import PositionHistoryModel, PositionModel, PositionSide
 from x10.models.trade import AccountTradeModel, TradeType
 from x10.models.transfer import TransferResponseModel
-from x10.perpetual.trading_client.base_module import BaseModule
 from x10.perpetual.transfer_object import create_transfer_object
 from x10.perpetual.withdrawal_object import create_withdrawal_object
 from x10.utils.http import (
-    WrappedApiResponse,
+    WrappedApiResponseModel,
     send_get_request,
     send_patch_request,
     send_post_request,
@@ -29,15 +29,15 @@ from x10.utils.http import (
 
 
 class AccountModule(BaseModule):
-    async def get_account(self) -> WrappedApiResponse[AccountModel]:
+    async def get_account(self) -> WrappedApiResponseModel[AccountModel]:
         url = self._get_url("/user/account/info")
         return await send_get_request(await self.get_session(), url, AccountModel, api_key=self._get_api_key())
 
-    async def get_client(self) -> WrappedApiResponse[ClientModel]:
+    async def get_client(self) -> WrappedApiResponseModel[ClientModel]:
         url = self._get_url("/user/client/info")
         return await send_get_request(await self.get_session(), url, ClientModel, api_key=self._get_api_key())
 
-    async def get_balance(self) -> WrappedApiResponse[BalanceModel]:
+    async def get_balance(self) -> WrappedApiResponseModel[BalanceModel]:
         """
         https://api.docs.extended.exchange/#get-balance
         """
@@ -47,7 +47,7 @@ class AccountModule(BaseModule):
 
     async def get_positions(
         self, *, market_names: Optional[List[str]] = None, position_side: Optional[PositionSide] = None
-    ) -> WrappedApiResponse[List[PositionModel]]:
+    ) -> WrappedApiResponseModel[List[PositionModel]]:
         """
         https://api.docs.extended.exchange/#get-positions
         """
@@ -61,7 +61,7 @@ class AccountModule(BaseModule):
         position_side: Optional[PositionSide] = None,
         cursor: Optional[int] = None,
         limit: Optional[int] = None,
-    ) -> WrappedApiResponse[List[PositionHistoryModel]]:
+    ) -> WrappedApiResponseModel[List[PositionHistoryModel]]:
         """
         https://api.docs.extended.exchange/#get-positions-history
         """
@@ -79,7 +79,7 @@ class AccountModule(BaseModule):
         market_names: Optional[List[str]] = None,
         order_type: Optional[OrderType] = None,
         order_side: Optional[OrderSide] = None,
-    ) -> WrappedApiResponse[List[OpenOrderModel]]:
+    ) -> WrappedApiResponseModel[List[OpenOrderModel]]:
         """
         https://api.docs.extended.exchange/#get-open-orders
         """
@@ -97,7 +97,7 @@ class AccountModule(BaseModule):
         order_side: Optional[OrderSide] = None,
         cursor: Optional[int] = None,
         limit: Optional[int] = None,
-    ) -> WrappedApiResponse[List[OpenOrderModel]]:
+    ) -> WrappedApiResponseModel[List[OpenOrderModel]]:
         """
         https://api.docs.extended.exchange/#get-orders-history
         """
@@ -108,7 +108,7 @@ class AccountModule(BaseModule):
         )
         return await send_get_request(await self.get_session(), url, List[OpenOrderModel], api_key=self._get_api_key())
 
-    async def get_order_by_id(self, order_id: int) -> WrappedApiResponse[OpenOrderModel]:
+    async def get_order_by_id(self, order_id: int) -> WrappedApiResponseModel[OpenOrderModel]:
         """
         https://api.docs.extended.exchange/#get-order-by-id
         """
@@ -117,7 +117,7 @@ class AccountModule(BaseModule):
 
         return await send_get_request(await self.get_session(), url, OpenOrderModel, api_key=self._get_api_key())
 
-    async def get_order_by_external_id(self, external_id: str) -> WrappedApiResponse[list[OpenOrderModel]]:
+    async def get_order_by_external_id(self, external_id: str) -> WrappedApiResponseModel[list[OpenOrderModel]]:
         """
         https://api.docs.extended.exchange/#get-order-by-external-id
         """
@@ -126,7 +126,7 @@ class AccountModule(BaseModule):
 
         return await send_get_request(await self.get_session(), url, list[OpenOrderModel], api_key=self._get_api_key())
 
-    async def get_spot_balances(self) -> WrappedApiResponse[List[SpotBalanceModel]]:
+    async def get_spot_balances(self) -> WrappedApiResponseModel[List[SpotBalanceModel]]:
         """
         https://api.docs.extended.exchange/#get-spot-balance
         """
@@ -143,7 +143,7 @@ class AccountModule(BaseModule):
         trade_type: Optional[TradeType] = None,
         cursor: Optional[int] = None,
         limit: Optional[int] = None,
-    ) -> WrappedApiResponse[List[AccountTradeModel]]:
+    ) -> WrappedApiResponseModel[List[AccountTradeModel]]:
         """
         https://api.docs.extended.exchange/#get-trades
         """
@@ -159,7 +159,7 @@ class AccountModule(BaseModule):
 
     async def get_fees(
         self, *, market_names: Optional[List[str]] = None, builder_id: Optional[int] = None
-    ) -> WrappedApiResponse[List[TradingFeeModel]]:
+    ) -> WrappedApiResponseModel[List[TradingFeeModel]]:
         """
         https://api.docs.extended.exchange/#get-fees
         """
@@ -175,7 +175,7 @@ class AccountModule(BaseModule):
 
     async def get_leverage(
         self, market_names: Optional[List[str]] = None
-    ) -> WrappedApiResponse[List[AccountLeverageModel]]:
+    ) -> WrappedApiResponseModel[List[AccountLeverageModel]]:
         """
         https://api.docs.extended.exchange/#get-current-leverage
         """
@@ -185,7 +185,7 @@ class AccountModule(BaseModule):
             await self.get_session(), url, List[AccountLeverageModel], api_key=self._get_api_key()
         )
 
-    async def update_leverage(self, market_name: str, leverage: Decimal) -> WrappedApiResponse[EmptyModel]:
+    async def update_leverage(self, market_name: str, leverage: Decimal) -> WrappedApiResponseModel[EmptyModel]:
         """
         https://api.docs.extended.exchange/#update-leverage
         """
@@ -200,11 +200,13 @@ class AccountModule(BaseModule):
             api_key=self._get_api_key(),
         )
 
-    async def get_bridge_config(self) -> WrappedApiResponse[BridgesConfigModel]:
+    async def get_bridge_config(self) -> WrappedApiResponseModel[BridgesConfigModel]:
         url = self._get_url("/user/bridge/config")
         return await send_get_request(await self.get_session(), url, BridgesConfigModel, api_key=self._get_api_key())
 
-    async def get_bridge_quote(self, chain_in: str, chain_out: str, amount: Decimal) -> WrappedApiResponse[QuoteModel]:
+    async def get_bridge_quote(
+        self, chain_in: str, chain_out: str, amount: Decimal
+    ) -> WrappedApiResponseModel[QuoteModel]:
         url = self._get_url(
             "/user/bridge/quote",
             query={
@@ -230,7 +232,7 @@ class AccountModule(BaseModule):
         to_l2_key: int | str,
         amount: Decimal,
         nonce: int | None = None,
-    ) -> WrappedApiResponse[TransferResponseModel]:
+    ) -> WrappedApiResponseModel[TransferResponseModel]:
         from_vault = self._get_stark_account().vault
         url = self._get_url("/user/transfer/onchain")
 
@@ -262,7 +264,7 @@ class AccountModule(BaseModule):
         stark_address: str | None = None,
         nonce: int | None = None,
         quote_id: str | None = None,
-    ) -> WrappedApiResponse[int]:
+    ) -> WrappedApiResponseModel[int]:
         url = self._get_url("/user/withdrawal")
         account = (await self.get_account()).data
         if account is None:
@@ -316,7 +318,7 @@ class AccountModule(BaseModule):
         end_time: Optional[int] = None,
         cursor: Optional[int] = None,
         limit: Optional[int] = None,
-    ) -> WrappedApiResponse[List[AssetOperationModel]]:
+    ) -> WrappedApiResponseModel[List[AssetOperationModel]]:
         url = self._get_url(
             "/user/assetOperations",
             query={

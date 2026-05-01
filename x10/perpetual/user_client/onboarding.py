@@ -1,24 +1,17 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from functools import cached_property
 
 from eth_account.messages import SignableMessage, encode_typed_data
 from eth_account.signers.local import LocalAccount
 from fast_stark_crypto import generate_keypair_from_eth_signature, pedersen_hash
 from fast_stark_crypto import sign as stark_sign
 
-from x10.models.account import AccountModel
-from x10.models.base import X10BaseModel
-
 register_action = "REGISTER"
 sub_account_action = "CREATE_SUB_ACCOUNT"
 
 
-class OnboardedClientModel(X10BaseModel):
-    l1_address: str
-    default_account: AccountModel
-
-
-@dataclass
+@dataclass(frozen=True)
 class StarkKeyPair:
     private: int
     public: int
@@ -32,7 +25,7 @@ class StarkKeyPair:
         return hex(self.private)
 
 
-@dataclass
+@dataclass(frozen=True)
 class AccountRegistration:
     account_index: int
     wallet: str
@@ -41,8 +34,9 @@ class AccountRegistration:
     action: str
     host: str
 
-    def __post_init__(self):
-        self.time_string = self.time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    @cached_property
+    def time_string(self):
+        return self.time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     def to_signable_message(self, signing_domain) -> SignableMessage:
         domain = {"name": signing_domain}
@@ -88,7 +82,7 @@ class AccountRegistration:
         }
 
 
-@dataclass
+@dataclass(frozen=True)
 class SubAccountOnboardingPayload:
     l2_key: int
     l2_r: int
@@ -108,7 +102,7 @@ class SubAccountOnboardingPayload:
         }
 
 
-@dataclass
+@dataclass(frozen=True)
 class OnboardingPayLoad:
     l1_signature: str
     l2_key: int

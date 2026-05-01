@@ -2,6 +2,11 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Dict, Optional
 
+from x10.clients.rest.modules.account_module import AccountModule
+from x10.clients.rest.modules.info_module import InfoModule
+from x10.clients.rest.modules.order_management_module import OrderManagementModule
+from x10.clients.rest.modules.testnet_module import TestnetModule
+from x10.clients.rest.modules.vault_module import VaultModule
 from x10.config import Config
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.errors import ValidationError
@@ -14,22 +19,16 @@ from x10.models.order import (
     TimeInForce,
 )
 from x10.perpetual.order_object import OrderTpslTriggerParam, create_order_object
-from x10.perpetual.trading_client.account_module import AccountModule
-from x10.perpetual.trading_client.info_markets_module import InfoMarketsModule
-from x10.perpetual.trading_client.info_module import InfoModule
-from x10.perpetual.trading_client.order_management_module import OrderManagementModule
-from x10.perpetual.trading_client.testnet_module import TestnetModule
-from x10.perpetual.trading_client.vault_module import VaultModule
 from x10.utils.date import utc_now
-from x10.utils.http import WrappedApiResponse
+from x10.utils.http import WrappedApiResponseModel
 from x10.utils.log import get_logger
 
 LOGGER = get_logger(__name__)
 
 
-class PerpetualTradingClient:
+class RestApiClient:
     """
-    X10 Perpetual Trading Client for the X10 REST API v1.
+    X10 REST API Client.
     """
 
     __markets: Dict[str, MarketModel] | None
@@ -38,7 +37,6 @@ class PerpetualTradingClient:
     __stark_account: StarkPerpetualAccount | None
 
     __info_module: InfoModule
-    __info_markets_module: InfoMarketsModule
     __account_module: AccountModule
     __order_management_module: OrderManagementModule
     __vault_module: VaultModule
@@ -63,12 +61,13 @@ class PerpetualTradingClient:
         tp_sl_type: Optional[OrderTpslType] = None,
         take_profit: Optional[OrderTpslTriggerParam] = None,
         stop_loss: Optional[OrderTpslTriggerParam] = None,
-    ) -> WrappedApiResponse[PlacedOrderModel]:
+    ) -> WrappedApiResponseModel[PlacedOrderModel]:
+        # FIXME: Remove all the checks, should proxy the request?
         if not self.__stark_account:
             raise ValidationError("Stark account is not set")
 
         if not self.__markets:
-            self.__markets = await self.__info_markets_module.get_markets_dict()
+            self.__markets = await self.__info_module.get_markets_dict()
 
         market = self.__markets.get(market_name)
 
@@ -102,9 +101,11 @@ class PerpetualTradingClient:
         return await self.__order_management_module.place_order(order)
 
     async def close(self):
-        await self.__info_markets_module.close_session()
+        await self.__info_module.close_session()
         await self.__account_module.close_session()
         await self.__order_management_module.close_session()
+        await self.__vault_module.close_session()
+        await self.__testnet_module.close_session()
 
     async def __aenter__(self):
         return self
@@ -120,7 +121,6 @@ class PerpetualTradingClient:
         self.__stark_account = stark_account
 
         self.__info_module = InfoModule(config)
-        self.__info_markets_module = InfoMarketsModule(config, api_key=api_key)
         self.__account_module = AccountModule(config, api_key=api_key, stark_account=stark_account)
         self.__order_management_module = OrderManagementModule(config, api_key=api_key)
         self.__vault_module = VaultModule(
@@ -143,10 +143,6 @@ class PerpetualTradingClient:
     @property
     def info(self):
         return self.__info_module
-
-    @property
-    def markets_info(self):
-        return self.__info_markets_module
 
     @property
     def account(self):

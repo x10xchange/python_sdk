@@ -2,16 +2,12 @@ from typing import List, Optional
 
 import tenacity
 
+from x10.clients.rest.modules.account_module import AccountModule
+from x10.clients.rest.modules.base_module import BaseModule
 from x10.config import Config
 from x10.models.asset import AssetOperationModel, AssetOperationStatus
-from x10.models.base import X10BaseModel
-from x10.perpetual.trading_client.account_module import AccountModule
-from x10.perpetual.trading_client.base_module import BaseModule
-from x10.utils.http import WrappedApiResponse, send_post_request
-
-
-class ClaimResponseModel(X10BaseModel):
-    id: int
+from x10.models.testnet import ClaimResponseModel
+from x10.utils.http import WrappedApiResponseModel, send_post_request
 
 
 class TestnetModule(BaseModule):
@@ -26,7 +22,7 @@ class TestnetModule(BaseModule):
 
     async def claim_testing_funds(
         self,
-    ) -> WrappedApiResponse[ClaimResponseModel]:
+    ) -> WrappedApiResponseModel[ClaimResponseModel]:
         url = self._get_url("/user/claim")
         resp = await send_post_request(
             await self.get_session(),

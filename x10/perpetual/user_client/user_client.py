@@ -12,8 +12,8 @@ from eth_account.signers.local import LocalAccount
 from x10.config import Config
 from x10.errors import SdkError, ValidationError
 from x10.models.account import AccountModel, ApiKeyRequestModel, ApiKeyResponseModel
+from x10.models.client import OnboardedClientModel
 from x10.perpetual.user_client.onboarding import (
-    OnboardedClientModel,
     StarkKeyPair,
     get_l2_keys_from_l1_account,
     get_onboarding_payload,
@@ -30,7 +30,7 @@ class SubAccountExists(SdkError):
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class OnBoardedAccount:
     account: AccountModel
     l2_key_pair: StarkKeyPair

@@ -1,19 +1,12 @@
 from typing import List, Optional
 
-from x10.models.base import EmptyModel, X10BaseModel
-from x10.models.order import NewOrderModel, PlacedOrderModel
-from x10.perpetual.trading_client.base_module import BaseModule
+from x10.clients.rest.modules.base_module import BaseModule
+from x10.models.base import EmptyModel
+from x10.models.order import MassCancelRequestModel, NewOrderModel, PlacedOrderModel
 from x10.utils.http import send_delete_request, send_post_request
 from x10.utils.log import get_logger
 
 LOGGER = get_logger(__name__)
-
-
-class _MassCancelRequestModel(X10BaseModel):
-    order_ids: Optional[List[int]] = None
-    external_order_ids: Optional[List[str]] = None
-    markets: Optional[List[str]] = None
-    cancel_all: Optional[bool] = None
 
 
 class OrderManagementModule(BaseModule):
@@ -66,7 +59,7 @@ class OrderManagementModule(BaseModule):
         """
 
         url = self._get_url("/user/order/massCancel")
-        request_model = _MassCancelRequestModel(
+        request_model = MassCancelRequestModel(
             order_ids=order_ids,
             external_order_ids=external_order_ids,
             markets=markets,

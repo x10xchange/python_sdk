@@ -39,10 +39,10 @@ def create_trading_account():
 
 def create_account_update_trade_message():
     from x10.models.account import AccountStreamDataModel
+    from x10.models.http import WrappedStreamResponseModel
     from x10.models.trade import AccountTradeModel
-    from x10.utils.http import WrappedStreamResponse
 
-    return WrappedStreamResponse[AccountStreamDataModel](
+    return WrappedStreamResponseModel[AccountStreamDataModel](
         type="TRADE",
         data=AccountStreamDataModel(
             trades=[
@@ -69,9 +69,9 @@ def create_account_update_trade_message():
 
 def create_account_update_unknown_message():
     from x10.models.account import AccountStreamDataModel
-    from x10.utils.http import WrappedStreamResponse
+    from x10.models.http import WrappedStreamResponseModel
 
-    return WrappedStreamResponse[AccountStreamDataModel](
+    return WrappedStreamResponseModel[AccountStreamDataModel](
         type="UNEXPECTED",
         data=None,
         ts=1704798222748,

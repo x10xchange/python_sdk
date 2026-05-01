@@ -10,12 +10,12 @@ from pathlib import Path
 import yaml
 from dotenv import load_dotenv
 
+from x10.clients.rest import RestApiClient
 from x10.config import TESTNET_CONFIG, Config
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.market import TradingConfigModel
 from x10.perpetual.simple_client.simple_trading_client import BlockingTradingClient
 from x10.perpetual.stream_client import PerpetualStreamClient
-from x10.perpetual.trading_client import PerpetualTradingClient
 from x10.utils.string import is_hex_string
 
 BTC_USD_MARKET = "BTC-USD"
@@ -61,7 +61,7 @@ def init_env(require_private_api: bool = True):
     )
 
 
-def create_trading_client(config: Config = TESTNET_CONFIG):
+def create_rest_client(config: Config = TESTNET_CONFIG):
     env_config = init_env()
 
     stark_account = StarkPerpetualAccount(
@@ -71,7 +71,7 @@ def create_trading_client(config: Config = TESTNET_CONFIG):
         vault=env_config.vault_id,
     )
 
-    return PerpetualTradingClient(config, stark_account)
+    return RestApiClient(config, stark_account)
 
 
 def create_blocking_client(config: Config = TESTNET_CONFIG):
@@ -98,12 +98,12 @@ def get_adjust_price_by_pct(config: TradingConfigModel):
     return adjust_price_by_pct
 
 
-async def find_order_and_cancel(*, trading_client: PerpetualTradingClient, logger: Logger, order_id: str):
-    open_order = await trading_client.account.get_order_by_id(order_id)
+async def find_order_and_cancel(*, rest_client: RestApiClient, logger: Logger, order_id: str):
+    open_order = await rest_client.account.get_order_by_id(order_id)
 
     logger.info("Found placed order: %s", open_order.to_pretty_json())
     logger.info("Cancelling placed order...")
 
-    await trading_client.orders.cancel_order(order_id)
+    await rest_client.orders.cancel_order(order_id)
 
     logger.info("Placed order is cancelled")
