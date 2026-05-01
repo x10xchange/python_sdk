@@ -1,7 +1,7 @@
 import itertools
 import re
 from types import NoneType
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Dict, List, Optional, Type, TypeAlias
 
 import aiohttp
 from aiohttp import ClientResponse
@@ -50,7 +50,7 @@ def parse_response_to_model(
     return WrappedApiResponseModel[model_class].model_validate_json(response_text)  # type: ignore[valid-type]
 
 
-type UrlQueryParam = str | int | bool | List[str] | None
+UrlQueryParam: TypeAlias = str | int | bool | List[str] | None
 
 
 def get_url(template: str, *, query: Optional[Dict[str, UrlQueryParam]] = None, **path_params):
