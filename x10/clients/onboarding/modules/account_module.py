@@ -1,35 +1,31 @@
 from typing import Callable
 
-from clients.onboarding.modules.base_module import BaseModule
+from models.account import AccountModel
+from models.base import EmptyModel
+
+from x10.clients.onboarding.modules.base_module import BaseModule
+from x10.errors import ValidationError
+from x10.models.account import ApiKeyRequestModel, ApiKeyResponseModel
+from x10.utils.http import RequestHeader, send_get_request, send_post_request
 
 
 class AccountModule(BaseModule):
-    async def create_api_key(self, description: str, sign: Callable[[str], str]) -> str:
+    async def create_api_key(self, *, account_id: int, description: str, sign: Callable[[str], dict]) -> str:
         request_path = "/api/v1/user/account/api-key"
-        x = sign(request_path)
-
-        # if description is None:
-        #     description = "trading api key for account {}".format(account.id)
-        #
-        # signing_account: LocalAccount = Account.from_key(self.__l1_private_key())
-        # time = datetime.now(timezone.utc)
-        # auth_time_string = time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-        # l1_message = f"{request_path}@{auth_time_string}".encode(encoding="utf-8")
-        # signable_message = encode_defunct(l1_message)
-        # l1_signature = signing_account.sign_message(signable_message)
-        # headers = {
-        #     L1_AUTH_SIGNATURE_HEADER: l1_signature.signature.hex(),
-        #     L1_MESSAGE_TIME_HEADER: auth_time_string,
-        #     ACTIVE_ACCOUNT_HEADER: str(account.id),
-        # }
+        signature = sign(request_path)
+        headers = {
+            RequestHeader.AUTH_L1_SIGNATURE: signature["signature"],
+            RequestHeader.AUTH_L1_MESSAGE_TIME: signature["time"],
+            RequestHeader.AUTH_ACTIVE_ACCOUNT: str(account_id),
+        }
 
         url = self._get_url(self._get_endpoint_config().onboarding_url, path=request_path)
-        request = ApiKeyRequestModel(description=description)
+        payload = ApiKeyRequestModel(description=description)
         response = await send_post_request(
             await self.get_session(),
             url,
             ApiKeyResponseModel,
-            json=request.to_api_request_json(),
+            json=payload.to_api_request_json(),
             request_headers=headers,
         )
         response_data = response.data
@@ -38,3 +34,28 @@ class AccountModule(BaseModule):
             raise ValidationError("No API key data returned from onboarding")
 
         return response_data.key
+
+    async def get_accounts(self, *, sign: Callable[[str], dict]) -> list[AccountModel]:
+        request_path = "/api/v1/user/accounts"
+        signature = sign(request_path)
+        headers = {
+            RequestHeader.AUTH_L1_SIGNATURE: signature["signature"],
+            RequestHeader.AUTH_L1_MESSAGE_TIME: signature["time"],
+        }
+
+        url = self._get_url(self._get_endpoint_config().onboarding_url, path=request_path)
+        response = await send_get_request(await self.get_session(), url, list[AccountModel], request_headers=headers)
+
+        return response.data or []
+
+        # return [
+        #     OnBoardedAccount(
+        #         account=account,
+        #         l2_key_pair=get_l2_keys_from_l1_account(
+        #             l1_account=signing_account,
+        #             account_index=account.account_index,
+        #             signing_domain=self.__config.signing.signing_domain,
+        #         ),
+        #     )
+        #     for account in accounts
+        # ]

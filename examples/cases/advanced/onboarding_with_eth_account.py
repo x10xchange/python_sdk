@@ -5,10 +5,10 @@ from eth_account import Account
 from eth_account.signers.local import LocalAccount
 
 from examples.utils import init_env
+from x10.clients.onboarding import OnboardingClient
 from x10.clients.rest import RestApiClient
 from x10.config import TESTNET_CONFIG
 from x10.core.stark_account import StarkPerpetualAccount
-from x10.perpetual.user_client.user_client import UserClient
 from x10.utils.string import is_hex_string
 
 LOGGER = logging.getLogger()
@@ -23,12 +23,16 @@ async def run_example():
     assert is_hex_string(eth_account_private_key), "`eth_account_private_key` must be a hex string"
 
     eth_local_account: LocalAccount = Account.from_key(eth_account_private_key)
-    user_client = UserClient(config=CONFIG, l1_private_key=eth_local_account.key.hex)
+    onboarding_client = OnboardingClient(config=CONFIG, get_l1_private_key=eth_local_account.key.hex)
 
     LOGGER.info("Onboarding with ETH account %s...", eth_local_account.address)
 
-    main_account = await user_client.onboard()
-    main_account_api_key = await user_client.create_account_api_key(main_account.account, "Onboarding example API key")
+    # if description is None:
+    #     description = "trading api key for account {}".format(account.id)
+    main_account = await onboarding_client.auth.onboard_client()
+    main_account_api_key = await onboarding_client.account.create_api_key(
+        main_account.account, "Onboarding example API key"
+    )
 
     starknet_account = StarkPerpetualAccount(
         api_key=main_account_api_key,

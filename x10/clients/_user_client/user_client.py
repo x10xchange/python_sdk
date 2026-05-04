@@ -36,6 +36,7 @@ class OnBoardedAccount:
     l2_key_pair: StarkKeyPair
 
 
+# FIXME: Remove
 class UserClient:
     __config: Config
     __l1_private_key: Callable[[], str]

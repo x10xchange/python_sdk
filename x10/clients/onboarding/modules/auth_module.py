@@ -48,4 +48,53 @@ class AuthModule(BaseModule):
         return OnBoardedAccount(account=onboarded_client.default_account, l2_key_pair=l2_key_pair)
 
     async def onboard_subaccount(self):
-        pass
+        request_path = "/auth/onboard/subaccount"
+        if description is None:
+            description = f"Subaccount {account_index}"
+
+        signing_account: LocalAccount = Account.from_key(self.__l1_private_key())
+        time = datetime.now(timezone.utc)
+        auth_time_string = time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        l1_message = f"{request_path}@{auth_time_string}".encode(encoding="utf-8")
+        signable_message = encode_defunct(l1_message)
+        l1_signature = signing_account.sign_message(signable_message)
+        key_pair = get_l2_keys_from_l1_account(
+            l1_account=signing_account,
+            account_index=account_index,
+            signing_domain=self.__config.signing.signing_domain,
+        )
+        payload = get_sub_account_creation_payload(
+            account_index=account_index,
+            l1_address=signing_account.address,
+            key_pair=key_pair,
+            description=description,
+            host=self._get_endpoint_config().onboarding_url,
+        )
+        headers = {
+            L1_AUTH_SIGNATURE_HEADER: l1_signature.signature.hex(),
+            L1_MESSAGE_TIME_HEADER: auth_time_string,
+        }
+        url = self._get_url(self._get_endpoint_config().onboarding_url, path=request_path)
+
+        try:
+            onboarding_response = await send_post_request(
+                await self.get_session(),
+                url,
+                AccountModel,
+                json=payload.to_json(),
+                request_headers=headers,
+                response_code_to_exception={HTTPConflict.status_code: SubAccountExists},
+            )
+            onboarded_account = onboarding_response.data
+        except SubAccountExists:
+            # FIXME: ???
+            client_accounts = await self.get_accounts()
+            account_with_index = [
+                account for account in client_accounts if account.account.account_index == account_index
+            ]
+            if not account_with_index:
+                raise ValidationError("Subaccount already exists but not found in client accounts")
+            onboarded_account = account_with_index[0].account
+        if onboarded_account is None:
+            raise ValidationError("No account data returned from onboarding")
+        return OnBoardedAccount(account=onboarded_account, l2_key_pair=key_pair)

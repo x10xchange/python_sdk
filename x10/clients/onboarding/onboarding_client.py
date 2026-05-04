@@ -22,7 +22,7 @@ class OnboardingClient:
     async def __aexit__(self, exc_type, exc_value, traceback):
         await self.close()
 
-    def __init__(self, config: Config, get_l1_private_key: Callable[[], str]):
+    def __init__(self, config: Config, *, get_l1_private_key: Callable[[], str]):
         self.__config = config
         self.__get_l1_private_key = get_l1_private_key
 

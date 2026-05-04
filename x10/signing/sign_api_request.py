@@ -7,7 +7,8 @@ from eth_account.signers.local import LocalAccount
 from utils.date import utc_now
 
 
-def sign_api_request(request_path: str, get_l1_private_key: Callable[[], str]) -> tuple[str, str]:
+# FIXME: Add test
+def sign_api_request(request_path: str, get_l1_private_key: Callable[[], str]):
     signing_account: LocalAccount = Account.from_key(get_l1_private_key())
     now = utc_now()
     now_as_string = now.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -15,4 +16,4 @@ def sign_api_request(request_path: str, get_l1_private_key: Callable[[], str]) -
     encoded_l1_message = encode_defunct(l1_message)
     l1_signature = signing_account.sign_message(encoded_l1_message)
 
-    return l1_signature.signature.hex(), now_as_string
+    return {"signature": l1_signature.signature.hex(), "time": now_as_string}
