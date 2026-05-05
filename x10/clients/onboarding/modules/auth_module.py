@@ -38,7 +38,7 @@ class AuthModule(BaseModule):
 
         url = self._get_url("/auth/onboard")
         onboarding_response = await send_post_request(
-            await self.get_session(), url, OnboardedClientModel, json=payload.to_json()
+            await self._get_session(), url, OnboardedClientModel, json=payload.to_json()
         )
 
         onboarded_client = onboarding_response.data
@@ -73,7 +73,7 @@ class AuthModule(BaseModule):
 
         try:
             onboarding_response = await send_post_request(
-                await self.get_session(),
+                await self._get_session(),
                 url,
                 AccountModel,
                 json=payload.to_json(),

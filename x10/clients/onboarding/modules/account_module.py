@@ -18,7 +18,7 @@ class AccountModule(BaseModule):
         payload = ApiKeyRequestModel(description=description)
         url = self._get_url(request_path)
         response = await send_post_request(
-            await self.get_session(),
+            await self._get_session(),
             url,
             ApiKeyResponseModel,
             json=payload.to_api_request_json(),

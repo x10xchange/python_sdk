@@ -84,7 +84,7 @@ class VaultModule(BaseModule):
 
         url = self._get_url("/vault/user/deposits")
         resp = await send_post_request(
-            await self.get_session(),
+            await self._get_session(),
             url,
             NoneType,
             json=deposit_request.to_api_request_json(exclude_none=True),
@@ -135,7 +135,7 @@ class VaultModule(BaseModule):
         )
         url = self._get_url("/vault/user/withdrawals")
         resp = await send_post_request(
-            await self.get_session(),
+            await self._get_session(),
             url,
             NoneType,
             json=withdraw_request.to_api_request_json(exclude_none=True),

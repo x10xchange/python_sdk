@@ -22,7 +22,7 @@ class OrderManagementModule(BaseModule):
 
         url = self._get_url("/user/order")
         response = await send_post_request(
-            await self.get_session(),
+            await self._get_session(),
             url,
             PlacedOrderModel,
             json=order.to_api_request_json(exclude_none=True),
@@ -36,7 +36,7 @@ class OrderManagementModule(BaseModule):
         """
 
         url = self._get_url("/user/order/<order_id>", order_id=order_id)
-        return await send_delete_request(await self.get_session(), url, EmptyModel, api_key=self._get_api_key())
+        return await send_delete_request(await self._get_session(), url, EmptyModel, api_key=self._get_api_key())
 
     async def cancel_order_by_external_id(self, order_external_id: str):
         """
@@ -44,7 +44,7 @@ class OrderManagementModule(BaseModule):
         """
 
         url = self._get_url("/user/order", query={"externalId": order_external_id})
-        return await send_delete_request(await self.get_session(), url, EmptyModel, api_key=self._get_api_key())
+        return await send_delete_request(await self._get_session(), url, EmptyModel, api_key=self._get_api_key())
 
     async def mass_cancel(
         self,
@@ -66,7 +66,7 @@ class OrderManagementModule(BaseModule):
             cancel_all=cancel_all,
         )
         return await send_post_request(
-            await self.get_session(),
+            await self._get_session(),
             url,
             EmptyModel,
             json=request_model.to_api_request_json(exclude_none=True),

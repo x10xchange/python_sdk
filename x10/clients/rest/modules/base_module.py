@@ -47,7 +47,7 @@ class BaseModule:
 
         return self.__stark_account
 
-    async def get_session(self) -> aiohttp.ClientSession:
+    async def _get_session(self) -> aiohttp.ClientSession:
         if self.__session is None:
             created_session = aiohttp.ClientSession(
                 timeout=ClientTimeout(total=self.__config.defaults.request_timeout_seconds)

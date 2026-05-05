@@ -27,6 +27,7 @@ class BaseModule:
     def _get_url(self, path: str, *, query: Optional[Dict] = None, **path_params) -> str:
         return get_url(f"{self._get_endpoint_config().onboarding_url}{path}", query=query, **path_params)
 
+    # FIXME
     def _get_config(self):
         return self.__config
 
@@ -39,7 +40,7 @@ class BaseModule:
     def _sign_message(self, msg: SignableMessage) -> str:
         return self.__sign_message(msg)
 
-    async def get_session(self) -> aiohttp.ClientSession:
+    async def _get_session(self) -> aiohttp.ClientSession:
         if self.__session is None:
             created_session = aiohttp.ClientSession(
                 timeout=ClientTimeout(total=self.__config.defaults.request_timeout_seconds)

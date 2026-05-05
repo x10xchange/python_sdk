@@ -25,7 +25,7 @@ class TestnetModule(BaseModule):
     async def claim_testing_funds(self) -> WrappedApiResponseModel[ClaimResponseModel]:
         url = self._get_url("/user/claim")
         resp = await send_post_request(
-            await self.get_session(),
+            await self._get_session(),
             url,
             ClaimResponseModel,
             json={},

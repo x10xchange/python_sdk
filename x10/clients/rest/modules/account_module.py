@@ -31,11 +31,11 @@ from x10.utils.http import (
 class AccountModule(BaseModule):
     async def get_account(self) -> WrappedApiResponseModel[AccountModel]:
         url = self._get_url("/user/account/info")
-        return await send_get_request(await self.get_session(), url, AccountModel, api_key=self._get_api_key())
+        return await send_get_request(await self._get_session(), url, AccountModel, api_key=self._get_api_key())
 
     async def get_client(self) -> WrappedApiResponseModel[ClientModel]:
         url = self._get_url("/user/client/info")
-        return await send_get_request(await self.get_session(), url, ClientModel, api_key=self._get_api_key())
+        return await send_get_request(await self._get_session(), url, ClientModel, api_key=self._get_api_key())
 
     async def get_balance(self) -> WrappedApiResponseModel[BalanceModel]:
         """
@@ -43,7 +43,7 @@ class AccountModule(BaseModule):
         """
 
         url = self._get_url("/user/balance")
-        return await send_get_request(await self.get_session(), url, BalanceModel, api_key=self._get_api_key())
+        return await send_get_request(await self._get_session(), url, BalanceModel, api_key=self._get_api_key())
 
     async def get_positions(
         self, *, market_names: Optional[List[str]] = None, position_side: Optional[PositionSide] = None
@@ -53,7 +53,7 @@ class AccountModule(BaseModule):
         """
 
         url = self._get_url("/user/positions", query={"market": market_names, "side": position_side})
-        return await send_get_request(await self.get_session(), url, List[PositionModel], api_key=self._get_api_key())
+        return await send_get_request(await self._get_session(), url, List[PositionModel], api_key=self._get_api_key())
 
     async def get_positions_history(
         self,
@@ -71,7 +71,7 @@ class AccountModule(BaseModule):
             query={"market": market_names, "side": position_side, "cursor": cursor, "limit": limit},
         )
         return await send_get_request(
-            await self.get_session(), url, List[PositionHistoryModel], api_key=self._get_api_key()
+            await self._get_session(), url, List[PositionHistoryModel], api_key=self._get_api_key()
         )
 
     async def get_open_orders(
@@ -88,7 +88,7 @@ class AccountModule(BaseModule):
             "/user/orders",
             query={"market": market_names, "type": order_type, "side": order_side},
         )
-        return await send_get_request(await self.get_session(), url, List[OpenOrderModel], api_key=self._get_api_key())
+        return await send_get_request(await self._get_session(), url, List[OpenOrderModel], api_key=self._get_api_key())
 
     async def get_orders_history(
         self,
@@ -106,7 +106,7 @@ class AccountModule(BaseModule):
             "/user/orders/history",
             query={"market": market_names, "type": order_type, "side": order_side, "cursor": cursor, "limit": limit},
         )
-        return await send_get_request(await self.get_session(), url, List[OpenOrderModel], api_key=self._get_api_key())
+        return await send_get_request(await self._get_session(), url, List[OpenOrderModel], api_key=self._get_api_key())
 
     async def get_order_by_id(self, order_id: int) -> WrappedApiResponseModel[OpenOrderModel]:
         """
@@ -115,7 +115,7 @@ class AccountModule(BaseModule):
 
         url = self._get_url("/user/orders/<order_id>", order_id=order_id)
 
-        return await send_get_request(await self.get_session(), url, OpenOrderModel, api_key=self._get_api_key())
+        return await send_get_request(await self._get_session(), url, OpenOrderModel, api_key=self._get_api_key())
 
     async def get_order_by_external_id(self, external_id: str) -> WrappedApiResponseModel[list[OpenOrderModel]]:
         """
@@ -124,7 +124,7 @@ class AccountModule(BaseModule):
 
         url = self._get_url("/user/orders/external/<external_id>", external_id=external_id)
 
-        return await send_get_request(await self.get_session(), url, list[OpenOrderModel], api_key=self._get_api_key())
+        return await send_get_request(await self._get_session(), url, list[OpenOrderModel], api_key=self._get_api_key())
 
     async def get_spot_balances(self) -> WrappedApiResponseModel[List[SpotBalanceModel]]:
         """
@@ -133,7 +133,7 @@ class AccountModule(BaseModule):
 
         url = self._get_url("/user/spot/balances")
         return await send_get_request(
-            await self.get_session(), url, List[SpotBalanceModel], api_key=self._get_api_key()
+            await self._get_session(), url, List[SpotBalanceModel], api_key=self._get_api_key()
         )
 
     async def get_trades(
@@ -154,7 +154,7 @@ class AccountModule(BaseModule):
         )
 
         return await send_get_request(
-            await self.get_session(), url, List[AccountTradeModel], api_key=self._get_api_key()
+            await self._get_session(), url, List[AccountTradeModel], api_key=self._get_api_key()
         )
 
     async def get_fees(
@@ -171,7 +171,9 @@ class AccountModule(BaseModule):
                 "builderId": builder_id,
             },
         )
-        return await send_get_request(await self.get_session(), url, List[TradingFeeModel], api_key=self._get_api_key())
+        return await send_get_request(
+            await self._get_session(), url, List[TradingFeeModel], api_key=self._get_api_key()
+        )
 
     async def get_leverage(
         self, market_names: Optional[List[str]] = None
@@ -182,7 +184,7 @@ class AccountModule(BaseModule):
 
         url = self._get_url("/user/leverage", query={"market": market_names})
         return await send_get_request(
-            await self.get_session(), url, List[AccountLeverageModel], api_key=self._get_api_key()
+            await self._get_session(), url, List[AccountLeverageModel], api_key=self._get_api_key()
         )
 
     async def update_leverage(self, market_name: str, leverage: Decimal) -> WrappedApiResponseModel[EmptyModel]:
@@ -193,7 +195,7 @@ class AccountModule(BaseModule):
         url = self._get_url("/user/leverage")
         request_model = AccountLeverageModel(market=market_name, leverage=leverage)
         return await send_patch_request(
-            await self.get_session(),
+            await self._get_session(),
             url,
             EmptyModel,
             json=request_model.to_api_request_json(),
@@ -202,7 +204,7 @@ class AccountModule(BaseModule):
 
     async def get_bridge_config(self) -> WrappedApiResponseModel[BridgesConfigModel]:
         url = self._get_url("/user/bridge/config")
-        return await send_get_request(await self.get_session(), url, BridgesConfigModel, api_key=self._get_api_key())
+        return await send_get_request(await self._get_session(), url, BridgesConfigModel, api_key=self._get_api_key())
 
     async def get_bridge_quote(
         self, chain_in: str, chain_out: str, amount: Decimal
@@ -215,7 +217,7 @@ class AccountModule(BaseModule):
                 "amount": amount,
             },
         )
-        return await send_get_request(await self.get_session(), url, QuoteModel, api_key=self._get_api_key())
+        return await send_get_request(await self._get_session(), url, QuoteModel, api_key=self._get_api_key())
 
     async def commit_bridge_quote(self, id: str):
         url = self._get_url(
@@ -224,7 +226,7 @@ class AccountModule(BaseModule):
                 "id": id,
             },
         )
-        await send_post_request(await self.get_session(), url, EmptyModel, api_key=self._get_api_key())
+        await send_post_request(await self._get_session(), url, EmptyModel, api_key=self._get_api_key())
 
     async def transfer(
         self,
@@ -250,7 +252,7 @@ class AccountModule(BaseModule):
         )
 
         return await send_post_request(
-            await self.get_session(),
+            await self._get_session(),
             url,
             TransferResponseModel,
             json=request_model.to_api_request_json(),
@@ -308,7 +310,7 @@ class AccountModule(BaseModule):
             nonce=nonce,
         )
         return await send_post_request(
-            await self.get_session(),
+            await self._get_session(),
             url,
             int,
             json=request_model.to_api_request_json(),
@@ -340,5 +342,5 @@ class AccountModule(BaseModule):
             },
         )
         return await send_get_request(
-            await self.get_session(), url, List[AssetOperationModel], api_key=self._get_api_key()
+            await self._get_session(), url, List[AssetOperationModel], api_key=self._get_api_key()
         )
