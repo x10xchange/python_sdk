@@ -6,7 +6,7 @@ from eth_account.messages import SignableMessage
 from eth_typing import ChecksumAddress
 
 from x10.config import Config
-from x10.core.types import SignMessageCallback
+from x10.signing.onboarding import SignMessageCallback
 from x10.utils.http import get_url
 
 

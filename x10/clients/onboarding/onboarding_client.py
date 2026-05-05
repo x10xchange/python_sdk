@@ -3,7 +3,7 @@ from eth_typing import ChecksumAddress
 from x10.clients.onboarding.modules.account_module import AccountModule
 from x10.clients.onboarding.modules.auth_module import AuthModule
 from x10.config import Config
-from x10.core.types import SignMessageCallback
+from x10.signing.onboarding import SignMessageCallback
 
 
 class OnboardingClient:
