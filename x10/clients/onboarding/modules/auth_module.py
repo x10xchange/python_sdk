@@ -9,8 +9,8 @@ from x10.signing.onboarding import (
     get_l2_keys_from_l1_account,
     get_onboarding_payload,
     get_sub_account_creation_payload,
+    sign_api_request,
 )
-from x10.signing.sign_api_request import sign_api_request
 from x10.utils.http import RequestHeader, send_post_request
 
 

@@ -1,7 +1,7 @@
 from x10.clients.onboarding.modules.base_module import BaseModule
 from x10.errors import ValidationError
 from x10.models.account import ApiKeyRequestModel, ApiKeyResponseModel
-from x10.signing.sign_api_request import sign_api_request
+from x10.signing.onboarding import sign_api_request
 from x10.utils.http import RequestHeader, send_post_request
 
 
