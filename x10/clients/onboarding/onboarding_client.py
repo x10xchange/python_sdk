@@ -1,4 +1,5 @@
 from core.types import SignMessageCallback
+from eth_typing import ChecksumAddress
 
 from x10.clients.onboarding.modules.account_module import AccountModule
 from x10.clients.onboarding.modules.auth_module import AuthModule
@@ -6,9 +7,6 @@ from x10.config import Config
 
 
 class OnboardingClient:
-    __config: Config
-    __sign_message: SignMessageCallback
-
     __account_module: AccountModule
     __auth_module: AuthModule
 
@@ -22,12 +20,9 @@ class OnboardingClient:
     async def __aexit__(self, exc_type, exc_value, traceback):
         await self.close()
 
-    def __init__(self, config: Config, *, sign_message: SignMessageCallback):
-        self.__config = config
-        self.__sign_message = sign_message
-
-        self.__account_module = AccountModule(config, sign_message=sign_message)
-        self.__auth_module = AuthModule(config, sign_message=sign_message)
+    def __init__(self, config: Config, *, account_address: ChecksumAddress, sign_message: SignMessageCallback):
+        self.__account_module = AccountModule(config, account_address=account_address, sign_message=sign_message)
+        self.__auth_module = AuthModule(config, account_address=account_address, sign_message=sign_message)
 
     @property
     def account(self):

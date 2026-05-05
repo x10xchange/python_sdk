@@ -2,7 +2,6 @@ import logging
 from asyncio import run
 
 from eth_account import Account
-from eth_account.messages import SignableMessage
 from eth_account.signers.local import LocalAccount
 
 from examples.utils import init_env
