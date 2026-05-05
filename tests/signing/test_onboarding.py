@@ -3,7 +3,6 @@ from eth_account.messages import SignableMessage
 from eth_account.signers.local import LocalAccount
 from freezegun import freeze_time
 from hamcrest import assert_that, equal_to
-from utils.date import utc_now
 
 from x10.signing.onboarding import (
     RequestSignature,
@@ -11,6 +10,7 @@ from x10.signing.onboarding import (
     get_onboarding_payload,
     sign_api_request,
 )
+from x10.utils.date import utc_now
 
 
 @freeze_time("2024-01-05 01:08:56.860694")
@@ -22,7 +22,7 @@ def test_sign_api_request(get_eth_private_key):
         signature,
         equal_to(
             RequestSignature(
-                "86882cdc9ed1d36031fb640155a80ba6fd59b92d293b2ea563bcacec586001b30173d180dad8c985cec7b8335c718b0a2c24b9c3876364c8047f6616eca6fbcd1c",  # noqa: E501
+                "f4e4e9aaf2014a3651dfafec63854e4dfd486dcc10e77f56b330e9942630fde03588e43d6c022f8513c1e4cf211e670c3134d3cfdf1bd61b570d2588bfb9fc921b",  # noqa: E501
                 "2024-01-05T01:08:56Z",
             )
         ),
