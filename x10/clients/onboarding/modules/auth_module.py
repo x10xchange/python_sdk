@@ -25,19 +25,19 @@ class AuthModule(BaseModule):
         l2_key_pair = get_l2_keys_from_l1_account(
             account_index=0,
             account_address=self._get_account_address(),
-            signing_domain=self.__config.signing.signing_domain,
+            signing_domain=self._get_config().signing.signing_domain,
             sign_message=self._sign_message,
         )
         payload = get_onboarding_payload(
             account_address=self._get_account_address(),
-            signing_domain=self.__config.signing.signing_domain,
+            signing_domain=self._get_config().signing.signing_domain,
             key_pair=l2_key_pair,
             referral_code=referral_code,
             host=self._get_endpoint_config().onboarding_url,
             sign_message=self._sign_message,
         )
 
-        url = self._get_url(self._get_endpoint_config().onboarding_url, path="/auth/onboard")
+        url = self._get_url("/auth/onboard")
         onboarding_response = await send_post_request(
             await self.get_session(), url, OnboardedClientModel, json=payload.to_json()
         )
@@ -68,7 +68,7 @@ class AuthModule(BaseModule):
         key_pair = get_l2_keys_from_l1_account(
             account_index=account_index,
             account_address=self._get_account_address(),
-            signing_domain=self.__config.signing.signing_domain,
+            signing_domain=self._get_config().signing.signing_domain,
             sign_message=self._sign_message,
         )
         payload = get_sub_account_creation_payload(
@@ -78,7 +78,7 @@ class AuthModule(BaseModule):
             description=description,
             host=self._get_endpoint_config().onboarding_url,
         )
-        url = self._get_url(self._get_endpoint_config().onboarding_url, path=request_path)
+        url = self._get_url(request_path)
 
         try:
             onboarding_response = await send_post_request(

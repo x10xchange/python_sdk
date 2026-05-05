@@ -21,7 +21,7 @@ class AccountModule(BaseModule):
         }
 
         payload = ApiKeyRequestModel(description=description)
-        url = self._get_url(self._get_endpoint_config().onboarding_url, path=request_path)
+        url = self._get_url(request_path)
         response = await send_post_request(
             await self.get_session(),
             url,
@@ -45,7 +45,7 @@ class AccountModule(BaseModule):
             RequestHeader.AUTH_L1_MESSAGE_TIME: signature["time"],
         }
 
-        url = self._get_url(self._get_endpoint_config().onboarding_url, path=request_path)
+        url = self._get_url(request_path)
         response = await send_get_request(await self.get_session(), url, list[AccountModel], request_headers=headers)
 
         return response.data or []

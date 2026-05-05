@@ -25,7 +25,10 @@ class BaseModule:
         self.__session = None
 
     def _get_url(self, path: str, *, query: Optional[Dict] = None, **path_params) -> str:
-        return get_url(f"{self._get_endpoint_config().api_base_url}{path}", query=query, **path_params)
+        return get_url(f"{self._get_endpoint_config().onboarding_url}{path}", query=query, **path_params)
+
+    def _get_config(self):
+        return self.__config
 
     def _get_endpoint_config(self):
         return self.__config.endpoints

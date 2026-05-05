@@ -185,7 +185,7 @@ def get_l2_keys_from_l1_account(
         signing_domain=signing_domain,
     )
     s = sign_message(struct)
-    (private, public) = generate_keypair_from_eth_signature(s.signature.hex())
+    (private, public) = generate_keypair_from_eth_signature(s)
     return StarkKeyPair(private=private, public=public)
 
 
