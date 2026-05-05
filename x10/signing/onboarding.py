@@ -1,19 +1,21 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from functools import cached_property
-from typing import NamedTuple
+from typing import Callable, NamedTuple, TypeAlias
 
 from eth_account.messages import SignableMessage, encode_defunct, encode_typed_data
 from eth_typing import ChecksumAddress
 from fast_stark_crypto import generate_keypair_from_eth_signature, pedersen_hash
 from fast_stark_crypto import sign as stark_sign
 
-from x10.core.types import SignMessageCallback
 from x10.models.account import AccountModel
 from x10.utils.date import utc_now
 
-register_action = "REGISTER"
-sub_account_action = "CREATE_SUB_ACCOUNT"
+ACTION_REGISTER = "REGISTER"
+ACTION_CREATE_SUB_ACCOUNT = "CREATE_SUB_ACCOUNT"
+
+
+SignMessageCallback: TypeAlias = Callable[[SignableMessage], str]
 
 
 @dataclass(frozen=True)
@@ -30,7 +32,6 @@ class StarkKeyPair:
         return hex(self.private)
 
 
-# FIXME: Move?
 @dataclass(frozen=True)
 class OnBoardedAccount:
     account: AccountModel
@@ -205,7 +206,7 @@ def get_onboarding_payload(
         time = datetime.now(timezone.utc)
 
     registration_payload = get_registration_struct_to_sign(
-        account_index=0, address=account_address, timestamp=time, action=register_action, host=host
+        account_index=0, address=account_address, timestamp=time, action=ACTION_REGISTER, host=host
     )
     payload = registration_payload.to_signable_message(signing_domain=signing_domain)
     l1_signature = sign_message(payload)
@@ -237,7 +238,7 @@ def get_sub_account_creation_payload(
         time = datetime.now(timezone.utc)
 
     registration_payload = get_registration_struct_to_sign(
-        account_index=account_index, address=l1_address, timestamp=time, action=sub_account_action, host=host
+        account_index=account_index, address=l1_address, timestamp=time, action=ACTION_CREATE_SUB_ACCOUNT, host=host
     )
 
     l2_message = pedersen_hash(int(l1_address, 16), key_pair.public)
