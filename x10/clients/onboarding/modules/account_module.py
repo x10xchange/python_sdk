@@ -20,8 +20,8 @@ class AccountModule(BaseModule):
             RequestHeader.AUTH_ACTIVE_ACCOUNT: str(account_id),
         }
 
-        url = self._get_url(self._get_endpoint_config().onboarding_url, path=request_path)
         payload = ApiKeyRequestModel(description=description)
+        url = self._get_url(self._get_endpoint_config().onboarding_url, path=request_path)
         response = await send_post_request(
             await self.get_session(),
             url,

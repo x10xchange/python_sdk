@@ -1,8 +1,4 @@
-from typing import Callable
-
 from core.types import SignMessageCallback
-from eth_account.datastructures import SignedMessage
-from eth_account.messages import SignableMessage
 
 from x10.clients.onboarding.modules.account_module import AccountModule
 from x10.clients.onboarding.modules.auth_module import AuthModule

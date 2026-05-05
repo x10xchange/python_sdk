@@ -27,6 +27,7 @@ async def run_example():
 
     onboarding_client = OnboardingClient(
         config=CONFIG,
+        account_address=eth_local_account.address,
         sign_message=lambda msg: eth_local_account.sign_message(msg).signature.hex(),
     )
 

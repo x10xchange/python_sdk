@@ -4,6 +4,7 @@ import aiohttp
 from aiohttp import ClientTimeout
 from core.types import SignMessageCallback
 from eth_account.messages import SignableMessage
+from eth_typing import ChecksumAddress
 
 from x10.config import Config
 from x10.utils.http import get_url
@@ -11,13 +12,15 @@ from x10.utils.http import get_url
 
 class BaseModule:
     __config: Config
-    __session: Optional[aiohttp.ClientSession]
+    __account_address: ChecksumAddress
     __sign_message: SignMessageCallback
+    __session: Optional[aiohttp.ClientSession]
 
-    def __init__(self, config: Config, *, sign_message: SignMessageCallback):
+    def __init__(self, config: Config, *, account_address: ChecksumAddress, sign_message: SignMessageCallback):
         super().__init__()
 
         self.__config = config
+        self.__account_address = account_address
         self.__sign_message = sign_message
         self.__session = None
 
@@ -26,6 +29,9 @@ class BaseModule:
 
     def _get_endpoint_config(self):
         return self.__config.endpoints
+
+    def _get_account_address(self) -> ChecksumAddress:
+        return self.__account_address
 
     def _sign_message(self, msg: SignableMessage) -> str:
         return self.__sign_message(msg)

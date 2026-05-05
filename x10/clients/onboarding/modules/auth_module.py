@@ -1,11 +1,9 @@
-from dataclasses import dataclass
-
-from errors import ValidationError
-from eth_account import Account
-from eth_account.signers.local import LocalAccount
+from aiohttp.web_exceptions import HTTPConflict
+from errors import SdkError, ValidationError
 from models.account import AccountModel
 from models.client import OnboardedClientModel
-from utils.http import send_post_request
+from signing.sign_api_request import sign_api_request
+from utils.http import RequestHeader, send_post_request
 
 from x10.clients.onboarding.modules.base_module import BaseModule
 from x10.signing.onboarding import (
@@ -13,24 +11,30 @@ from x10.signing.onboarding import (
     StarkKeyPair,
     get_l2_keys_from_l1_account,
     get_onboarding_payload,
+    get_sub_account_creation_payload,
 )
+
+
+# FIXME: Remove?
+class SubAccountExists(SdkError):
+    pass
 
 
 class AuthModule(BaseModule):
     async def onboard_client(self, *, referral_code: str | None = None) -> OnBoardedAccount:
-        signing_account: LocalAccount = Account.from_key(self._get_l1_private_key())
         l2_key_pair = get_l2_keys_from_l1_account(
             account_index=0,
-            account_address=signing_account.address,
+            account_address=self._get_account_address(),
             signing_domain=self.__config.signing.signing_domain,
             sign_message=self._sign_message,
         )
         payload = get_onboarding_payload(
-            signing_account,
+            account_address=self._get_account_address(),
             signing_domain=self.__config.signing.signing_domain,
             key_pair=l2_key_pair,
             referral_code=referral_code,
             host=self._get_endpoint_config().onboarding_url,
+            sign_message=self._sign_message,
         )
 
         url = self._get_url(self._get_endpoint_config().onboarding_url, path="/auth/onboard")
@@ -44,33 +48,36 @@ class AuthModule(BaseModule):
 
         return OnBoardedAccount(account=onboarded_client.default_account, l2_key_pair=l2_key_pair)
 
-    async def onboard_subaccount(self):
+    async def onboard_subaccount(self, *, account_index: int, description: str):
         request_path = "/auth/onboard/subaccount"
-        if description is None:
-            description = f"Subaccount {account_index}"
+        signature = sign_api_request(request_path, self._sign_message)
+        headers = {
+            RequestHeader.AUTH_L1_SIGNATURE: signature.value,
+            RequestHeader.AUTH_L1_MESSAGE_TIME: signature.time,
+        }
+        # if description is None:
+        #     description = f"Subaccount {account_index}"
 
         # signing_account: LocalAccount = Account.from_key(self.__l1_private_key())
-        time = datetime.now(timezone.utc)
-        auth_time_string = time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-        l1_message = f"{request_path}@{auth_time_string}".encode(encoding="utf-8")
-        signable_message = encode_defunct(l1_message)
-        l1_signature = signing_account.sign_message(signable_message)
+        # time = datetime.now(timezone.utc)
+        # auth_time_string = time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        # l1_message = f"{request_path}@{auth_time_string}".encode(encoding="utf-8")
+        # signable_message = encode_defunct(l1_message)
+        # l1_signature = signing_account.sign_message(signable_message)
+
         key_pair = get_l2_keys_from_l1_account(
-            l1_account=signing_account,
             account_index=account_index,
+            account_address=self._get_account_address(),
             signing_domain=self.__config.signing.signing_domain,
+            sign_message=self._sign_message,
         )
         payload = get_sub_account_creation_payload(
             account_index=account_index,
-            l1_address=signing_account.address,
+            l1_address=self._get_account_address(),
             key_pair=key_pair,
             description=description,
             host=self._get_endpoint_config().onboarding_url,
         )
-        headers = {
-            L1_AUTH_SIGNATURE_HEADER: l1_signature.signature.hex(),
-            L1_MESSAGE_TIME_HEADER: auth_time_string,
-        }
         url = self._get_url(self._get_endpoint_config().onboarding_url, path=request_path)
 
         try:
