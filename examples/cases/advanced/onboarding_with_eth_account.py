@@ -32,9 +32,10 @@ async def run_example():
 
     LOGGER.info("Onboarding with ETH account %s...", eth_local_account.address)
 
-    # if description is None:
-    #     description = "trading api key for account {}".format(account.id)
     main_account = await onboarding_client.auth.onboard_client()
+    sub_account = await onboarding_client.auth.onboard_subaccount(
+        account_index=1, description="Onboarding example subaccount"
+    )
     main_account_api_key = await onboarding_client.account.create_api_key(
         account_id=main_account.account.id,
         description="Onboarding example API key",
@@ -47,9 +48,9 @@ async def run_example():
         vault=main_account.account.l2_vault,
     )
     rest_client = RestApiClient(CONFIG, starknet_account)
-    rest_client.account.create_api_key("Onboarding example API key")
 
-    LOGGER.info("StarkNet public key: %s", starknet_account.public_key)
+    LOGGER.info("StarkNet public key (main): %s", main_account.l2_key_pair.public_hex)
+    LOGGER.info("StarkNet public key (sub): %s", sub_account.l2_key_pair.public_hex)
 
     claim = await rest_client.testnet.claim_testing_funds()
     claim_id = claim.data.id if claim.data else None
