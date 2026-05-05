@@ -2,6 +2,8 @@ from typing import Callable, Dict, Optional
 
 import aiohttp
 from aiohttp import ClientTimeout
+from core.types import SignMessageCallback
+from eth_account.messages import SignableMessage
 
 from x10.config import Config
 from x10.utils.http import get_url
@@ -10,18 +12,13 @@ from x10.utils.http import get_url
 class BaseModule:
     __config: Config
     __session: Optional[aiohttp.ClientSession]
-    __get_l1_private_key: Callable[[], str]
+    __sign_message: SignMessageCallback
 
-    def __init__(
-        self,
-        config: Config,
-        *,
-        get_l1_private_key: Callable[[], str],
-    ):
+    def __init__(self, config: Config, *, sign_message: SignMessageCallback):
         super().__init__()
 
         self.__config = config
-        self.__get_l1_private_key = get_l1_private_key
+        self.__sign_message = sign_message
         self.__session = None
 
     def _get_url(self, path: str, *, query: Optional[Dict] = None, **path_params) -> str:
@@ -30,8 +27,8 @@ class BaseModule:
     def _get_endpoint_config(self):
         return self.__config.endpoints
 
-    def _get_l1_private_key(self):
-        return self.__get_l1_private_key()
+    def _sign_message(self, msg: SignableMessage) -> str:
+        return self.__sign_message(msg)
 
     async def get_session(self) -> aiohttp.ClientSession:
         if self.__session is None:

@@ -2,10 +2,13 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from functools import cached_property
 
+from core.types import SignMessageCallback
 from eth_account.messages import SignableMessage, encode_typed_data
 from eth_account.signers.local import LocalAccount
+from eth_typing import ChecksumAddress
 from fast_stark_crypto import generate_keypair_from_eth_signature, pedersen_hash
 from fast_stark_crypto import sign as stark_sign
+from models.account import AccountModel
 
 register_action = "REGISTER"
 sub_account_action = "CREATE_SUB_ACCOUNT"
@@ -23,6 +26,13 @@ class StarkKeyPair:
     @property
     def private_hex(self) -> str:
         return hex(self.private)
+
+
+# FIXME: Move?
+@dataclass(frozen=True)
+class OnBoardedAccount:
+    account: AccountModel
+    l2_key_pair: StarkKeyPair
 
 
 @dataclass(frozen=True)
@@ -125,7 +135,7 @@ class OnboardingPayLoad:
 
 
 def get_registration_struct_to_sign(
-    account_index: int, address: str, timestamp: datetime, action: str, host: str
+    *, account_index: int, address: ChecksumAddress, timestamp: datetime, action: str, host: str
 ) -> AccountRegistration:
     return AccountRegistration(
         account_index=account_index,
@@ -137,7 +147,9 @@ def get_registration_struct_to_sign(
     )
 
 
-def get_key_derivation_struct_to_sign(account_index: int, address: str, signing_domain: str) -> SignableMessage:
+def get_key_derivation_struct_to_sign(
+    *, account_index: int, address: ChecksumAddress, signing_domain: str
+) -> SignableMessage:
     primary_type = "AccountCreation"
     domain = {"name": signing_domain}
     message = {
@@ -164,35 +176,39 @@ def get_key_derivation_struct_to_sign(account_index: int, address: str, signing_
     return encode_typed_data(full_message=structured_data)
 
 
-def get_l2_keys_from_l1_account(l1_account: LocalAccount, account_index: int, signing_domain: str) -> StarkKeyPair:
+def get_l2_keys_from_l1_account(
+    *, account_index: int, account_address: ChecksumAddress, signing_domain: str, sign_message: SignMessageCallback
+) -> StarkKeyPair:
     struct = get_key_derivation_struct_to_sign(
         account_index=account_index,
-        address=l1_account.address,
+        address=account_address,
         signing_domain=signing_domain,
     )
-    s = l1_account.sign_message(struct)
+    s = sign_message(struct)
     (private, public) = generate_keypair_from_eth_signature(s.signature.hex())
     return StarkKeyPair(private=private, public=public)
 
 
 def get_onboarding_payload(
-    account: LocalAccount,
+    *,
+    account_address: ChecksumAddress,
     signing_domain: str,
     key_pair: StarkKeyPair,
     host: str,
     time: datetime | None = None,
     referral_code: str | None = None,
+    sign_message: SignMessageCallback,
 ) -> OnboardingPayLoad:
     if time is None:
         time = datetime.now(timezone.utc)
 
     registration_payload = get_registration_struct_to_sign(
-        account_index=0, address=account.address, timestamp=time, action=register_action, host=host
+        account_index=0, address=account_address, timestamp=time, action=register_action, host=host
     )
     payload = registration_payload.to_signable_message(signing_domain=signing_domain)
-    l1_signature = account.sign_message(payload).signature.hex()
+    l1_signature = sign_message(payload)
 
-    l2_message = pedersen_hash(int(account.address, 16), key_pair.public)
+    l2_message = pedersen_hash(int(account_address, 16), key_pair.public)
     l2_r, l2_s = stark_sign(msg_hash=l2_message, private_key=key_pair.private)
 
     onboarding_payload = OnboardingPayLoad(
@@ -207,8 +223,9 @@ def get_onboarding_payload(
 
 
 def get_sub_account_creation_payload(
+    *,
     account_index: int,
-    l1_address: str,
+    l1_address: ChecksumAddress,
     key_pair: StarkKeyPair,
     description: str,
     host: str,

@@ -9,24 +9,21 @@ from utils.http import send_post_request
 
 from x10.clients.onboarding.modules.base_module import BaseModule
 from x10.signing.onboarding import (
+    OnBoardedAccount,
     StarkKeyPair,
     get_l2_keys_from_l1_account,
     get_onboarding_payload,
 )
 
 
-# FIXME: Move?
-@dataclass(frozen=True)
-class OnBoardedAccount:
-    account: AccountModel
-    l2_key_pair: StarkKeyPair
-
-
 class AuthModule(BaseModule):
     async def onboard_client(self, *, referral_code: str | None = None) -> OnBoardedAccount:
         signing_account: LocalAccount = Account.from_key(self._get_l1_private_key())
         l2_key_pair = get_l2_keys_from_l1_account(
-            l1_account=signing_account, account_index=0, signing_domain=self.__config.signing.signing_domain
+            account_index=0,
+            account_address=signing_account.address,
+            signing_domain=self.__config.signing.signing_domain,
+            sign_message=self._sign_message,
         )
         payload = get_onboarding_payload(
             signing_account,
@@ -52,7 +49,7 @@ class AuthModule(BaseModule):
         if description is None:
             description = f"Subaccount {account_index}"
 
-        signing_account: LocalAccount = Account.from_key(self.__l1_private_key())
+        # signing_account: LocalAccount = Account.from_key(self.__l1_private_key())
         time = datetime.now(timezone.utc)
         auth_time_string = time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         l1_message = f"{request_path}@{auth_time_string}".encode(encoding="utf-8")
@@ -87,8 +84,19 @@ class AuthModule(BaseModule):
             )
             onboarded_account = onboarding_response.data
         except SubAccountExists:
-            # FIXME: ???
+            # FIXME: Remove???
             client_accounts = await self.get_accounts()
+            # return [
+            #     OnBoardedAccount(
+            #         account=account,
+            #         l2_key_pair=get_l2_keys_from_l1_account(
+            #             l1_account=signing_account,
+            #             account_index=account.account_index,
+            #             signing_domain=self.__config.signing.signing_domain,
+            #         ),
+            #     )
+            #     for account in accounts
+            # ]
             account_with_index = [
                 account for account in client_accounts if account.account.account_index == account_index
             ]

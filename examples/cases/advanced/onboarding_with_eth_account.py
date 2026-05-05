@@ -2,6 +2,7 @@ import logging
 from asyncio import run
 
 from eth_account import Account
+from eth_account.messages import SignableMessage
 from eth_account.signers.local import LocalAccount
 
 from examples.utils import init_env
@@ -23,7 +24,11 @@ async def run_example():
     assert is_hex_string(eth_account_private_key), "`eth_account_private_key` must be a hex string"
 
     eth_local_account: LocalAccount = Account.from_key(eth_account_private_key)
-    onboarding_client = OnboardingClient(config=CONFIG, get_l1_private_key=eth_local_account.key.hex)
+
+    onboarding_client = OnboardingClient(
+        config=CONFIG,
+        sign_message=lambda msg: eth_local_account.sign_message(msg).signature.hex(),
+    )
 
     LOGGER.info("Onboarding with ETH account %s...", eth_local_account.address)
 
@@ -31,7 +36,8 @@ async def run_example():
     #     description = "trading api key for account {}".format(account.id)
     main_account = await onboarding_client.auth.onboard_client()
     main_account_api_key = await onboarding_client.account.create_api_key(
-        main_account.account, "Onboarding example API key"
+        account_id=main_account.account.id,
+        description="Onboarding example API key",
     )
 
     starknet_account = StarkPerpetualAccount(
