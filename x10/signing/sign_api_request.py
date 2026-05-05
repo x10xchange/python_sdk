@@ -1,11 +1,9 @@
-from datetime import datetime, timezone
-from typing import Callable, NamedTuple
+from typing import NamedTuple
 
-from core.types import SignMessageCallback
-from eth_account import Account
-from eth_account.messages import SignableMessage, encode_defunct
-from eth_account.signers.local import LocalAccount
-from utils.date import utc_now
+from eth_account.messages import encode_defunct
+
+from x10.core.types import SignMessageCallback
+from x10.utils.date import utc_now
 
 
 class RequestSignature(NamedTuple):

@@ -2,13 +2,13 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from functools import cached_property
 
-from core.types import SignMessageCallback
 from eth_account.messages import SignableMessage, encode_typed_data
-from eth_account.signers.local import LocalAccount
 from eth_typing import ChecksumAddress
 from fast_stark_crypto import generate_keypair_from_eth_signature, pedersen_hash
 from fast_stark_crypto import sign as stark_sign
-from models.account import AccountModel
+
+from x10.core.types import SignMessageCallback
+from x10.models.account import AccountModel
 
 register_action = "REGISTER"
 sub_account_action = "CREATE_SUB_ACCOUNT"

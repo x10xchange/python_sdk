@@ -1,4 +1,4 @@
-from typing import Callable, TypeAlias, TypeVar
+from typing import Callable, TypeAlias
 
 from eth_account.messages import SignableMessage
 

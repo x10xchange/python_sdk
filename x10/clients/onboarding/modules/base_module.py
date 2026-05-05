@@ -1,12 +1,12 @@
-from typing import Callable, Dict, Optional
+from typing import Dict, Optional
 
 import aiohttp
 from aiohttp import ClientTimeout
-from core.types import SignMessageCallback
 from eth_account.messages import SignableMessage
 from eth_typing import ChecksumAddress
 
 from x10.config import Config
+from x10.core.types import SignMessageCallback
 from x10.utils.http import get_url
 
 
