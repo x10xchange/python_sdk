@@ -81,7 +81,7 @@ class AuthModule(BaseModule):
             )
             onboarded_account = onboarding_response.data
         except SubAccountExists:
-            raise ValidationError("Subaccount already exists but no account data returned from onboarding")
+            raise ValidationError("Subaccount already exists")
 
         if onboarded_account is None:
             raise ValidationError("No account data returned from onboarding")

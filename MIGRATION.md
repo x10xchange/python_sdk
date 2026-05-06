@@ -7,6 +7,9 @@
 - Leftover models were migrated to `x10.models.*`.
 - Most of the dataclasses are immutable now.
 - `markets_info` module has been merged into `info` module.
+- `UserClient` replaced by `OnboardingClient`, which accepts an account address and a sign-message callback instead of a raw L1 private key.
+- `onboard_subaccount` error handling has changed. Previously, it silently recovered an existing sub-account (HTTP 409) by fetching it from `get_accounts()`. Now it raises `ValidationError` on conflict. Handle duplicates explicitly if you relied on the automatic recovery.
+- Fixes https://github.com/x10xchange/python_sdk/issues/99.
 
 ---
 

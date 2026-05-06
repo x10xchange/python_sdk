@@ -71,7 +71,7 @@ class VaultModule(BaseModule):
             quote_asset_model=collateral_asset,
             base_asset_model=vault_asset,
             starknet_account=self._account,
-            starknet_domain=self._get_endpoint_config().starknet_domain,
+            starknet_domain=self._get_starknet_domain(),
             is_buy=True,
         )
         deposit_request = DepositRequestModel(
@@ -123,7 +123,7 @@ class VaultModule(BaseModule):
             quote_asset_model=collateral_asset,
             base_asset_model=vault_asset,
             starknet_account=self._account,
-            starknet_domain=self._get_endpoint_config().starknet_domain,
+            starknet_domain=self._get_starknet_domain(),
             is_buy=False,
         )
         withdraw_request = WithdrawRequestModel(
