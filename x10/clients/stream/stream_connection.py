@@ -30,7 +30,6 @@ class StreamConnection(Generic[StreamMsgResponseType]):
         self.__stream_url = stream_url
         self.__msg_model_class = msg_model_class
         self.__api_key = api_key
-        self.__msgs_count = 0
         self.__websocket = None
 
     async def send(self, data):
@@ -73,7 +72,6 @@ class StreamConnection(Generic[StreamMsgResponseType]):
         assert self.__websocket is not None
 
         data = await self.__websocket.recv()
-        self.__msgs_count += 1
 
         return self.__msg_model_class.model_validate_json(data)
 

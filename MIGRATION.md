@@ -1,12 +1,14 @@
 # Migration Guide
 
-## 1.4.x -> 1.5.0 (REST client)
+## 1.4.x -> 1.5.0 (REST / Stream clients)
 
 - `x10.perpetual.trading_client.PerpetualTradingClient` has been replaced with
 `x10.clients.rest.RestApiClient` (client has the same interface but new name reflects its purpose better).
 - Leftover models were migrated to `x10.models.*`.
 - Most of the dataclasses are immutable now.
 - `markets_info` module has been merged into `info` module.
+- `x10.perpetual.stream_client.PerpetualStreamClient` has been replaced with
+  `x10.clients.stream.StreamClient` (same interface, renamed to match the `RestApiClient` naming convention).
 
 ---
 
