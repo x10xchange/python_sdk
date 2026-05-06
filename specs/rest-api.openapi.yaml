@@ -43,8 +43,6 @@ tags:
     description: Exchange settings
   - name: Starknet
     description: Starknet domain information
-  - name: Integrations
-    description: Third-party integrations (CoinGecko)
   - name: Account
     description: Account management (authenticated)
   - name: Balance
@@ -2032,41 +2030,6 @@ paths:
                     properties:
                       data:
                         $ref: "#/components/schemas/StarknetDomain"
-
-  /integrations/coingecko/contracts:
-    get:
-      tags: [Integrations]
-      summary: Get CoinGecko contract mappings
-      operationId: getCoinGeckoContracts
-      responses:
-        "200":
-          description: List of CoinGecko contracts
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/GeckoContract"
-
-  /integrations/coingecko/orderbook/{market}:
-    get:
-      tags: [Integrations]
-      summary: Get CoinGecko-formatted order book for a market
-      operationId: getCoinGeckoOrderBook
-      parameters:
-        - name: market
-          in: path
-          required: true
-          schema:
-            type: string
-          example: BTC-USD
-      responses:
-        "200":
-          description: CoinGecko-formatted order book
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GeckoOrderBook"
 
   # ========================
   # AUTHENTICATED ENDPOINTS
