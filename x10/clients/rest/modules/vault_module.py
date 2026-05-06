@@ -38,7 +38,7 @@ class VaultModule(BaseModule):
         spot_balances = (await self._account_module.get_spot_balances()).data
         if spot_balances is None:
             raise ValidationError("Failed to get spot balances")
-        vault_asset_balances = filter(lambda b: b.asset == self._get_endpoint_config().vault_asset_name, spot_balances)
+        vault_asset_balances = filter(lambda b: b.asset == self._get_config().endpoints.vault_asset_name, spot_balances)
         total_vault_asset_balance = sum(map(lambda b: b.balance, vault_asset_balances), Decimal(0))
         return total_vault_asset_balance
 
@@ -49,7 +49,7 @@ class VaultModule(BaseModule):
         account_info = (await self._account_module.get_account()).data
         assets = await self._info_module.get_assets_dict()
         vault_asset_price = (
-            await self._info_module.get_asset_price(asset_name=self._get_endpoint_config().vault_asset_name)
+            await self._info_module.get_asset_price(asset_name=self._get_config().endpoints.vault_asset_name)
         ).data
 
         assert account_info is not None
@@ -57,7 +57,7 @@ class VaultModule(BaseModule):
 
         position_id = account_info.l2_vault
         collateral_asset = assets[COLLATERAL_ASSET_NAME]
-        vault_asset = assets[self._get_endpoint_config().vault_asset_name]
+        vault_asset = assets[self._get_config().endpoints.vault_asset_name]
         vault_shares_expected = self.__calc_vault_shares_expected(
             collateral_amount,
             vault_asset_price,
@@ -71,7 +71,7 @@ class VaultModule(BaseModule):
             quote_asset_model=collateral_asset,
             base_asset_model=vault_asset,
             starknet_account=self._account,
-            starknet_domain=self._get_starknet_domain(),
+            starknet_domain=self._get_config().signing.starknet_domain,
             is_buy=True,
         )
         deposit_request = DepositRequestModel(
@@ -101,7 +101,7 @@ class VaultModule(BaseModule):
         assets = await self._info_module.get_assets_dict()
         account_info = (await self._account_module.get_account()).data
         vault_asset_price = (
-            await self._info_module.get_asset_price(asset_name=self._get_endpoint_config().vault_asset_name)
+            await self._info_module.get_asset_price(asset_name=self._get_config().endpoints.vault_asset_name)
         ).data
 
         assert account_info is not None
@@ -109,7 +109,7 @@ class VaultModule(BaseModule):
 
         position_id = account_info.l2_vault
         collateral_asset = assets[COLLATERAL_ASSET_NAME]
-        vault_asset = assets[self._get_endpoint_config().vault_asset_name]
+        vault_asset = assets[self._get_config().endpoints.vault_asset_name]
         collateral_amount_expected = self.__calc_collateral_amount_expected(
             shares_amount,
             vault_asset_price,
@@ -123,7 +123,7 @@ class VaultModule(BaseModule):
             quote_asset_model=collateral_asset,
             base_asset_model=vault_asset,
             starknet_account=self._account,
-            starknet_domain=self._get_starknet_domain(),
+            starknet_domain=self._get_config().signing.starknet_domain,
             is_buy=False,
         )
         withdraw_request = WithdrawRequestModel(

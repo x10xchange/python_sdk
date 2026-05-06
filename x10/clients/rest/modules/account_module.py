@@ -246,7 +246,7 @@ class AccountModule(BaseModule):
             to_vault=to_vault,
             to_l2_key=to_l2_key,
             amount=amount,
-            config=self._get_endpoint_config(),
+            config=self._get_config(),
             stark_account=self._get_stark_account(),
             nonce=nonce,
         )
@@ -303,7 +303,7 @@ class AccountModule(BaseModule):
             amount=amount,
             recipient_stark_address=recipient_stark_address,
             stark_account=self._get_stark_account(),
-            config=self._get_endpoint_config(),
+            config=self._get_config(),
             account_id=account.id,
             chain_id=chain_id,
             quote_id=quote_id,

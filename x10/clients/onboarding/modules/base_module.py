@@ -25,13 +25,10 @@ class BaseModule:
         self.__session = None
 
     def _get_url(self, path: str, *, query: Optional[Dict] = None, **path_params) -> str:
-        return get_url(f"{self._get_endpoint_config().onboarding_url}{path}", query=query, **path_params)
+        return get_url(f"{self.__config.endpoints.onboarding_url}{path}", query=query, **path_params)
 
-    def _get_signing_domain(self):
-        return self.__config.signing.signing_domain
-
-    def _get_endpoint_config(self):
-        return self.__config.endpoints
+    def _get_config(self) -> Config:
+        return self.__config
 
     def _get_account_address(self) -> ChecksumAddress:
         return self.__account_address

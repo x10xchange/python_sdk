@@ -23,15 +23,15 @@ class AuthModule(BaseModule):
         l2_key_pair = get_l2_keys_from_l1_account(
             account_index=0,
             account_address=self._get_account_address(),
-            signing_domain=self._get_signing_domain(),
+            signing_domain=self._get_config().signing.signing_domain,
             sign_message=self._sign_message,
         )
         payload = get_onboarding_payload(
             account_address=self._get_account_address(),
-            signing_domain=self._get_signing_domain(),
+            signing_domain=self._get_config().signing.signing_domain,
             key_pair=l2_key_pair,
             referral_code=referral_code,
-            host=self._get_endpoint_config().onboarding_url,
+            host=self._get_config().endpoints.onboarding_url,
             sign_message=self._sign_message,
         )
 
@@ -58,7 +58,7 @@ class AuthModule(BaseModule):
         key_pair = get_l2_keys_from_l1_account(
             account_index=account_index,
             account_address=self._get_account_address(),
-            signing_domain=self._get_signing_domain(),
+            signing_domain=self._get_config().signing.signing_domain,
             sign_message=self._sign_message,
         )
         payload = get_sub_account_creation_payload(
@@ -66,7 +66,7 @@ class AuthModule(BaseModule):
             l1_address=self._get_account_address(),
             key_pair=key_pair,
             description=description,
-            host=self._get_endpoint_config().onboarding_url,
+            host=self._get_config().endpoints.onboarding_url,
         )
         url = self._get_url(request_path)
 

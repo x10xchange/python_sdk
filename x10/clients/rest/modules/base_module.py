@@ -30,13 +30,10 @@ class BaseModule:
         self.__session = None
 
     def _get_url(self, path: str, *, query: Optional[Dict] = None, **path_params) -> str:
-        return get_url(f"{self._get_endpoint_config().api_base_url}{path}", query=query, **path_params)
+        return get_url(f"{self.__config.endpoints.api_base_url}{path}", query=query, **path_params)
 
-    def _get_starknet_domain(self):
-        return self.__config.signing.starknet_domain
-
-    def _get_endpoint_config(self):
-        return self.__config.endpoints
+    def _get_config(self) -> Config:
+        return self.__config
 
     def _get_api_key(self):
         if not self.__api_key:
