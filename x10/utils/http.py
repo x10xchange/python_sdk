@@ -1,7 +1,7 @@
 import itertools
 import re
 from types import NoneType
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type, TypeAlias
 
 import aiohttp
 from aiohttp import ClientResponse
@@ -50,7 +50,10 @@ def parse_response_to_model(
     return WrappedApiResponseModel[model_class].model_validate_json(response_text)  # type: ignore[valid-type]
 
 
-def get_url(template: str, *, query: Optional[Dict[str, str | List[str]]] = None, **path_params):
+UrlQueryParam: TypeAlias = str | int | bool | List[str] | None
+
+
+def get_url(template: str, *, query: Optional[Dict[str, UrlQueryParam]] = None, **path_params):
     def replace_path_param(match: re.Match[str]):
         matched_value = match.group(1)
         is_param_optional = matched_value.endswith("?")
@@ -59,7 +62,7 @@ def get_url(template: str, *, query: Optional[Dict[str, str | List[str]]] = None
 
         return str(param_value) if param_value is not None else ""
 
-    def serialize_query_param(param_key: str, param_value: Union[str, List[str]]):
+    def serialize_query_param(param_key: str, param_value: UrlQueryParam):
         if isinstance(param_value, list):
             return itertools.chain.from_iterable(
                 [serialize_query_param(param_key, item) for item in param_value if item is not None]

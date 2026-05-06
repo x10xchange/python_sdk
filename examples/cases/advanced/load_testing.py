@@ -6,10 +6,10 @@ from typing import Set
 
 from examples.utils import BTC_USD_MARKET, create_rest_client
 from x10.clients.rest import RestApiClient
+from x10.clients.stream import StreamClient
 from x10.models.market import MarketModel
 from x10.models.order import OrderSide
 from x10.perpetual.order_object import create_order_object
-from x10.clients.stream import StreamClient
 
 LOGGER = logging.getLogger()
 MARKET_NAME = BTC_USD_MARKET

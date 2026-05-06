@@ -32,7 +32,7 @@ def test_generate_valid_url_from_template():
         get_url("/info/candles/<market>/<candle_type>", market="BTC-USD", candle_type="trades"),
         equal_to("/info/candles/BTC-USD/trades"),
     )
-    assert_that(lambda: get_url("/info/candles/<market>"), raises(KeyError))
+    assert_that(lambda: get_url("/info/candles/<market>"), raises(KeyError))  # type: ignore[misc]
     assert_that(get_url("/info/candles/<market?>"), equal_to("/info/candles"))
     assert_that(get_url("/info/candles/<market?>", market="BTC-USD"), equal_to("/info/candles/BTC-USD"))
     assert_that(get_url("/info/candles/<market?>", market=None), equal_to("/info/candles"))

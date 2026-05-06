@@ -7,7 +7,7 @@ from x10.models.funding_rate import FundingRateModel
 from x10.models.http import WrappedStreamResponseModel
 from x10.models.orderbook import OrderbookUpdateModel
 from x10.models.trade import PublicTradeModel
-from x10.utils.http import get_url
+from x10.utils.http import UrlQueryParam, get_url
 
 
 class StreamClient:
@@ -69,7 +69,7 @@ class StreamClient:
         url = self.__get_url("/account")
         return self.__connect(url, WrappedStreamResponseModel[AccountStreamDataModel], api_key)
 
-    def __get_url(self, path: str, *, query: Optional[Dict[str, str | List[str]]] = None, **path_params) -> str:
+    def __get_url(self, path: str, *, query: Optional[Dict[str, UrlQueryParam]] = None, **path_params) -> str:
         return get_url(f"{self.__api_url}{path}", query=query, **path_params)
 
     @staticmethod

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import List
 
 from x10.models.candle import CandleModel
@@ -8,7 +9,12 @@ def create_candle_stream_message():
     return WrappedStreamResponseModel[List[CandleModel]](
         data=[
             CandleModel(
-                open="3458.64", low="3399.07", high="3476.89", close="3414.85", volume="3.938", timestamp=1721106000000
+                open=Decimal("3458.64"),
+                low=Decimal("3399.07"),
+                high=Decimal("3476.89"),
+                close=Decimal("3414.85"),
+                volume=Decimal("3.938"),
+                timestamp=1721106000000,
             )
         ],
         ts=1721283121979,

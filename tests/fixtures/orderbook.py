@@ -2,11 +2,11 @@ from decimal import Decimal
 
 
 def create_orderbook_message():
-    from x10.models.http import WrappedStreamResponseModel
+    from x10.models.http import StreamDataType, WrappedStreamResponseModel
     from x10.models.orderbook import OrderbookQuantityModel, OrderbookUpdateModel
 
     return WrappedStreamResponseModel[OrderbookUpdateModel](
-        type="SNAPSHOT",
+        type=StreamDataType.SNAPSHOT,
         data=OrderbookUpdateModel(
             market="BTC-USD",
             bid=[

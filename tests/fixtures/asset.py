@@ -1,14 +1,19 @@
 from decimal import Decimal
 
-from x10.models.asset import AssetModel, AssetOperationModel
+from x10.models.asset import (
+    AssetModel,
+    AssetOperationModel,
+    AssetOperationStatus,
+    AssetOperationType,
+)
 
 
 def create_asset_operations():
     return [
         AssetOperationModel(
             id="1816814506626514944",
-            type="TRANSFER",
-            status="COMPLETED",
+            type=AssetOperationType.TRANSFER,
+            status=AssetOperationStatus.COMPLETED,
             amount=Decimal("-100.0000000000000000"),
             fee=Decimal("0"),
             asset=1,
@@ -18,8 +23,8 @@ def create_asset_operations():
         ),
         AssetOperationModel(
             id="1813548171448147968",
-            type="CLAIM",
-            status="COMPLETED",
+            type=AssetOperationType.CLAIM,
+            status=AssetOperationStatus.COMPLETED,
             amount=Decimal("100000.0000000000000000"),
             fee=Decimal("0"),
             asset=1,
