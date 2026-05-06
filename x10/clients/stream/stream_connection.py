@@ -13,11 +13,10 @@ LOGGER = get_logger(__name__)
 StreamMsgResponseType = TypeVar("StreamMsgResponseType", bound=X10BaseModel)
 
 
-class PerpetualStreamConnection(Generic[StreamMsgResponseType]):
+class StreamConnection(Generic[StreamMsgResponseType]):
     __stream_url: str
     __msg_model_class: Type[StreamMsgResponseType]
     __api_key: Optional[str]
-    __msgs_count: int
     __websocket: Optional[WebSocketClientProtocol]
 
     def __init__(
@@ -44,13 +43,11 @@ class PerpetualStreamConnection(Generic[StreamMsgResponseType]):
 
     async def close(self):
         assert self.__websocket is not None
+
         if not self.__websocket.closed:
             await self.__websocket.close()
-        LOGGER.debug("Stream closed: %s", self.__stream_url)
 
-    @property
-    def msgs_count(self):
-        return self.__msgs_count
+        LOGGER.debug("Stream closed: %s", self.__stream_url)
 
     @property
     def closed(self):
@@ -66,6 +63,7 @@ class PerpetualStreamConnection(Generic[StreamMsgResponseType]):
 
         if self.__websocket.closed:
             raise StopAsyncIteration
+
         try:
             return await self.__receive()
         except websockets.ConnectionClosed:
@@ -95,6 +93,10 @@ class PerpetualStreamConnection(Generic[StreamMsgResponseType]):
         await self.close()
 
     async def __await_impl__(self):
+        await self.__connect()
+        return self
+
+    async def __connect(self):
         extra_headers: dict[str, str] = {
             RequestHeader.USER_AGENT: USER_AGENT,
         }
@@ -105,5 +107,3 @@ class PerpetualStreamConnection(Generic[StreamMsgResponseType]):
         self.__websocket = await websockets.connect(self.__stream_url, extra_headers=extra_headers)
 
         LOGGER.debug("Connected to stream: %s", self.__stream_url)
-
-        return self
