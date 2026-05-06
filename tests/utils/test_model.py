@@ -32,6 +32,8 @@ def test_model_should_throw_error_when_field_is_modified():
     test_model = _TestModel(market="BTC-USD", created_time=0)
 
     def try_to_modify_field():
-        test_model.market = "ETH-USD"
+        test_model.market = "ETH-USD"  # type: ignore[misc]
 
-    assert_that(try_to_modify_field, raises(ValidationError, pattern=re.compile("Instance is frozen")))
+    assert_that(  # type: ignore[misc]
+        try_to_modify_field, raises(ValidationError, pattern=re.compile("Instance is frozen"))
+    )

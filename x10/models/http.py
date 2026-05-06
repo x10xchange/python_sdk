@@ -36,12 +36,13 @@ class StreamDataType(StrEnum):
     # Technical status
     UNKNOWN = "UNKNOWN"
 
-    BALANCE = "BALANCE"
+    SNAPSHOT = "SNAPSHOT"
     DELTA = "DELTA"
+
+    BALANCE = "BALANCE"
     DEPOSIT = "DEPOSIT"
     ORDER = "ORDER"
     POSITION = "POSITION"
-    SNAPSHOT = "SNAPSHOT"
     TRADE = "TRADE"
     TRANSFER = "TRANSFER"
     WITHDRAWAL = "WITHDRAWAL"
