@@ -1,6 +1,6 @@
 # Migration Guide
 
-## 1.4.x -> 1.5.0 (REST client)
+## 1.4.x -> 1.5.0 (REST/Onboarding clients)
 
 - `x10.perpetual.trading_client.PerpetualTradingClient` has been replaced with
 `x10.clients.rest.RestApiClient` (client has the same interface but new name reflects its purpose better).
