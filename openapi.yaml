@@ -1,0 +1,4521 @@
+openapi: 3.0.3
+info:
+  title: Extended Exchange REST API
+  description: |
+    REST API for the X10 crypto exchange platform. Provides endpoints for market data,
+    account management, order management, positions, transfers, and more.
+
+    ## Authentication
+    Most user endpoints require authentication via one of the following methods:
+    - **JWT Token**: Bearer token in the `Authorization` header
+    - **L1 Signature**: Ethereum wallet signature
+    - **API Key**: `X-API-Key` header (not supported on some sensitive endpoints)
+
+    Public informational endpoints do not require authentication.
+  version: 1.0.0
+
+servers:
+  - url: https://api.starknet.extended.exchange/api/v1
+    description: API v1
+
+tags:
+  - name: Assets
+    description: Asset information
+  - name: Markets
+    description: Market data and statistics
+  - name: Candles
+    description: OHLCV candle data
+  - name: Funding
+    description: Funding rates
+  - name: Open Interest
+    description: Open interest data
+  - name: Leaderboard
+    description: Leaderboard rankings
+  - name: Referral (Public)
+    description: Public referral information
+  - name: Builder
+    description: Builder dashboard
+  - name: Vault (Public)
+    description: Public vault data
+  - name: Status
+    description: Exchange operational status
+  - name: Settings
+    description: Exchange settings
+  - name: Starknet
+    description: Starknet domain information
+  - name: Integrations
+    description: Third-party integrations (CoinGecko)
+  - name: Account
+    description: Account management (authenticated)
+  - name: Balance
+    description: Balance information (authenticated)
+  - name: Positions
+    description: Position management (authenticated)
+  - name: Orders
+    description: Order management (authenticated)
+  - name: Trades
+    description: Trade history (authenticated)
+  - name: Transfers
+    description: Internal and on-chain transfers (authenticated)
+  - name: Withdrawals
+    description: Withdrawal operations (authenticated)
+  - name: Deposits
+    description: Deposit operations (authenticated)
+  - name: Bridge
+    description: Cross-chain bridge operations (authenticated)
+  - name: Fees
+    description: Trading fees (authenticated)
+  - name: Claims
+    description: Reward claims (authenticated)
+  - name: Rewards
+    description: Reward information (authenticated)
+  - name: Rebates
+    description: Rebate information (authenticated)
+  - name: Referrals
+    description: Referral management (authenticated)
+  - name: Asset Operations
+    description: Asset operation history (authenticated)
+  - name: Client
+    description: Client information (authenticated)
+  - name: Export
+    description: Data export (authenticated)
+  - name: Deadman Switch
+    description: Deadman switch control (authenticated)
+  - name: Wallet
+    description: Wallet validation (authenticated)
+security: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token authentication
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key authentication (not supported on some sensitive endpoints)
+    L1Signature:
+      type: apiKey
+      in: header
+      name: L1_SIGNATURE
+      description: Ethereum L1 wallet signature authentication
+
+  schemas:
+    # Enums
+    OrderType:
+      type: string
+      enum: [UNKNOWN, LIMIT, MARKET, CONDITIONAL, TPSL, TWAP]
+
+    OrderSide:
+      type: string
+      enum: [LONG, SHORT]
+
+    OrderStatus:
+      type: string
+      enum:
+        [
+          UNKNOWN,
+          NEW,
+          UNTRIGGERED,
+          PARTIALLY_FILLED,
+          FILLED,
+          CANCELLED,
+          EXPIRED,
+          REJECTED,
+        ]
+
+    OrderTimeInForce:
+      type: string
+      enum: [GTT, GTC, IOC, FOK]
+
+    OrderTpslType:
+      type: string
+      enum: [TP, SL, TP_SL]
+
+    PositionSide:
+      type: string
+      enum: [LONG, SHORT]
+
+    PositionStatus:
+      type: string
+      enum: [OPENED, CLOSED]
+
+    MarketStatus:
+      type: string
+      enum: [ACTIVE, INACTIVE, SETTLING]
+
+    MarketType:
+      type: string
+      enum: [SPOT, PERPETUAL]
+
+    AssetType:
+      type: string
+      enum: [COLLATERAL, SYNTHETIC, SPOT]
+
+    OperationalStatus:
+      type: string
+      enum: [OPERATIONAL, MAINTENANCE, DEGRADED]
+
+    BalanceStatus:
+      type: string
+      enum: [ACTIVE, INACTIVE]
+
+    LeaderboardInterval:
+      type: string
+      enum: [DAILY, WEEKLY, MONTHLY, ALL_TIME]
+      description: Time period for leaderboard rankings
+
+    ReferralDashboardTimeRange:
+      type: string
+      enum: [LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS, ALL_TIME]
+
+    ReferralDashboardGranularity:
+      type: string
+      enum: [DAILY, WEEKLY, MONTHLY]
+
+    TradeType:
+      type: string
+      enum: [TRADE, LIQUIDATION, ADL]
+
+    ExportType:
+      type: string
+      enum: [ORDERS, TRADES, FUNDING_FEES, POSITIONS, TRANSFERS, WITHDRAWALS]
+
+    # Response wrappers
+    ApiResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: true
+        data:
+          description: Response payload
+      required:
+        - ok
+
+    PaginatedResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items: {}
+        cursor:
+          type: string
+          nullable: true
+          description: Cursor for the next page; null if no more pages
+      required:
+        - ok
+        - data
+
+    ErrorResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: false
+        code:
+          type: integer
+          description: Application-specific error code
+        message:
+          type: string
+          description: Human-readable error message
+      required:
+        - ok
+        - code
+        - message
+
+    # Core models
+    Asset:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/AssetType"
+        collateral:
+          type: boolean
+        precision:
+          type: integer
+      required:
+        - name
+        - type
+
+    MarketTradingConfig:
+      type: object
+      properties:
+        minOrderSize:
+          type: string
+          format: decimal
+        maxOrderSize:
+          type: string
+          format: decimal
+        tickSize:
+          type: string
+          format: decimal
+        stepSize:
+          type: string
+          format: decimal
+        minLeverage:
+          type: string
+          format: decimal
+        maxLeverage:
+          type: string
+          format: decimal
+        initialMarginFraction:
+          type: string
+          format: decimal
+        maintenanceMarginFraction:
+          type: string
+          format: decimal
+
+    MarketL2Config:
+      type: object
+      properties:
+        syntheticAssetId:
+          type: string
+        collateralAssetId:
+          type: string
+        collateralResolution:
+          type: integer
+
+    DeleverageLevels:
+      type: object
+      properties:
+        long:
+          type: integer
+        short:
+          type: integer
+
+    MarketStats:
+      type: object
+      properties:
+        dailyVolume:
+          type: string
+          format: decimal
+        dailyVolumeBase:
+          type: string
+          format: decimal
+        dailyPriceChange:
+          type: string
+          format: decimal
+        dailyPriceChangePercentage:
+          type: string
+          format: decimal
+        dailyLow:
+          type: string
+          format: decimal
+        dailyHigh:
+          type: string
+          format: decimal
+        lastPrice:
+          type: string
+          format: decimal
+        askPrice:
+          type: string
+          format: decimal
+        bidPrice:
+          type: string
+          format: decimal
+        markPrice:
+          type: string
+          format: decimal
+        indexPrice:
+          type: string
+          format: decimal
+        fundingRate:
+          type: string
+          format: decimal
+        nextFundingRate:
+          type: integer
+          format: int64
+          description: Unix timestamp in milliseconds for the next funding rate
+        openInterest:
+          type: string
+          format: decimal
+        openInterestBase:
+          type: string
+          format: decimal
+        deleverageLevels:
+          $ref: "#/components/schemas/DeleverageLevels"
+
+    MarketInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          example: BTC-USD
+        type:
+          $ref: "#/components/schemas/MarketType"
+        uiName:
+          type: string
+          example: BTC/USD
+        category:
+          type: string
+        subCategory:
+          type: string
+        assetName:
+          type: string
+        assetPrecision:
+          type: integer
+        collateralAssetName:
+          type: string
+        collateralAssetPrecision:
+          type: integer
+        description:
+          type: string
+        active:
+          type: boolean
+        status:
+          $ref: "#/components/schemas/MarketStatus"
+        marketStats:
+          $ref: "#/components/schemas/MarketStats"
+        tradingConfig:
+          $ref: "#/components/schemas/MarketTradingConfig"
+        l2Config:
+          $ref: "#/components/schemas/MarketL2Config"
+        visibleOnUi:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    FundingRate:
+      type: object
+      properties:
+        m:
+          type: string
+          description: Market name
+        f:
+          type: string
+          format: decimal
+          description: Funding rate
+        T:
+          type: integer
+          format: int64
+          description: Timestamp in milliseconds
+
+    TradeCandle:
+      type: object
+      properties:
+        o:
+          type: string
+          format: decimal
+          description: Open price
+        l:
+          type: string
+          format: decimal
+          description: Low price
+        h:
+          type: string
+          format: decimal
+          description: High price
+        c:
+          type: string
+          format: decimal
+          description: Close price
+        v:
+          type: string
+          format: decimal
+          description: Volume
+        T:
+          type: integer
+          format: int64
+          description: Timestamp in milliseconds
+
+    PriceCandle:
+      type: object
+      properties:
+        o:
+          type: string
+          format: decimal
+          description: Open price
+        l:
+          type: string
+          format: decimal
+          description: Low price
+        h:
+          type: string
+          format: decimal
+          description: High price
+        c:
+          type: string
+          format: decimal
+          description: Close price
+        T:
+          type: integer
+          format: int64
+          description: Timestamp in milliseconds
+
+    OrderBook:
+      type: object
+      properties:
+        bids:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+              format: decimal
+            minItems: 2
+            maxItems: 2
+            description: "[price, quantity]"
+        asks:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+              format: decimal
+            minItems: 2
+            maxItems: 2
+            description: "[price, quantity]"
+
+    PublicTrade:
+      type: object
+      properties:
+        market:
+          type: string
+        side:
+          $ref: "#/components/schemas/OrderSide"
+        price:
+          type: string
+          format: decimal
+        qty:
+          type: string
+          format: decimal
+        timestamp:
+          type: integer
+          format: int64
+
+    ExchangeStatus:
+      type: object
+      properties:
+        operationalStatus:
+          $ref: "#/components/schemas/OperationalStatus"
+
+    Settings:
+      type: object
+      properties:
+        contractAddress:
+          type: string
+
+    StarknetDomain:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        chainId:
+          type: string
+
+    ClientRankings:
+      type: object
+      properties:
+        rankings:
+          type: array
+          items:
+            type: object
+            properties:
+              rank:
+                type: integer
+              accountId:
+                type: integer
+                format: int64
+              pnl:
+                type: string
+                format: decimal
+              pnlPercentage:
+                type: string
+                format: decimal
+
+    BuilderDashboard:
+      type: object
+      properties:
+        dailyStats:
+          type: object
+          additionalProperties: true
+        totalStats:
+          type: object
+          additionalProperties: true
+
+    GeckoContract:
+      type: object
+      properties:
+        market:
+          type: string
+        baseAsset:
+          type: string
+        quoteAsset:
+          type: string
+        contractAddress:
+          type: string
+
+    GeckoOrderBook:
+      type: object
+      properties:
+        ticker_id:
+          type: string
+        timestamp:
+          type: integer
+          format: int64
+        bids:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+        asks:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+
+    AccountInfo:
+      type: object
+      properties:
+        accountId:
+          type: integer
+          format: int64
+        description:
+          type: string
+        accountIndex:
+          type: integer
+        status:
+          type: string
+        l2Key:
+          type: string
+        l2Vault:
+          type: string
+          nullable: true
+        bridgeStarknetAddress:
+          type: string
+        accountIndexForKeyGeneration:
+          type: integer
+          nullable: true
+
+    AccountUpdateRequest:
+      type: object
+      properties:
+        description:
+          type: string
+
+    AccountLeverage:
+      type: object
+      properties:
+        market:
+          type: string
+        leverage:
+          type: string
+          format: decimal
+      required:
+        - market
+        - leverage
+
+    ApiKey:
+      type: object
+      properties:
+        key:
+          type: string
+        accountId:
+          type: integer
+          format: int64
+        description:
+          type: string
+        createdAt:
+          type: integer
+          format: int64
+
+    CreateApiKeyRequest:
+      type: object
+      properties:
+        description:
+          type: string
+      required:
+        - description
+
+    CreateApiKeyResponse:
+      type: object
+      properties:
+        key:
+          type: string
+
+    Balance:
+      type: object
+      properties:
+        collateralName:
+          type: string
+        balance:
+          type: string
+          format: decimal
+        status:
+          $ref: "#/components/schemas/BalanceStatus"
+        equity:
+          type: string
+          format: decimal
+        availableForTrade:
+          type: string
+          format: decimal
+        availableForWithdrawal:
+          type: string
+          format: decimal
+        unrealisedPnl:
+          type: string
+          format: decimal
+        initialMargin:
+          type: string
+          format: decimal
+        marginRatio:
+          type: string
+          format: decimal
+        updatedTime:
+          type: integer
+          format: int64
+
+    Position:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        accountId:
+          type: integer
+          format: int64
+        market:
+          type: string
+        status:
+          $ref: "#/components/schemas/PositionStatus"
+        side:
+          $ref: "#/components/schemas/PositionSide"
+        leverage:
+          type: string
+          format: decimal
+        size:
+          type: string
+          format: decimal
+        value:
+          type: string
+          format: decimal
+        openPrice:
+          type: string
+          format: decimal
+        markPrice:
+          type: string
+          format: decimal
+        liquidationPrice:
+          type: string
+          format: decimal
+        margin:
+          type: string
+          format: decimal
+        unrealisedPnl:
+          type: string
+          format: decimal
+        realisedPnl:
+          type: string
+          format: decimal
+        tpTriggerPrice:
+          type: string
+          format: decimal
+          nullable: true
+        slTriggerPrice:
+          type: string
+          format: decimal
+          nullable: true
+        adl:
+          type: integer
+          nullable: true
+        createdAt:
+          type: integer
+          format: int64
+        updatedAt:
+          type: integer
+          format: int64
+
+    PositionHistory:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        accountId:
+          type: integer
+          format: int64
+        market:
+          type: string
+        side:
+          $ref: "#/components/schemas/PositionSide"
+        leverage:
+          type: string
+          format: decimal
+        size:
+          type: string
+          format: decimal
+        openPrice:
+          type: string
+          format: decimal
+        closePrice:
+          type: string
+          format: decimal
+        realisedPnl:
+          type: string
+          format: decimal
+        closedAt:
+          type: integer
+          format: int64
+
+    OrderConditionalTrigger:
+      type: object
+      properties:
+        triggerPrice:
+          type: string
+          format: decimal
+        triggerType:
+          type: string
+          enum: [MARK_PRICE, INDEX_PRICE, LAST_PRICE]
+
+    OrderTpslTrigger:
+      type: object
+      properties:
+        triggerPrice:
+          type: string
+          format: decimal
+        orderPrice:
+          type: string
+          format: decimal
+          nullable: true
+        qty:
+          type: string
+          format: decimal
+          nullable: true
+
+    Twap:
+      type: object
+      properties:
+        numParts:
+          type: integer
+        interval:
+          type: integer
+          format: int64
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        accountId:
+          type: integer
+          format: int64
+        externalId:
+          type: string
+        market:
+          type: string
+        type:
+          $ref: "#/components/schemas/OrderType"
+        side:
+          $ref: "#/components/schemas/OrderSide"
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        statusReason:
+          type: string
+          nullable: true
+        price:
+          type: string
+          format: decimal
+          nullable: true
+        averagePrice:
+          type: string
+          format: decimal
+          nullable: true
+        qty:
+          type: string
+          format: decimal
+        filledQty:
+          type: string
+          format: decimal
+          nullable: true
+        cancelledQty:
+          type: string
+          format: decimal
+          nullable: true
+        trigger:
+          $ref: "#/components/schemas/OrderConditionalTrigger"
+          nullable: true
+        tpSlType:
+          $ref: "#/components/schemas/OrderTpslType"
+          nullable: true
+        takeProfit:
+          $ref: "#/components/schemas/OrderTpslTrigger"
+          nullable: true
+        stopLoss:
+          $ref: "#/components/schemas/OrderTpslTrigger"
+          nullable: true
+        twap:
+          $ref: "#/components/schemas/Twap"
+          nullable: true
+        reduceOnly:
+          type: boolean
+        postOnly:
+          type: boolean
+        createdTime:
+          type: integer
+          format: int64
+        updatedTime:
+          type: integer
+          format: int64
+        expireTime:
+          type: integer
+          format: int64
+          nullable: true
+        timeInForce:
+          $ref: "#/components/schemas/OrderTimeInForce"
+        payedFee:
+          type: string
+          format: decimal
+          nullable: true
+
+    CreateOrderRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Client-assigned order ID
+        market:
+          type: string
+        type:
+          $ref: "#/components/schemas/OrderType"
+        side:
+          $ref: "#/components/schemas/OrderSide"
+        qty:
+          type: string
+          format: decimal
+        price:
+          type: string
+          format: decimal
+          nullable: true
+        timeInForce:
+          $ref: "#/components/schemas/OrderTimeInForce"
+        expiryEpochMillis:
+          type: integer
+          format: int64
+          nullable: true
+        fee:
+          type: string
+          format: decimal
+        nonce:
+          type: integer
+          format: int64
+        reduceOnly:
+          type: boolean
+          default: false
+        postOnly:
+          type: boolean
+          default: false
+        trigger:
+          $ref: "#/components/schemas/OrderConditionalTrigger"
+          nullable: true
+        tpSlType:
+          $ref: "#/components/schemas/OrderTpslType"
+          nullable: true
+        twap:
+          $ref: "#/components/schemas/Twap"
+          nullable: true
+      required:
+        - market
+        - type
+        - side
+        - qty
+        - timeInForce
+        - fee
+        - nonce
+
+    CreateScaledOrderRequest:
+      type: object
+      properties:
+        market:
+          type: string
+        side:
+          $ref: "#/components/schemas/OrderSide"
+        totalQty:
+          type: string
+          format: decimal
+        numOrders:
+          type: integer
+        priceMin:
+          type: string
+          format: decimal
+        priceMax:
+          type: string
+          format: decimal
+        timeInForce:
+          $ref: "#/components/schemas/OrderTimeInForce"
+        expiryEpochMillis:
+          type: integer
+          format: int64
+          nullable: true
+        reduceOnly:
+          type: boolean
+          default: false
+      required:
+        - market
+        - side
+        - totalQty
+        - numOrders
+        - priceMin
+        - priceMax
+        - timeInForce
+
+    NewOrderResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+
+    OrderCancelRequest:
+      type: object
+      properties:
+        market:
+          type: string
+          nullable: true
+        side:
+          $ref: "#/components/schemas/OrderSide"
+          nullable: true
+        ids:
+          type: array
+          items:
+            type: integer
+            format: int64
+          nullable: true
+        externalIds:
+          type: array
+          items:
+            type: string
+          nullable: true
+
+    TradingFee:
+      type: object
+      properties:
+        market:
+          type: string
+        makerFeeRate:
+          type: string
+          format: decimal
+        takerFeeRate:
+          type: string
+          format: decimal
+        builderFeeRate:
+          type: string
+          format: decimal
+
+    ClientTradingFeeStats:
+      type: object
+      properties:
+        volume30d:
+          type: string
+          format: decimal
+        currentTier:
+          type: string
+        nextTier:
+          type: string
+          nullable: true
+        nextTierVolumeRequired:
+          type: string
+          format: decimal
+          nullable: true
+
+    FundingFee:
+      type: object
+      properties:
+        market:
+          type: string
+        side:
+          $ref: "#/components/schemas/PositionSide"
+        fee:
+          type: string
+          format: decimal
+        timestamp:
+          type: integer
+          format: int64
+
+    FundingRateConfigRequest:
+      type: object
+      properties:
+        market:
+          type: string
+        enabled:
+          type: boolean
+      required:
+        - market
+        - enabled
+
+    TransferRequest:
+      type: object
+      properties:
+        fromAccount:
+          type: integer
+          format: int64
+        toAccount:
+          type: integer
+          format: int64
+        amount:
+          type: string
+          format: decimal
+        transferredAsset:
+          type: string
+        settlement:
+          type: object
+          additionalProperties: true
+      required:
+        - fromAccount
+        - toAccount
+        - amount
+        - transferredAsset
+
+    OnChainTransfer:
+      type: object
+      properties:
+        fromVault:
+          type: string
+        toVault:
+          type: string
+        amount:
+          type: string
+          format: decimal
+        transferredAsset:
+          type: string
+      required:
+        - fromVault
+        - toVault
+        - amount
+        - transferredAsset
+
+    WithdrawalRequest:
+      type: object
+      properties:
+        amount:
+          type: string
+          format: decimal
+        asset:
+          type: string
+        destination:
+          type: string
+          description: Destination wallet address
+        nonce:
+          type: integer
+          format: int64
+      required:
+        - amount
+        - asset
+        - destination
+        - nonce
+
+    CollateralSlowWithdrawal:
+      type: object
+      properties:
+        amount:
+          type: string
+          format: decimal
+        asset:
+          type: string
+        positionId:
+          type: integer
+          format: int64
+      required:
+        - amount
+        - asset
+
+    CreateDepositRequest:
+      type: object
+      properties:
+        accountId:
+          type: integer
+          format: int64
+        assetId:
+          type: string
+        amount:
+          type: string
+          format: decimal
+        sourceChain:
+          type: string
+        snTransactionHash:
+          type: string
+          nullable: true
+        fee:
+          type: string
+          format: decimal
+        bridgeId:
+          type: string
+          nullable: true
+      required:
+        - accountId
+        - assetId
+        - amount
+        - sourceChain
+
+    BridgeConfig:
+      type: object
+      properties:
+        chains:
+          type: array
+          items:
+            type: object
+            properties:
+              chainId:
+                type: string
+              name:
+                type: string
+              assets:
+                type: array
+                items:
+                  type: string
+
+    BridgeQuote:
+      type: object
+      properties:
+        id:
+          type: string
+        chainIn:
+          type: string
+        chainOut:
+          type: string
+        amount:
+          type: string
+          format: decimal
+        fee:
+          type: string
+          format: decimal
+        estimatedTime:
+          type: integer
+          description: Estimated time in seconds
+        expiresAt:
+          type: integer
+          format: int64
+
+    WalletValidationRequest:
+      type: object
+      properties:
+        address:
+          type: string
+      required:
+        - address
+
+    WalletValidation:
+      type: object
+      properties:
+        id:
+          type: string
+        address:
+          type: string
+        status:
+          type: string
+          enum: [PENDING, VALID, INVALID]
+        reason:
+          type: string
+          nullable: true
+
+    ClaimResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+
+    Claim:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        amount:
+          type: string
+          format: decimal
+        asset:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: integer
+          format: int64
+
+    AssetOperation:
+      type: object
+      properties:
+        id:
+          type: string
+        accountId:
+          type: integer
+          format: int64
+        type:
+          type: string
+        status:
+          type: string
+        amount:
+          type: string
+          format: decimal
+        asset:
+          type: string
+        createdAt:
+          type: integer
+          format: int64
+        updatedAt:
+          type: integer
+          format: int64
+
+    ClientInfo:
+      type: object
+      properties:
+        clientId:
+          type: integer
+          format: int64
+        walletAddress:
+          type: string
+        walletChecked:
+          type: boolean
+        createdAt:
+          type: integer
+          format: int64
+
+    CreateReferralLinkCodeRequest:
+      type: object
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+      required:
+        - code
+
+    UpdateReferralLinkCodeRequest:
+      type: object
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+      required:
+        - code
+
+    UseReferralCodeRequest:
+      type: object
+      properties:
+        code:
+          type: string
+      required:
+        - code
+
+    SpotBalance:
+      type: object
+      properties:
+        accountId:
+          type: integer
+          format: int64
+        asset:
+          type: string
+        balance:
+          type: string
+          format: decimal
+        indexPrice:
+          type: string
+          format: decimal
+        notionalValue:
+          type: string
+          format: decimal
+        contributionFactor:
+          type: string
+          format: decimal
+        equityContribution:
+          type: string
+          format: decimal
+        availableToWithdraw:
+          type: string
+          format: decimal
+          nullable: true
+        updatedAt:
+          type: integer
+          format: int64
+
+    AssetIndexPrice:
+      type: object
+      description: Asset index price (compact field names for streaming)
+      properties:
+        a:
+          type: string
+          description: Asset name
+        p:
+          type: string
+          format: decimal
+          description: Price
+        ts:
+          type: integer
+          format: int64
+          description: Timestamp in milliseconds
+
+paths:
+  # =====================
+  # PUBLIC INFO ENDPOINTS
+  # =====================
+
+  /info/assets:
+    get:
+      tags: [Assets]
+      summary: Get all assets
+      operationId: getAssets
+      parameters:
+        - name: asset[]
+          in: query
+          description: Filter by asset names
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+        - name: collateral
+          in: query
+          description: Filter by collateral flag
+          schema:
+            type: boolean
+        - name: type
+          in: query
+          description: Filter by asset type
+          schema:
+            $ref: "#/components/schemas/AssetType"
+      responses:
+        "200":
+          description: List of assets
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Asset"
+
+  /info/assets/{asset}/price:
+    get:
+      tags: [Assets]
+      summary: Get current price for an asset
+      operationId: getAssetPrice
+      parameters:
+        - name: asset
+          in: path
+          required: true
+          schema:
+            type: string
+          example: BTC
+      responses:
+        "200":
+          description: Asset price
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: string
+                        format: decimal
+        "404":
+          description: Asset not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /info/markets:
+    get:
+      tags: [Markets]
+      summary: Get all market information
+      operationId: getMarkets
+      parameters:
+        - name: market[]
+          in: query
+          description: Filter by market names
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+      responses:
+        "200":
+          description: List of markets (cached 60 seconds)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/MarketInfo"
+
+  /info/markets/stats:
+    get:
+      tags: [Markets]
+      summary: Get market statistics for all or selected markets
+      operationId: getMarketsStats
+      parameters:
+        - name: market[]
+          in: query
+          description: Filter by market names
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+      responses:
+        "200":
+          description: List of market stats (cached 2 seconds)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/MarketStats"
+
+  /info/markets/{market}/stats:
+    get:
+      tags: [Markets]
+      summary: Get statistics for a specific market
+      operationId: getMarketStats
+      parameters:
+        - name: market
+          in: path
+          required: true
+          schema:
+            type: string
+          example: BTC-USD
+      responses:
+        "200":
+          description: Market statistics (cached 2 seconds)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/MarketStats"
+        "404":
+          description: Market not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /info/markets/{market}/trades:
+    get:
+      tags: [Markets]
+      summary: Get recent trades for a market
+      operationId: getMarketTrades
+      parameters:
+        - name: market
+          in: path
+          required: true
+          schema:
+            type: string
+          example: BTC-USD
+      responses:
+        "200":
+          description: Recent trades (cached 5 seconds)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/PublicTrade"
+
+  /info/markets/{market}/orderbook:
+    get:
+      tags: [Markets]
+      summary: Get order book snapshot for a market
+      operationId: getMarketOrderBook
+      parameters:
+        - name: market
+          in: path
+          required: true
+          schema:
+            type: string
+          example: BTC-USD
+      responses:
+        "200":
+          description: Order book (cached 2 seconds)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/OrderBook"
+
+  /info/{market}/funding:
+    get:
+      tags: [Funding]
+      summary: Get funding rate history for a market
+      operationId: getFundingRates
+      parameters:
+        - name: market
+          in: path
+          required: true
+          schema:
+            type: string
+          example: BTC-USD
+        - name: startTime
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Start timestamp in milliseconds
+        - name: endTime
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: End timestamp in milliseconds
+      responses:
+        "200":
+          description: Funding rate history (cached 60 seconds)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/FundingRate"
+
+  /info/candles/{market}/trades:
+    get:
+      tags: [Candles]
+      summary: Get trade candles (OHLCV) for a market
+      operationId: getTradingCandles
+      parameters:
+        - name: market
+          in: path
+          required: true
+          schema:
+            type: string
+          example: BTC-USD
+        - name: interval
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Candle interval (e.g. 1m, 5m, 1h, 1d)
+          example: 1h
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            maximum: 2800
+          description: Maximum number of candles to return
+        - name: endTime
+          in: query
+          schema:
+            type: integer
+            format: int64
+          description: End timestamp in milliseconds
+      responses:
+        "200":
+          description: Trade candles
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/TradeCandle"
+
+  /info/candles/{market}/mark-prices:
+    get:
+      tags: [Candles]
+      summary: Get mark price candles for a market
+      operationId: getMarkPriceCandles
+      parameters:
+        - name: market
+          in: path
+          required: true
+          schema:
+            type: string
+          example: BTC-USD
+        - name: interval
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Candle interval (e.g. 1m, 5m, 1h, 1d)
+          example: 1h
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: endTime
+          in: query
+          schema:
+            type: integer
+            format: int64
+          description: End timestamp in milliseconds
+      responses:
+        "200":
+          description: Mark price candles
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/PriceCandle"
+
+  /info/candles/{market}/index-prices:
+    get:
+      tags: [Candles]
+      summary: Get index price candles for a market
+      operationId: getIndexPriceCandles
+      parameters:
+        - name: market
+          in: path
+          required: true
+          schema:
+            type: string
+          example: BTC-USD
+        - name: interval
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Candle interval (e.g. 1m, 5m, 1h, 1d)
+          example: 1h
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: endTime
+          in: query
+          schema:
+            type: integer
+            format: int64
+          description: End timestamp in milliseconds
+      responses:
+        "200":
+          description: Index price candles
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/PriceCandle"
+
+  /info/{market}/open-interests:
+    get:
+      tags: [Open Interest]
+      summary: Get open interest history for a market
+      operationId: getOpenInterests
+      parameters:
+        - name: market
+          in: path
+          required: true
+          schema:
+            type: string
+          example: BTC-USD
+        - name: interval
+          in: query
+          schema:
+            type: string
+          description: Time interval
+        - name: startTime
+          in: query
+          schema:
+            type: integer
+            format: int64
+          description: Start timestamp in milliseconds
+        - name: endTime
+          in: query
+          schema:
+            type: integer
+            format: int64
+          description: End timestamp in milliseconds
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            maximum: 300
+      responses:
+        "200":
+          description: Open interest history (cached 60 seconds)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            openInterest:
+                              type: string
+                              format: decimal
+                            timestamp:
+                              type: integer
+                              format: int64
+
+  /info/leaderboard:
+    get:
+      tags: [Leaderboard]
+      summary: Get public leaderboard rankings
+      operationId: getPublicLeaderboard
+      parameters:
+        - name: period
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/LeaderboardInterval"
+      responses:
+        "200":
+          description: Leaderboard rankings (cached 60 seconds)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ClientRankings"
+
+  /info/referral/link:
+    get:
+      tags: [Referral (Public)]
+      summary: Get public referral link information
+      operationId: getPublicReferralLink
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Referral link ID
+      responses:
+        "200":
+          description: Referral link info (cached 30 seconds)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: Referral link not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /info/builder/dashboard:
+    get:
+      tags: [Builder]
+      summary: Get builder dashboard statistics
+      operationId: getBuilderDashboard
+      responses:
+        "200":
+          description: Builder dashboard (cached 60 seconds)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/BuilderDashboard"
+
+  /info/vault/positions:
+    get:
+      tags: [Vault (Public)]
+      summary: Get vault open positions
+      operationId: getVaultPositions
+      responses:
+        "200":
+          description: Vault positions (cached 10 seconds)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Position"
+
+  /info/vault/positions/history:
+    get:
+      tags: [Vault (Public)]
+      summary: Get vault position history
+      operationId: getVaultPositionHistory
+      responses:
+        "200":
+          description: Vault position history (cached 60 seconds)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/PositionHistory"
+
+  /info/vault/orders:
+    get:
+      tags: [Vault (Public)]
+      summary: Get vault open orders
+      operationId: getVaultOrders
+      responses:
+        "200":
+          description: Vault orders (cached 300 seconds)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Order"
+
+  /info/vault/trades:
+    get:
+      tags: [Vault (Public)]
+      summary: Get vault trades
+      operationId: getVaultTrades
+      responses:
+        "200":
+          description: Vault trades (cached 60 seconds)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/PublicTrade"
+
+  /info/vault/funding/history:
+    get:
+      tags: [Vault (Public)]
+      summary: Get vault funding fees
+      operationId: getVaultFundingHistory
+      responses:
+        "200":
+          description: Vault funding fees (cached 60 seconds)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/FundingFee"
+
+  /info/status:
+    get:
+      tags: [Status]
+      summary: Get exchange operational status
+      operationId: getExchangeStatus
+      responses:
+        "200":
+          description: Exchange status (cached 1 second)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ExchangeStatus"
+
+  /info/settings:
+    get:
+      tags: [Settings]
+      summary: Get exchange settings
+      operationId: getSettings
+      responses:
+        "200":
+          description: Exchange settings (cached 60 seconds)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Settings"
+
+  /info/starknet:
+    get:
+      tags: [Starknet]
+      summary: Get Starknet domain information
+      operationId: getStarknetDomain
+      responses:
+        "200":
+          description: Starknet domain info (cached 60 seconds)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/StarknetDomain"
+
+  /integrations/coingecko/contracts:
+    get:
+      tags: [Integrations]
+      summary: Get CoinGecko contract mappings
+      operationId: getCoinGeckoContracts
+      responses:
+        "200":
+          description: List of CoinGecko contracts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GeckoContract"
+
+  /integrations/coingecko/orderbook/{market}:
+    get:
+      tags: [Integrations]
+      summary: Get CoinGecko-formatted order book for a market
+      operationId: getCoinGeckoOrderBook
+      parameters:
+        - name: market
+          in: path
+          required: true
+          schema:
+            type: string
+          example: BTC-USD
+      responses:
+        "200":
+          description: CoinGecko-formatted order book
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeckoOrderBook"
+
+  # ========================
+  # AUTHENTICATED ENDPOINTS
+  # (all under /user prefix)
+  # ========================
+
+  /user/accounts:
+    get:
+      tags: [Account]
+      summary: Get all accounts for the authenticated client
+      operationId: getAccounts
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      responses:
+        "200":
+          description: List of accounts
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/AccountInfo"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/account/info:
+    get:
+      tags: [Account]
+      summary: Get current account information
+      operationId: getAccountInfo
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      responses:
+        "200":
+          description: Account information
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/AccountInfo"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      tags: [Account]
+      summary: Update current account information
+      operationId: updateAccountInfo
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountUpdateRequest"
+      responses:
+        "200":
+          description: Account updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/leverage:
+    get:
+      tags: [Account]
+      summary: Get leverage settings for all or specific markets
+      operationId: getLeverage
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: market[]
+          in: query
+          description: Filter by market names
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+      responses:
+        "200":
+          description: Leverage settings
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/AccountLeverage"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      tags: [Account]
+      summary: Update leverage for a market
+      operationId: updateLeverage
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountLeverage"
+      responses:
+        "200":
+          description: Updated leverage
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/AccountLeverage"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/account/api-keys:
+    get:
+      tags: [Account]
+      summary: Get all API keys (JWT or L1 Signature only)
+      operationId: getApiKeys
+      security:
+        - BearerAuth: []
+        - L1Signature: []
+      responses:
+        "200":
+          description: List of API keys
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/ApiKey"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/account/api-key:
+    post:
+      tags: [Account]
+      summary: Create or retrieve an API key (JWT or L1 Signature only)
+      operationId: createApiKey
+      security:
+        - BearerAuth: []
+        - L1Signature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateApiKeyRequest"
+      responses:
+        "200":
+          description: API key created or retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/CreateApiKeyResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/account/api-key/{id}:
+    delete:
+      tags: [Account]
+      summary: Delete an API key (JWT or L1 Signature only)
+      operationId: deleteApiKey
+      security:
+        - BearerAuth: []
+        - L1Signature: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: API key ID to delete
+      responses:
+        "200":
+          description: API key deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: API key not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/balance:
+    get:
+      tags: [Balance]
+      summary: Get user account balance
+      operationId: getBalance
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      responses:
+        "200":
+          description: Account balance
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Balance"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/spot/balances:
+    get:
+      tags: [Balance]
+      summary: Get spot asset balances
+      operationId: getSpotBalances
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: accountId[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+          style: form
+          explode: true
+          description: Filter by account IDs
+      responses:
+        "200":
+          description: Spot balances
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/SpotBalance"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/positions:
+    get:
+      tags: [Positions]
+      summary: Get open positions
+      operationId: getPositions
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: market[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+          description: Filter by market names
+        - name: side
+          in: query
+          schema:
+            $ref: "#/components/schemas/PositionSide"
+          description: Filter by position side
+      responses:
+        "200":
+          description: Open positions
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Position"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/positions/history:
+    get:
+      tags: [Positions]
+      summary: Get closed position history
+      operationId: getPositionHistory
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: market[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+        - name: side
+          in: query
+          schema:
+            $ref: "#/components/schemas/PositionSide"
+        - name: cursor
+          in: query
+          schema:
+            type: string
+          description: Pagination cursor
+        - name: limit
+          in: query
+          schema:
+            type: integer
+          description: Page size
+      responses:
+        "200":
+          description: Position history (paginated)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/PaginatedResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/PositionHistory"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/orders:
+    get:
+      tags: [Orders]
+      summary: Get open orders
+      operationId: getOpenOrders
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: market[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+          description: Filter by market names
+        - name: type
+          in: query
+          schema:
+            $ref: "#/components/schemas/OrderType"
+          description: Filter by order type
+        - name: side
+          in: query
+          schema:
+            $ref: "#/components/schemas/OrderSide"
+          description: Filter by order side
+      responses:
+        "200":
+          description: List of open orders
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Order"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/orders/{id}:
+    get:
+      tags: [Orders]
+      summary: Get a specific open order by ID
+      operationId: getOrder
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Order ID
+      responses:
+        "200":
+          description: Order details
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Order"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/orders/history:
+    get:
+      tags: [Orders]
+      summary: Get order history (closed orders)
+      operationId: getOrderHistory
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: market[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+        - name: id[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+          style: form
+          explode: true
+          description: Filter by order IDs
+        - name: externalId[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+          description: Filter by external order IDs
+        - name: type
+          in: query
+          schema:
+            $ref: "#/components/schemas/OrderType"
+        - name: side
+          in: query
+          schema:
+            $ref: "#/components/schemas/OrderSide"
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Order history (paginated)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/PaginatedResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Order"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/orders/external/{externalId}:
+    get:
+      tags: [Orders]
+      summary: Get orders by external ID
+      operationId: getOrderByExternalId
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: externalId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: External order ID
+      responses:
+        "200":
+          description: Orders matching the external ID
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Order"
+                        nullable: true
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/order:
+    post:
+      tags: [Orders]
+      summary: Create a new order
+      operationId: createOrder
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderRequest"
+      responses:
+        "200":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/NewOrderResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags: [Orders]
+      summary: Cancel order by external ID
+      operationId: cancelOrderByExternalId
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: externalId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: External ID of the order to cancel
+      responses:
+        "200":
+          description: Order cancelled
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Order"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/order/scaled:
+    post:
+      tags: [Orders]
+      summary: Create a scaled order (grid of orders)
+      operationId: createScaledOrder
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateScaledOrderRequest"
+      responses:
+        "200":
+          description: Scaled order created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/NewOrderResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/order/{id}:
+    delete:
+      tags: [Orders]
+      summary: Cancel order by ID
+      operationId: cancelOrder
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Order ID to cancel
+      responses:
+        "200":
+          description: Order cancelled
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Order"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/order/massCancel:
+    post:
+      tags: [Orders]
+      summary: Cancel multiple orders at once
+      operationId: massCancelOrders
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderCancelRequest"
+      responses:
+        "200":
+          description: Orders cancelled
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Order"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/trades:
+    get:
+      tags: [Trades]
+      summary: Get user trade history
+      operationId: getTrades
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: market[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+        - name: side
+          in: query
+          schema:
+            $ref: "#/components/schemas/OrderSide"
+        - name: type
+          in: query
+          schema:
+            $ref: "#/components/schemas/TradeType"
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Trade history (paginated)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/PaginatedResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          additionalProperties: true
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/funding/history:
+    get:
+      tags: [Funding]
+      summary: Get user funding fee history
+      operationId: getUserFundingHistory
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: market[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+        - name: side
+          in: query
+          schema:
+            $ref: "#/components/schemas/PositionSide"
+        - name: startTime
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            maximum: 1000
+      responses:
+        "200":
+          description: Funding fee history (paginated)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/PaginatedResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/FundingFee"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/config/funding-rate:
+    post:
+      tags: [Funding]
+      summary: Update funding rate configuration
+      operationId: updateFundingRateConfig
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FundingRateConfigRequest"
+      responses:
+        "200":
+          description: Configuration updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/transfer:
+    patch:
+      tags: [Transfers]
+      summary: Perform an internal transfer between accounts
+      operationId: transferPatch
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferRequest"
+      responses:
+        "200":
+          description: Transfer successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [Transfers]
+      summary: Perform an internal transfer between accounts
+      operationId: transfer
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferRequest"
+      responses:
+        "200":
+          description: Transfer successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/transfer/onchain:
+    post:
+      tags: [Transfers]
+      summary: Perform an on-chain transfer
+      operationId: onchainTransfer
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OnChainTransfer"
+      responses:
+        "200":
+          description: On-chain transfer initiated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/withdrawal:
+    get:
+      tags: [Withdrawals]
+      summary: Get withdrawal history
+      operationId: getWithdrawals
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      responses:
+        "200":
+          description: Withdrawal history
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          additionalProperties: true
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [Withdrawals]
+      summary: Request a withdrawal
+      operationId: createWithdrawal
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WithdrawalRequest"
+      responses:
+        "200":
+          description: Withdrawal requested
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/withdrawal/onchain:
+    post:
+      tags: [Withdrawals]
+      summary: Request an on-chain (slow) withdrawal
+      operationId: onchainWithdrawal
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CollateralSlowWithdrawal"
+      responses:
+        "200":
+          description: On-chain withdrawal requested
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/deposit:
+    post:
+      tags: [Deposits]
+      summary: Create a deposit request
+      operationId: createDeposit
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDepositRequest"
+      responses:
+        "200":
+          description: Deposit request created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/bridge/config:
+    get:
+      tags: [Bridge]
+      summary: Get bridge configurations
+      operationId: getBridgeConfig
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      responses:
+        "200":
+          description: Bridge configuration
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/BridgeConfig"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/bridge/quote:
+    get:
+      tags: [Bridge]
+      summary: Get a bridge quote
+      operationId: getBridgeQuote
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: chainIn
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Source chain
+        - name: chainOut
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Destination chain
+        - name: amount
+          in: query
+          required: true
+          schema:
+            type: string
+            format: decimal
+          description: Amount to bridge
+      responses:
+        "200":
+          description: Bridge quote
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/BridgeQuote"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [Bridge]
+      summary: Commit a bridge quote
+      operationId: commitBridgeQuote
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Quote ID to commit
+      responses:
+        "200":
+          description: Bridge quote committed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid or expired quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/wallet/validation:
+    post:
+      tags: [Wallet]
+      summary: Validate a wallet address
+      operationId: validateWallet
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WalletValidationRequest"
+      responses:
+        "200":
+          description: Validation request created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/WalletValidation"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/wallet/validation/{id}:
+    get:
+      tags: [Wallet]
+      summary: Get wallet validation status
+      operationId: getWalletValidation
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Validation transaction ID
+      responses:
+        "200":
+          description: Validation details
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/WalletValidation"
+        "204":
+          description: Validation not yet complete (no content)
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/fees:
+    get:
+      tags: [Fees]
+      summary: Get trading fees
+      operationId: getTradingFees
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: market[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+          description: Filter by market names
+        - name: builderId
+          in: query
+          schema:
+            type: string
+          description: Builder ID for fee calculation
+      responses:
+        "200":
+          description: Trading fees
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/TradingFee"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/fees/stats:
+    get:
+      tags: [Fees]
+      summary: Get trading fee statistics
+      operationId: getTradingFeeStats
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      responses:
+        "200":
+          description: Trading fee stats
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ClientTradingFeeStats"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/leaderboard:
+    get:
+      tags: [Leaderboard]
+      summary: Get authenticated user's leaderboard ranking
+      operationId: getUserLeaderboard
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: period
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/LeaderboardInterval"
+      responses:
+        "200":
+          description: User's leaderboard ranking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/deadmanswitch:
+    post:
+      tags: [Deadman Switch]
+      summary: Set the deadman switch countdown
+      operationId: setDeadmanSwitch
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: countdownTime
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Countdown time in milliseconds; set to 0 to disable
+      responses:
+        "200":
+          description: Deadman switch set
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/claim:
+    get:
+      tags: [Claims]
+      summary: Get claims list
+      operationId: getClaims
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: startTime
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+      responses:
+        "200":
+          description: List of claims
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Claim"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [Claims]
+      summary: Submit a reward claim
+      operationId: createClaim
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      responses:
+        "200":
+          description: Claim submitted
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ClaimResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/claim/{id}:
+    get:
+      tags: [Claims]
+      summary: Get claim status by ID
+      operationId: getClaim
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Claim ID
+      responses:
+        "200":
+          description: Claim details
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/Claim"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Claim not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/nextclaim:
+    get:
+      tags: [Claims]
+      summary: Get the timestamp of the next available claim
+      operationId: getNextClaimTime
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      responses:
+        "200":
+          description: Next claim timestamp in epoch milliseconds
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: integer
+                        format: int64
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/rewards/partner:
+    get:
+      tags: [Rewards]
+      summary: Get partner rewards
+      operationId: getPartnerRewards
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      responses:
+        "200":
+          description: Partner rewards
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "204":
+          description: No partner rewards available
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/rewards/affiliate:
+    get:
+      tags: [Rewards]
+      summary: Get affiliate rewards
+      operationId: getAffiliateRewards
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      responses:
+        "200":
+          description: Affiliate rewards
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "204":
+          description: No affiliate rewards available
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/rewards/earned:
+    get:
+      tags: [Rewards]
+      summary: Get earned rewards
+      operationId: getEarnedRewards
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      responses:
+        "200":
+          description: Earned rewards data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/rewards/leaderboard/stats:
+    get:
+      tags: [Rewards]
+      summary: Get reward leaderboard statistics
+      operationId: getRewardLeaderboardStats
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      responses:
+        "200":
+          description: Reward leaderboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/rebates/csv:
+    get:
+      tags: [Rebates]
+      summary: Get rebates as CSV export
+      operationId: getRebatesCsv
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      responses:
+        "200":
+          description: CSV file with rebate data
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/rebates/stats:
+    get:
+      tags: [Rebates]
+      summary: Get rebate statistics
+      operationId: getRebateStats
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      responses:
+        "200":
+          description: Rebate statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/referrals/status:
+    get:
+      tags: [Referrals]
+      summary: Get referral status
+      operationId: getReferralStatus
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      responses:
+        "200":
+          description: Referral status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/referrals/links:
+    get:
+      tags: [Referrals]
+      summary: Get all referral links
+      operationId: getReferralLinks
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      responses:
+        "200":
+          description: List of referral links
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/referrals:
+    post:
+      tags: [Referrals]
+      summary: Create a referral link
+      operationId: createReferralLink
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReferralLinkCodeRequest"
+      responses:
+        "200":
+          description: Referral link created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags: [Referrals]
+      summary: Update a referral link
+      operationId: updateReferralLink
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateReferralLinkCodeRequest"
+      responses:
+        "200":
+          description: Referral link updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/referrals/use:
+    post:
+      tags: [Referrals]
+      summary: Use a referral code
+      operationId: useReferralCode
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UseReferralCodeRequest"
+      responses:
+        "200":
+          description: Referral code used
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "400":
+          description: Invalid or expired code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/referrals/rebates/period/csv:
+    get:
+      tags: [Referrals]
+      summary: Get referral rebates by period as CSV
+      operationId: getReferralRebatesByPeriodCsv
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: period
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/ReferralDashboardTimeRange"
+        - name: granularity
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/ReferralDashboardGranularity"
+        - name: links[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+        - name: subaffiliates[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+      responses:
+        "200":
+          description: CSV file
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/referrals/rebates/user/csv:
+    get:
+      tags: [Referrals]
+      summary: Get referral rebates by user as CSV
+      operationId: getReferralRebatesByUserCsv
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: period
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/ReferralDashboardTimeRange"
+        - name: links[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+        - name: subaffiliates[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+      responses:
+        "200":
+          description: CSV file
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/referrals/rebates/subaffiliate/csv:
+    get:
+      tags: [Referrals]
+      summary: Get referral rebates by subaffiliate as CSV
+      operationId: getReferralRebatesBySubaffiliateCsv
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: period
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/ReferralDashboardTimeRange"
+        - name: subaffiliates[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+      responses:
+        "200":
+          description: CSV file
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/referrals/rebates/link/csv:
+    get:
+      tags: [Referrals]
+      summary: Get referral rebates by link as CSV
+      operationId: getReferralRebatesByLinkCsv
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: period
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/ReferralDashboardTimeRange"
+        - name: links[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+      responses:
+        "200":
+          description: CSV file
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/referrals/dashboard:
+    get:
+      tags: [Referrals]
+      summary: Get referral dashboard data
+      operationId: getReferralDashboard
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: period
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/ReferralDashboardTimeRange"
+      responses:
+        "200":
+          description: Referral dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/affiliate:
+    get:
+      tags: [Referrals]
+      summary: Get affiliate information
+      operationId: getAffiliate
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      responses:
+        "200":
+          description: Affiliate details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not an affiliate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/assetOperations:
+    get:
+      tags: [Asset Operations]
+      summary: Get asset operations (legacy path)
+      operationId: getAssetOperationsLegacy
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: accountId[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+          style: form
+          explode: true
+        - name: id
+          in: query
+          schema:
+            type: string
+        - name: type[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+        - name: status[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+        - name: startTime
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: endTime
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: cursor
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Asset operations (paginated)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/PaginatedResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/AssetOperation"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/asset-operations:
+    get:
+      tags: [Asset Operations]
+      summary: Get asset operations
+      operationId: getAssetOperations
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: accountId[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+          style: form
+          explode: true
+        - name: id
+          in: query
+          schema:
+            type: string
+        - name: type[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+        - name: status[]
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+        - name: startTime
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: endTime
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: cursor
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Asset operations (paginated)
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/PaginatedResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/AssetOperation"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/client/info:
+    get:
+      tags: [Client]
+      summary: Get client information
+      operationId: getClientInfo
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      responses:
+        "200":
+          description: Client information
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/ApiResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/ClientInfo"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/client/info/walletChecked:
+    put:
+      tags: [Client]
+      summary: Mark wallet as checked
+      operationId: markWalletChecked
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: passed
+          in: query
+          required: true
+          schema:
+            type: boolean
+          description: Whether the wallet check passed
+      responses:
+        "200":
+          description: Wallet check status updated
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/export/csv/zip:
+    get:
+      tags: [Export]
+      summary: Export user data as a ZIP file containing CSVs
+      operationId: exportCsvZip
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      parameters:
+        - name: type[]
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/ExportType"
+          style: form
+          explode: true
+          description: Types of data to export
+        - name: accountId
+          in: query
+          schema:
+            type: integer
+            format: int64
+          description: Optional specific account ID to export
+      responses:
+        "200":
+          description: ZIP file containing CSV exports
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /user/wrapper:
+    get:
+      tags: [Account]
+      summary: Get the extended wrapper information for the authenticated client
+      operationId: getWrapper
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
+        - L1Signature: []
+      responses:
+        "200":
+          description: Extended wrapper data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Wrapper not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
