@@ -257,7 +257,7 @@ All new accounts should use the `MAINNET_CONFIG` configuration bundle.
 
 ## OnBoarding via SDK (Since Version 0.3.0)
 
-To onboard to the Extended Exchange, the `UserClient` defined in [user_client.py](x10/perpetual/user_client/user_client.py) provides a way to use an Ethereum account to onboard onto the Extended Exchange. 
+To onboard to the Extended Exchange, the `UserClient` defined in [user_client.py](x10/perpetual/user_client/user_client.py) provides a way to use an Ethereum account to onboard onto the Extended Exchange.
 
 ### TLDR - Check out: [onboarding_example.py](examples/onboarding_example.py)
 

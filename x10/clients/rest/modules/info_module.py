@@ -16,11 +16,11 @@ from x10.utils.http import send_get_request
 class InfoModule(BaseModule):
     async def get_settings(self):
         url = self._get_url("/info/settings")
-        return await send_get_request(await self.get_session(), url, SettingsModel)
+        return await send_get_request(await self._get_session(), url, SettingsModel)
 
     async def get_assets(self):
         url = self._get_url("/info/assets")
-        return await send_get_request(await self.get_session(), url, List[AssetModel])
+        return await send_get_request(await self._get_session(), url, List[AssetModel])
 
     async def get_assets_dict(self):
         assets = await self.get_assets()
@@ -28,7 +28,7 @@ class InfoModule(BaseModule):
 
     async def get_asset_price(self, *, asset_name: str):
         url = self._get_url("/info/assets/<asset_name>/price", asset_name=asset_name)
-        return await send_get_request(await self.get_session(), url, Decimal)
+        return await send_get_request(await self._get_session(), url, Decimal)
 
     async def get_markets(self, *, market_names: Optional[List[str]] = None):
         """
@@ -36,7 +36,7 @@ class InfoModule(BaseModule):
         """
 
         url = self._get_url("/info/markets", query={"market": market_names})
-        return await send_get_request(await self.get_session(), url, List[MarketModel])
+        return await send_get_request(await self._get_session(), url, List[MarketModel])
 
     async def get_markets_dict(self):
         markets = await self.get_markets()
@@ -48,7 +48,7 @@ class InfoModule(BaseModule):
         """
 
         url = self._get_url("/info/markets/<market>/stats", market=market_name)
-        return await send_get_request(await self.get_session(), url, MarketStatsModel)
+        return await send_get_request(await self._get_session(), url, MarketStatsModel)
 
     async def get_candles_history(
         self,
@@ -73,7 +73,7 @@ class InfoModule(BaseModule):
                 "endTime": to_epoch_millis(end_time) if end_time else None,
             },
         )
-        return await send_get_request(await self.get_session(), url, List[CandleModel])
+        return await send_get_request(await self._get_session(), url, List[CandleModel])
 
     async def get_funding_rates_history(self, *, market_name: str, start_time: datetime, end_time: datetime):
         """
@@ -88,7 +88,7 @@ class InfoModule(BaseModule):
                 "endTime": to_epoch_millis(end_time),
             },
         )
-        return await send_get_request(await self.get_session(), url, List[FundingRateModel])
+        return await send_get_request(await self._get_session(), url, List[FundingRateModel])
 
     async def get_orderbook_snapshot(self, *, market_name: str):
         """
@@ -96,4 +96,4 @@ class InfoModule(BaseModule):
         """
 
         url = self._get_url("/info/markets/<market>/orderbook", market=market_name)
-        return await send_get_request(await self.get_session(), url, OrderbookUpdateModel)
+        return await send_get_request(await self._get_session(), url, OrderbookUpdateModel)
