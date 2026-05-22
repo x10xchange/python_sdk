@@ -2,50 +2,39 @@ from typing import Dict, Optional
 
 import aiohttp
 from aiohttp import ClientTimeout
+from eth_account.messages import SignableMessage
+from eth_typing import ChecksumAddress
 
 from x10.config import Config
-from x10.core.stark_account import StarkPerpetualAccount
-from x10.errors import ValidationError
+from x10.signing.onboarding import SignMessageCallback
 from x10.utils.http import get_url
 
 
 class BaseModule:
     __config: Config
-    __api_key: Optional[str]
-    __stark_account: Optional[StarkPerpetualAccount]
+    __account_address: ChecksumAddress
+    __sign_message: SignMessageCallback
     __session: Optional[aiohttp.ClientSession]
 
-    def __init__(
-        self,
-        config: Config,
-        *,
-        api_key: Optional[str] = None,
-        stark_account: Optional[StarkPerpetualAccount] = None,
-    ):
+    def __init__(self, config: Config, *, account_address: ChecksumAddress, sign_message: SignMessageCallback):
         super().__init__()
 
         self.__config = config
-        self.__api_key = api_key
-        self.__stark_account = stark_account
+        self.__account_address = account_address
+        self.__sign_message = sign_message
         self.__session = None
 
     def _get_url(self, path: str, *, query: Optional[Dict] = None, **path_params) -> str:
-        return get_url(f"{self.__config.endpoints.api_base_url}{path}", query=query, **path_params)
+        return get_url(f"{self.__config.endpoints.onboarding_url}{path}", query=query, **path_params)
 
     def _get_config(self) -> Config:
         return self.__config
 
-    def _get_api_key(self):
-        if not self.__api_key:
-            raise ValidationError("API key is not set")
+    def _get_account_address(self) -> ChecksumAddress:
+        return self.__account_address
 
-        return self.__api_key
-
-    def _get_stark_account(self):
-        if not self.__stark_account:
-            raise ValidationError("Stark account is not set")
-
-        return self.__stark_account
+    def _sign_message(self, msg: SignableMessage) -> str:
+        return self.__sign_message(msg)
 
     async def _get_session(self) -> aiohttp.ClientSession:
         if self.__session is None:

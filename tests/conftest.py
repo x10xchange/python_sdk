@@ -71,6 +71,13 @@ def get_asset_xvs():
 
 
 @pytest.fixture
+def get_eth_private_key():
+    from tests.fixtures.onboarding import get_eth_private_key as _get_eth_private_key
+
+    return _get_eth_private_key
+
+
+@pytest.fixture
 def create_asset_operations():
     from tests.fixtures.asset import create_asset_operations as _create_asset_operations
 

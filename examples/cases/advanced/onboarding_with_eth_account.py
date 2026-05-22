@@ -5,10 +5,10 @@ from eth_account import Account
 from eth_account.signers.local import LocalAccount
 
 from examples.utils import init_env
+from x10.clients.onboarding import OnboardingClient
 from x10.clients.rest import RestApiClient
 from x10.config import TESTNET_CONFIG
 from x10.core.stark_account import StarkPerpetualAccount
-from x10.perpetual.user_client.user_client import UserClient
 from x10.utils.string import is_hex_string
 
 LOGGER = logging.getLogger()
@@ -23,12 +23,23 @@ async def run_example():
     assert is_hex_string(eth_account_private_key), "`eth_account_private_key` must be a hex string"
 
     eth_local_account: LocalAccount = Account.from_key(eth_account_private_key)
-    user_client = UserClient(config=CONFIG, l1_private_key=eth_local_account.key.hex)
+
+    onboarding_client = OnboardingClient(
+        config=CONFIG,
+        account_address=eth_local_account.address,
+        sign_message=lambda msg: eth_local_account.sign_message(msg).signature.hex(),
+    )
 
     LOGGER.info("Onboarding with ETH account %s...", eth_local_account.address)
 
-    main_account = await user_client.onboard()
-    main_account_api_key = await user_client.create_account_api_key(main_account.account, "Onboarding example API key")
+    main_account = await onboarding_client.auth.onboard_client()
+    sub_account = await onboarding_client.auth.onboard_subaccount(
+        account_index=1, description="Onboarding example subaccount"
+    )
+    main_account_api_key = await onboarding_client.account.create_api_key(
+        account_id=main_account.account.id,
+        description="Onboarding example API key",
+    )
 
     starknet_account = StarkPerpetualAccount(
         api_key=main_account_api_key,
@@ -38,7 +49,8 @@ async def run_example():
     )
     rest_client = RestApiClient(CONFIG, starknet_account)
 
-    LOGGER.info("StarkNet public key: %s", starknet_account.public_key)
+    LOGGER.info("StarkNet public key (main): %s", main_account.l2_key_pair.public_hex)
+    LOGGER.info("StarkNet public key (sub): %s", sub_account.l2_key_pair.public_hex)
 
     claim = await rest_client.testnet.claim_testing_funds()
     claim_id = claim.data.id if claim.data else None
