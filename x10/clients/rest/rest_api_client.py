@@ -28,7 +28,7 @@ LOGGER = get_logger(__name__)
 
 class RestApiClient:
     """
-    X10 REST API Client.
+    Extended REST API Client.
     """
 
     __markets: Dict[str, MarketModel] | None

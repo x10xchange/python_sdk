@@ -1,21 +1,18 @@
 from typing import Dict, List, Optional, Type
 
+from x10.clients.stream.stream_connection import StreamConnection, StreamMsgResponseType
 from x10.models.account import AccountStreamDataModel
 from x10.models.candle import CandleInterval, CandleModel, CandleType
 from x10.models.funding_rate import FundingRateModel
 from x10.models.http import WrappedStreamResponseModel
 from x10.models.orderbook import OrderbookUpdateModel
 from x10.models.trade import PublicTradeModel
-from x10.perpetual.stream_client.perpetual_stream_connection import (
-    PerpetualStreamConnection,
-    StreamMsgResponseType,
-)
 from x10.utils.http import UrlQueryParam, get_url
 
 
-class PerpetualStreamClient:
+class StreamClient:
     """
-    X10 Perpetual Stream Client for the X10 WebSocket v1.
+    Extended Stream (WebSocket) Client.
     """
 
     __api_url: str
@@ -80,5 +77,5 @@ class PerpetualStreamClient:
         stream_url: str,
         msg_model_class: Type[StreamMsgResponseType],
         api_key: Optional[str] = None,
-    ) -> PerpetualStreamConnection[StreamMsgResponseType]:
-        return PerpetualStreamConnection(stream_url, msg_model_class, api_key)
+    ) -> StreamConnection[StreamMsgResponseType]:
+        return StreamConnection(stream_url, msg_model_class, api_key)

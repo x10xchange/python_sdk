@@ -1,21 +1,21 @@
 import asyncio
-import decimal
 from collections.abc import Awaitable
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import Callable, Iterable, Tuple
 
 from sortedcontainers import SortedDict
 
+from x10.clients.stream import StreamClient
 from x10.config import Config
 from x10.models.http import StreamDataType
 from x10.models.orderbook import OrderbookUpdateModel
-from x10.perpetual.stream_client.stream_client import PerpetualStreamClient
 
 
 @dataclass
 class OrderBookEntry:
-    price: decimal.Decimal
-    amount: decimal.Decimal
+    price: Decimal
+    amount: Decimal
 
     def __repr__(self) -> str:
         return f"OrderBookEntry(price={self.price}, amount={self.amount})"
@@ -23,8 +23,8 @@ class OrderBookEntry:
 
 @dataclass(frozen=True)
 class ImpactDetails:
-    price: decimal.Decimal
-    amount: decimal.Decimal
+    price: Decimal
+    amount: Decimal
 
 
 class OrderBook:
@@ -50,11 +50,11 @@ class OrderBook:
         best_bid_change_callback: Callable[[OrderBookEntry | None], Awaitable[None]] | None = None,
         depth: int | None = None,
     ) -> None:
-        self.__stream_client = PerpetualStreamClient(api_url=config.endpoints.stream_url)
+        self.__stream_client = StreamClient(api_url=config.endpoints.stream_url)
         self.__market_name = market_name
         self.__task: asyncio.Task | None = None
-        self._bid_prices: "SortedDict[decimal.Decimal, OrderBookEntry]" = SortedDict()  # type: ignore
-        self._ask_prices: "SortedDict[decimal.Decimal, OrderBookEntry]" = SortedDict()  # type: ignore
+        self._bid_prices: SortedDict = SortedDict()
+        self._ask_prices: SortedDict = SortedDict()
         self.best_ask_change_callback = best_ask_change_callback
         self.best_bid_change_callback = best_bid_change_callback
         self.depth = depth
@@ -159,12 +159,10 @@ class OrderBook:
         except IndexError:
             return None
 
-    def __price_impact_notional(
-        self, notional: decimal.Decimal, levels: Iterable[Tuple[decimal.Decimal, OrderBookEntry]]
-    ):
+    def __price_impact_notional(self, notional: Decimal, levels: Iterable[Tuple[Decimal, OrderBookEntry]]):
         remaining_to_spend = notional
-        total_amount = decimal.Decimal(0)
-        weighted_sum = decimal.Decimal(0)
+        total_amount = Decimal(0)
+        weighted_sum = Decimal(0)
         for price, entry in levels:
             available_at_price = entry.amount
             amount_to_purchase = min(remaining_to_spend / price, available_at_price)
@@ -183,10 +181,10 @@ class OrderBook:
         average_price = weighted_sum / total_amount
         return ImpactDetails(price=average_price, amount=total_amount)
 
-    def __price_impact_qty(self, qty: decimal.Decimal, levels: Iterable[Tuple[decimal.Decimal, OrderBookEntry]]):
+    def __price_impact_qty(self, qty: Decimal, levels: Iterable[Tuple[Decimal, OrderBookEntry]]):
         remaining_qty = qty
-        total_amount = decimal.Decimal(0)
-        total_spent = decimal.Decimal(0)
+        total_amount = Decimal(0)
+        total_spent = Decimal(0)
         for price, entry in levels:
             available_at_price = entry.amount
             take = min(remaining_qty, available_at_price)
@@ -203,7 +201,7 @@ class OrderBook:
         average_price = total_spent / total_amount
         return ImpactDetails(price=average_price, amount=total_amount)
 
-    def calculate_price_impact_notional(self, notional: decimal.Decimal, side: str) -> ImpactDetails | None:
+    def calculate_price_impact_notional(self, notional: Decimal, side: str) -> ImpactDetails | None:
         if notional <= 0:
             return None
         if side == "SELL":
@@ -216,7 +214,7 @@ class OrderBook:
             return self.__price_impact_notional(notional, self._ask_prices.items())
         return None
 
-    def calculate_price_impact_qty(self, qty: decimal.Decimal, side: str) -> ImpactDetails | None:
+    def calculate_price_impact_qty(self, qty: Decimal, side: str) -> ImpactDetails | None:
         if qty <= 0:
             return None
         if side == "SELL":

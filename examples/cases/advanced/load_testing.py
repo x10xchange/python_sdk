@@ -6,10 +6,10 @@ from typing import Set
 
 from examples.utils import BTC_USD_MARKET, create_rest_client
 from x10.clients.rest import RestApiClient
+from x10.clients.stream import StreamClient
 from x10.models.market import MarketModel
 from x10.models.order import OrderSide
 from x10.perpetual.order_object import create_order_object
-from x10.perpetual.stream_client.stream_client import PerpetualStreamClient
 
 LOGGER = logging.getLogger()
 MARKET_NAME = BTC_USD_MARKET
@@ -58,7 +58,7 @@ async def create_orders_loop(*, rest_client: RestApiClient, market: MarketModel,
 
 
 async def order_confirmation_loop(*, stream_url: str, api_key: str):
-    stream_client = PerpetualStreamClient(api_url=stream_url)
+    stream_client = StreamClient(api_url=stream_url)
 
     async with stream_client.subscribe_to_account_updates(api_key) as account_stream:
         while not stop_event.is_set():

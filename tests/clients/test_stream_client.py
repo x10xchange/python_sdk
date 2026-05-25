@@ -18,12 +18,12 @@ def serve_message(message):
 
 @pytest.mark.asyncio
 async def test_orderbook_stream(create_orderbook_message):
-    from x10.perpetual.stream_client import PerpetualStreamClient
+    from x10.clients.stream import StreamClient
 
     message_model = create_orderbook_message()
 
     async with websockets.serve(serve_message(message_model.model_dump_json()), "127.0.0.1", 0) as server:
-        stream_client = PerpetualStreamClient(api_url=get_url_from_server(server))
+        stream_client = StreamClient(api_url=get_url_from_server(server))
         stream = await stream_client.subscribe_to_orderbooks()
         msg = await stream.recv()
         await stream.close()
@@ -48,13 +48,13 @@ async def test_orderbook_stream(create_orderbook_message):
 
 @pytest.mark.asyncio
 async def test_account_update_trade_stream(create_account_update_trade_message):
-    from x10.perpetual.stream_client import PerpetualStreamClient
+    from x10.clients.stream import StreamClient
 
     api_key = "dummy_api_key"
     message_model = create_account_update_trade_message()
 
     async with websockets.serve(serve_message(message_model.model_dump_json()), "127.0.0.1", 0) as server:
-        stream_client = PerpetualStreamClient(api_url=get_url_from_server(server))
+        stream_client = StreamClient(api_url=get_url_from_server(server))
         stream = await stream_client.subscribe_to_account_updates(api_key)
         msg = await stream.recv()
         await stream.close()
@@ -95,13 +95,13 @@ async def test_account_update_trade_stream(create_account_update_trade_message):
 
 @pytest.mark.asyncio
 async def test_account_update_stream_with_unexpected_type(create_account_update_unknown_message):
-    from x10.perpetual.stream_client import PerpetualStreamClient
+    from x10.clients.stream import StreamClient
 
     api_key = "dummy_api_key"
     message_model = create_account_update_unknown_message()
 
     async with websockets.serve(serve_message(message_model.model_dump_json()), "127.0.0.1", 0) as server:
-        stream_client = PerpetualStreamClient(api_url=get_url_from_server(server))
+        stream_client = StreamClient(api_url=get_url_from_server(server))
         stream = await stream_client.subscribe_to_account_updates(api_key)
         msg = await stream.recv()
         await stream.close()
@@ -123,12 +123,12 @@ async def test_account_update_stream_with_unexpected_type(create_account_update_
 @pytest.mark.asyncio
 async def test_candle_stream():
     from tests.fixtures.candle import create_candle_stream_message
-    from x10.perpetual.stream_client import PerpetualStreamClient
+    from x10.clients.stream import StreamClient
 
     message_model = create_candle_stream_message()
 
     async with websockets.serve(serve_message(message_model.model_dump_json()), "127.0.0.1", 0) as server:
-        stream_client = PerpetualStreamClient(api_url=get_url_from_server(server))
+        stream_client = StreamClient(api_url=get_url_from_server(server))
         stream = await stream_client.subscribe_to_candles("ETH-USD", "trades", "PT1M")
         msg = await stream.recv()
         await stream.close()
