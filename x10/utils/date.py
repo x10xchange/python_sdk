@@ -13,7 +13,6 @@ def to_epoch_millis(value: datetime):
     return int(math.ceil(value.timestamp() * 1000))
 
 
-# FIXME: Add test
 def calc_settlement_expiration(buffer_days: int, expiration_timestamp: datetime | None = None) -> int:
     if expiration_timestamp is None:
         expiration_timestamp = utc_now()
