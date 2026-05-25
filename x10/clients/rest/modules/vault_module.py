@@ -10,7 +10,7 @@ from x10.config import Config
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.errors import ApiError, ValidationError
 from x10.models.vault import DepositRequestModel, WithdrawRequestModel
-from x10.perpetual.limit_order_object_settlement import create_order_settlement_data
+from x10.signing.limit_order_object_settlement import create_limit_order_settlement_data
 from x10.utils.http import send_post_request
 
 # Protects from an error on shares pricing fluctuations.
@@ -64,7 +64,7 @@ class VaultModule(BaseModule):
             vault_asset.precision,
         )
 
-        settlement, collateral_amount_human, shares_amount_human = create_order_settlement_data(
+        settlement, collateral_amount_human, shares_amount_human = create_limit_order_settlement_data(
             quote_amount=collateral_amount,
             base_amount=vault_shares_expected,
             position_id=position_id,
@@ -116,7 +116,7 @@ class VaultModule(BaseModule):
             vault_asset.precision,
         )
 
-        settlement, collateral_amount_human, shares_amount_human = create_order_settlement_data(
+        settlement, collateral_amount_human, shares_amount_human = create_limit_order_settlement_data(
             quote_amount=collateral_amount_expected,
             base_amount=shares_amount,
             position_id=position_id,

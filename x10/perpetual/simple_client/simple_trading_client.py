@@ -21,7 +21,7 @@ from x10.models.order import (
     OrderType,
     TimeInForce,
 )
-from x10.perpetual.order_object import create_order_object
+from x10.signing.order_object import create_order_object
 
 
 def condition_to_awaitable(condition: asyncio.Condition) -> Awaitable:

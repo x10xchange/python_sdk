@@ -16,13 +16,13 @@ async def test_create_buy_limit_order_settlement_data(
     mocker.patch("x10.utils.nonce.generate_nonce", return_value=FROZEN_NONCE)
 
     from x10.config import MAINNET_CONFIG
-    from x10.perpetual.limit_order_object_settlement import create_order_settlement_data
+    from x10.signing.limit_order_object_settlement import create_limit_order_settlement_data
 
     trading_account = create_trading_account()
     collateral_asset = get_asset_usd()
     vault_asset = get_asset_xvs()
 
-    settlement, quote_amount_human, base_amount_human = create_order_settlement_data(
+    settlement, quote_amount_human, base_amount_human = create_limit_order_settlement_data(
         quote_amount=Decimal("10"),
         base_amount=Decimal("7"),
         position_id=trading_account.vault,

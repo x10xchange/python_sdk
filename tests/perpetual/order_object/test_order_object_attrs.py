@@ -18,7 +18,7 @@ FROZEN_NONCE = 1473459052
 async def test_cancel_previous_order(mocker: MockerFixture, create_trading_account, create_btc_usd_market):
     mocker.patch("x10.utils.nonce.generate_nonce", return_value=FROZEN_NONCE)
 
-    from x10.perpetual.order_object import create_order_object
+    from x10.signing.order_object import create_order_object
 
     trading_account = create_trading_account()
     btc_usd_market = create_btc_usd_market()
@@ -48,7 +48,7 @@ async def test_cancel_previous_order(mocker: MockerFixture, create_trading_accou
 async def test_external_order_id(mocker: MockerFixture, create_trading_account, create_btc_usd_market):
     mocker.patch("x10.utils.nonce.generate_nonce", return_value=FROZEN_NONCE)
 
-    from x10.perpetual.order_object import create_order_object
+    from x10.signing.order_object import create_order_object
 
     trading_account = create_trading_account()
     btc_usd_market = create_btc_usd_market()

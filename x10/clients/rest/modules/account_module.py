@@ -18,8 +18,8 @@ from x10.models.order import OpenOrderModel, OrderSide, OrderType
 from x10.models.position import PositionHistoryModel, PositionModel, PositionSide
 from x10.models.trade import AccountTradeModel, TradeType
 from x10.models.transfer import TransferResponseModel
-from x10.perpetual.transfer_object import create_transfer_object
-from x10.perpetual.withdrawal_object import create_withdrawal_object
+from x10.signing.transfer_object import create_transfer_object
+from x10.signing.withdrawal_object import create_withdrawal_object
 from x10.utils.http import (
     WrappedApiResponseModel,
     send_get_request,

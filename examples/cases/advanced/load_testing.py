@@ -9,7 +9,7 @@ from x10.clients.rest import RestApiClient
 from x10.clients.stream import StreamClient
 from x10.models.market import MarketModel
 from x10.models.order import OrderSide
-from x10.perpetual.order_object import create_order_object
+from x10.signing.order_object import create_order_object
 
 LOGGER = logging.getLogger()
 MARKET_NAME = BTC_USD_MARKET

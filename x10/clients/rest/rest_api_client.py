@@ -18,7 +18,7 @@ from x10.models.order import (
     SelfTradeProtectionLevel,
     TimeInForce,
 )
-from x10.perpetual.order_object import OrderTpslTriggerParam, create_order_object
+from x10.signing.order_object import OrderTpslTriggerParam, create_order_object
 from x10.utils.date import utc_now
 from x10.utils.http import WrappedApiResponseModel
 from x10.utils.log import get_logger

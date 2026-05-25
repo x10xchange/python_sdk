@@ -1,5 +1,3 @@
-import math
-from datetime import timedelta
 from decimal import Decimal
 
 from fast_stark_crypto import get_withdrawal_msg_hash
@@ -12,15 +10,10 @@ from x10.models.withdrawal import (
     TimestampModel,
     WithdrawalRequestModel,
 )
-from x10.utils.date import utc_now
+from x10.utils.date import calc_settlement_expiration
 from x10.utils.nonce import generate_nonce
 
-
-def calc_expiration_timestamp():
-    expire_time = utc_now()
-    expire_time_with_buffer = expire_time + timedelta(days=15)
-    expire_time_with_buffer_seconds = math.ceil(expire_time_with_buffer.timestamp())
-    return expire_time_with_buffer_seconds
+SETTLEMENT_EXPIRATION_BUFFER_DAYS = 15
 
 
 def create_withdrawal_object(
@@ -34,7 +27,7 @@ def create_withdrawal_object(
     nonce: int | None = None,
     quote_id: str | None = None,
 ) -> WithdrawalRequestModel:
-    expiration_timestamp = calc_expiration_timestamp()
+    expiration_timestamp = calc_settlement_expiration(SETTLEMENT_EXPIRATION_BUFFER_DAYS)
     scaled_amount = amount.scaleb(config.endpoints.collateral_decimals)
     stark_amount = scaled_amount.to_integral_exact()
     starknet_domain: StarknetDomain = config.signing.starknet_domain

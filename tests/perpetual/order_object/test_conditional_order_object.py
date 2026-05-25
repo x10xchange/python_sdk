@@ -22,7 +22,7 @@ FROZEN_NONCE = 1473459052
 async def test_create_buy_order(mocker: MockerFixture, create_trading_account, create_btc_usd_market):
     mocker.patch("x10.utils.nonce.generate_nonce", return_value=FROZEN_NONCE)
 
-    from x10.perpetual.order_object import (
+    from x10.signing.order_object import (
         OrderConditionalTriggerParam,
         create_order_object,
     )

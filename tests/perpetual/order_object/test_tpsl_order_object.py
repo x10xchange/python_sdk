@@ -25,7 +25,7 @@ FROZEN_NONCE = 1473459052
 async def test_create_buy_partial_tpsl_order(mocker: MockerFixture, create_trading_account, create_btc_usd_market):
     mocker.patch("x10.utils.nonce.generate_nonce", return_value=FROZEN_NONCE)
 
-    from x10.perpetual.order_object import OrderTpslTriggerParam, create_order_object
+    from x10.signing.order_object import OrderTpslTriggerParam, create_order_object
 
     trading_account = create_trading_account()
     btc_usd_market = create_btc_usd_market()
@@ -119,7 +119,7 @@ async def test_create_buy_partial_tpsl_order(mocker: MockerFixture, create_tradi
 async def test_create_buy_position_tpsl_order(mocker: MockerFixture, create_trading_account, create_btc_usd_market):
     mocker.patch("x10.utils.nonce.generate_nonce", return_value=FROZEN_NONCE)
 
-    from x10.perpetual.order_object import OrderTpslTriggerParam, create_order_object
+    from x10.signing.order_object import OrderTpslTriggerParam, create_order_object
 
     trading_account = create_trading_account()
     btc_usd_market = create_btc_usd_market()

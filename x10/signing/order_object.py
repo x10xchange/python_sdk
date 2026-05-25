@@ -20,7 +20,7 @@ from x10.models.order import (
     SelfTradeProtectionLevel,
     TimeInForce,
 )
-from x10.perpetual.order_object_settlement import (
+from x10.signing.order_object_settlement import (
     SettlementDataCtx,
     create_order_settlement_data,
 )

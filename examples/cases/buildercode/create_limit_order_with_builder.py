@@ -9,7 +9,7 @@ from examples.utils import (
     init_env,
 )
 from x10.models.order import OrderSide, TimeInForce
-from x10.perpetual.order_object import create_order_object
+from x10.signing.order_object import create_order_object
 
 LOGGER = logging.getLogger()
 MARKET_NAME = BTC_USD_MARKET

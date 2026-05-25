@@ -15,7 +15,7 @@ FROZEN_NONCE = 1473459052
 async def test_create_transfer(mocker: MockerFixture, create_trading_account, create_accounts, create_btc_usd_market):
     mocker.patch("x10.utils.nonce.generate_nonce", return_value=FROZEN_NONCE)
 
-    from x10.perpetual.transfer_object import create_transfer_object
+    from x10.signing.transfer_object import create_transfer_object
 
     trading_account = create_trading_account()
     accounts = create_accounts()

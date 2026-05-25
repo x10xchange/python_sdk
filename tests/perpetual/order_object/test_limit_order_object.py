@@ -27,7 +27,7 @@ async def test_create_sell_order_with_default_expiration(
     freezer = freeze_time("2024-01-05 01:08:56.860694")
     frozen_time = freezer.start()
 
-    from x10.perpetual.order_object import create_order_object
+    from x10.signing.order_object import create_order_object
 
     frozen_time.move_to("2024-01-05 01:08:57")
     trading_account = create_trading_account()
@@ -84,7 +84,7 @@ async def test_create_sell_order_with_default_expiration(
 async def test_create_sell_order(mocker: MockerFixture, create_trading_account, create_btc_usd_market):
     mocker.patch("x10.utils.nonce.generate_nonce", return_value=FROZEN_NONCE)
 
-    from x10.perpetual.order_object import create_order_object
+    from x10.signing.order_object import create_order_object
 
     trading_account = create_trading_account()
     btc_usd_market = create_btc_usd_market()
@@ -142,7 +142,7 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
 async def test_create_buy_order(mocker: MockerFixture, create_trading_account, create_btc_usd_market):
     mocker.patch("x10.utils.nonce.generate_nonce", return_value=FROZEN_NONCE)
 
-    from x10.perpetual.order_object import create_order_object
+    from x10.signing.order_object import create_order_object
 
     trading_account = create_trading_account()
     btc_usd_market = create_btc_usd_market()
@@ -200,7 +200,7 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
 async def test_create_buy_order_with_order_tpsl(mocker: MockerFixture, create_trading_account, create_btc_usd_market):
     mocker.patch("x10.utils.nonce.generate_nonce", return_value=FROZEN_NONCE)
 
-    from x10.perpetual.order_object import OrderTpslTriggerParam, create_order_object
+    from x10.signing.order_object import OrderTpslTriggerParam, create_order_object
 
     trading_account = create_trading_account()
     btc_usd_market = create_btc_usd_market()
@@ -309,7 +309,7 @@ async def test_create_buy_order_with_position_tpsl(
 ):
     mocker.patch("x10.utils.nonce.generate_nonce", return_value=FROZEN_NONCE)
 
-    from x10.perpetual.order_object import OrderTpslTriggerParam, create_order_object
+    from x10.signing.order_object import OrderTpslTriggerParam, create_order_object
 
     trading_account = create_trading_account()
     btc_usd_market = create_btc_usd_market()
