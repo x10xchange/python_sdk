@@ -1,6 +1,6 @@
 # Migration Guide
 
-## 1.4.x -> 1.5.0 (REST / Onboarding / Stream clients)
+## 1.4.x -> 2.0.0 (new project structure)
 
 - `x10.perpetual.trading_client.PerpetualTradingClient` has been replaced with
 `x10.clients.rest.RestApiClient` (client has the same interface but new name reflects its purpose better).
