@@ -7,7 +7,7 @@ from typing import Awaitable, Callable, List
 
 from examples.utils import BTC_USD_MARKET, create_rest_client
 from x10.models.order import OrderSide
-from x10.perpetual.orderbook import OrderBook, OrderBookEntry
+from x10.tools.orderbook import OrderBook, OrderBookEntry
 
 LOGGER = logging.getLogger()
 MARKET_NAME = BTC_USD_MARKET

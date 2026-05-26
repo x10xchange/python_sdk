@@ -10,12 +10,12 @@ from pathlib import Path
 import yaml
 from dotenv import load_dotenv
 
+from x10.clients.blocking import BlockingTradingClient
 from x10.clients.rest import RestApiClient
 from x10.clients.stream import StreamClient
 from x10.config import TESTNET_CONFIG, Config
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.market import TradingConfigModel
-from x10.perpetual.simple_client.simple_trading_client import BlockingTradingClient
 from x10.utils.string import is_hex_string
 
 BTC_USD_MARKET = "BTC-USD"

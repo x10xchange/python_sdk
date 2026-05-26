@@ -5,7 +5,7 @@ from examples.utils import BTC_USD_MARKET, create_blocking_client
 from x10.config import TESTNET_CONFIG
 from x10.errors import ValidationError
 from x10.models.order import OrderSide, OrderType, TimeInForce
-from x10.perpetual.orderbook import OrderBook
+from x10.tools.orderbook import OrderBook
 from x10.utils.order import get_price_with_slippage
 
 LOGGER = logging.getLogger()
