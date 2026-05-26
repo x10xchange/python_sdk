@@ -1,5 +1,3 @@
-import math
-from datetime import timedelta
 from decimal import Decimal
 from typing import List
 
@@ -13,19 +11,14 @@ from x10.models.transfer import (
     OnChainPerpetualTransferModel,
     StarkTransferSettlementModel,
 )
-from x10.utils.date import utc_now
+from x10.utils.date import calc_settlement_expiration
 from x10.utils.nonce import generate_nonce
+
+SETTLEMENT_EXPIRATION_BUFFER_DAYS = 21
 
 
 def find_account_by_id(accounts: List[AccountModel], account_id: int):
     return next((account for account in accounts if account.id == account_id), None)
-
-
-def calc_expiration_timestamp():
-    expire_time = utc_now() + timedelta(days=7)
-    expire_time_with_buffer = expire_time + timedelta(days=14)
-    expire_time_with_buffer_seconds = math.ceil(expire_time_with_buffer.timestamp())
-    return expire_time_with_buffer_seconds
 
 
 # FIXME: Transfers are broken
@@ -38,7 +31,7 @@ def create_transfer_object(
     stark_account: StarkPerpetualAccount,
     nonce: int | None = None,
 ) -> OnChainPerpetualTransferModel:
-    expiration_timestamp = calc_expiration_timestamp()
+    expiration_timestamp = calc_settlement_expiration(SETTLEMENT_EXPIRATION_BUFFER_DAYS)
     scaled_amount = amount.scaleb(config.endpoints.collateral_decimals)
     stark_amount = scaled_amount.to_integral_exact()
     starknet_domain: StarknetDomain = config.signing.starknet_domain

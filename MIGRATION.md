@@ -11,6 +11,7 @@
   `x10.clients.stream.StreamClient` (same interface, renamed to match the `RestApiClient` naming convention).
 - `UserClient` replaced by `OnboardingClient`, which accepts an account address and a sign-message callback instead of a raw L1 private key.
 - `onboard_subaccount` error handling has changed. Previously, it silently recovered an existing sub-account (HTTP 409) by fetching it from `get_accounts()`. Now it raises `ValidationError` on conflict. Handle duplicates explicitly if you relied on the automatic recovery.
+- Signing-related modules have been extracted from `x10.perpetual` into a dedicated `x10.signing` package. The old paths no longer exist — there are no backwards-compatible re-exports.
 - Fixes https://github.com/x10xchange/python_sdk/issues/99.
 
 ---

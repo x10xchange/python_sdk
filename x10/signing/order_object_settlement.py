@@ -1,6 +1,5 @@
-import math
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 from typing import Callable, Optional, Tuple
 
@@ -21,6 +20,9 @@ from x10.models.order import (
     StarkDebuggingOrderAmountsModel,
     StarkSettlementModel,
 )
+from x10.utils.date import calc_settlement_expiration
+
+SETTLEMENT_EXPIRATION_BUFFER_DAYS = 14
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -42,13 +44,6 @@ class SettlementDataCtx:
     signer: Callable[[int], Tuple[int, int]]
     public_key: int
     starknet_domain: StarknetDomain
-
-
-def calculate_order_settlement_expiration(expiration_timestamp: datetime):
-    expire_time_with_buffer = expiration_timestamp + timedelta(days=14)
-    expire_time_as_seconds = math.ceil(expire_time_with_buffer.timestamp())
-
-    return expire_time_as_seconds
 
 
 def hash_limit_order(
@@ -73,7 +68,7 @@ def hash_limit_order(
         quote_amount=amount_quote.value,
         fee_amount=max_fee.value,
         fee_asset_id=int(collateral_asset.settlement_external_id, 16),
-        expiration=calculate_order_settlement_expiration(expiration_timestamp),
+        expiration=calc_settlement_expiration(SETTLEMENT_EXPIRATION_BUFFER_DAYS, expiration_timestamp),
         salt=nonce,
         user_public_key=public_key,
         domain_name=starknet_domain.name,
@@ -104,7 +99,7 @@ def hash_order(
         quote_amount=amount_collateral.value,
         fee_amount=max_fee.value,
         fee_asset_id=int(collateral_asset.settlement_external_id, 16),
-        expiration=calculate_order_settlement_expiration(expiration_timestamp),
+        expiration=calc_settlement_expiration(SETTLEMENT_EXPIRATION_BUFFER_DAYS, expiration_timestamp),
         salt=nonce,
         user_public_key=public_key,
         domain_name=starknet_domain.name,

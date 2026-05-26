@@ -7,15 +7,15 @@ from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.asset import Asset, AssetModel
 from x10.models.base import SettlementSignatureModel
 from x10.models.order import LimitOrderSettlementModel
-from x10.perpetual.order_object_settlement import (
-    calculate_order_settlement_expiration,
+from x10.signing.order_object_settlement import (
+    SETTLEMENT_EXPIRATION_BUFFER_DAYS,
     hash_limit_order,
 )
-from x10.utils.date import utc_now
+from x10.utils.date import calc_settlement_expiration, utc_now
 from x10.utils.nonce import generate_nonce
 
 
-def create_order_settlement_data(
+def create_limit_order_settlement_data(
     *,
     quote_amount,
     base_amount,
@@ -62,7 +62,7 @@ def create_order_settlement_data(
         base_asset_id=int(base_asset.settlement_external_id, 16),
         quote_asset_id=int(quote_asset.settlement_external_id, 16),
         fee_asset_id=int(quote_asset.settlement_external_id, 16),
-        expiration_timestamp=calculate_order_settlement_expiration(expire_time),
+        expiration_timestamp=calc_settlement_expiration(SETTLEMENT_EXPIRATION_BUFFER_DAYS, expire_time),
         nonce=nonce,
         receiver_position_id=position_id,
         sender_position_id=position_id,

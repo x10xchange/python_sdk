@@ -16,7 +16,7 @@ from x10.models.order import (
     OrderType,
     TimeInForce,
 )
-from x10.perpetual.order_object import OrderTpslTriggerParam, create_order_object
+from x10.signing.order_object import OrderTpslTriggerParam, create_order_object
 
 LOGGER = logging.getLogger()
 MARKET_NAME = BTC_USD_MARKET
