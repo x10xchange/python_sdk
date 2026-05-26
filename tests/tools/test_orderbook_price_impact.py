@@ -6,7 +6,7 @@ from hamcrest import assert_that, equal_to, none, not_none
 
 from x10.config import TESTNET_CONFIG
 from x10.models.orderbook import OrderbookQuantityModel, OrderbookUpdateModel
-from x10.perpetual.orderbook import OrderBook
+from x10.tools.orderbook import OrderBook
 
 
 async def populate_dummy_data(market_name: str, orderbook: OrderBook):

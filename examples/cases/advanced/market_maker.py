@@ -7,7 +7,7 @@ from typing import Awaitable, Callable, List
 
 from examples.utils import BTC_USD_MARKET, create_rest_client
 from x10.models.order import OrderSide
-from x10.perpetual.orderbook import OrderBook, OrderBookEntry
+from x10.tools.orderbook import OrderBook, OrderBookEntry
 
 LOGGER = logging.getLogger()
 MARKET_NAME = BTC_USD_MARKET
@@ -145,7 +145,7 @@ async def run_example():
 
     orderbook = await OrderBook.create(
         rest_client.config,
-        market.name,
+        market_name=market.name,
         start=True,
         best_ask_change_callback=on_best_ask_change,
         best_bid_change_callback=on_best_bid_change,

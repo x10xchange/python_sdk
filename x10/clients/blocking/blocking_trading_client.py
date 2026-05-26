@@ -72,6 +72,11 @@ class CancelWaiter:
 
 
 class BlockingTradingClient:
+    """
+    A client for placing orders and receiving updates in a blocking manner.
+    Waits for the confirmation from the WS stream after placing or canceling an order.
+    """
+
     def __init__(self, config: Config, account: StarkPerpetualAccount):
         if not asyncio.get_event_loop().is_running():
             raise SdkError(

@@ -1,6 +1,6 @@
 # Migration Guide
 
-## 1.4.x -> 1.5.0 (REST / Onboarding / Stream clients)
+## 1.4.x -> 2.0.0 (new project structure)
 
 - `x10.perpetual.trading_client.PerpetualTradingClient` has been replaced with
 `x10.clients.rest.RestApiClient` (client has the same interface but new name reflects its purpose better).
@@ -12,6 +12,8 @@
 - `UserClient` replaced by `OnboardingClient`, which accepts an account address and a sign-message callback instead of a raw L1 private key.
 - `onboard_subaccount` error handling has changed. Previously, it silently recovered an existing sub-account (HTTP 409) by fetching it from `get_accounts()`. Now it raises `ValidationError` on conflict. Handle duplicates explicitly if you relied on the automatic recovery.
 - Signing-related modules have been extracted from `x10.perpetual` into a dedicated `x10.signing` package. The old paths no longer exist — there are no backwards-compatible re-exports.
+- `x10.perpetual.orderbook` has moved to `x10.tools.orderbook`.
+- `x10.perpetual.simple_client.simple_trading_client.BlockingTradingClient` has moved to `x10.clients.blocking.BlockingTradingClient`. The class is also re-exported from `x10.clients.blocking` directly for convenience (aligned with other clients).
 - Fixes https://github.com/x10xchange/python_sdk/issues/99.
 
 ---
