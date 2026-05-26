@@ -31,6 +31,7 @@ class OrderBook:
     @staticmethod
     async def create(
         config: Config,
+        *,
         market_name: str,
         best_ask_change_callback: Callable[[OrderBookEntry | None], Awaitable[None]] | None = None,
         best_bid_change_callback: Callable[[OrderBookEntry | None], Awaitable[None]] | None = None,

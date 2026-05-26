@@ -145,7 +145,7 @@ async def run_example():
 
     orderbook = await OrderBook.create(
         rest_client.config,
-        market.name,
+        market_name=market.name,
         start=True,
         best_ask_change_callback=on_best_ask_change,
         best_bid_change_callback=on_best_bid_change,
