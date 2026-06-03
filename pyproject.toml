@@ -21,6 +21,12 @@ classifiers = [
 ]
 packages = [{ include = "x10" }]
 
+[tool.poetry.scripts]
+x10-mcp = "x10.mcp_server:main"
+
+[tool.poetry.extras]
+mcp = ["mcp"]
+
 [tool.poetry.dependencies]
 aiohttp = ">=3.10.11"
 eth-account = ">=0.12.0"
@@ -32,6 +38,7 @@ sortedcontainers = ">=2.4.0"
 strenum = ">=0.4.15"
 tenacity = ">=9.1.2"
 websockets = ">=12.0"
+mcp = { version = ">=1.0", optional = true }
 
 [tool.poetry.group.dev.dependencies]
 black = "==23.12.0"
