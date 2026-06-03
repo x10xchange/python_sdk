@@ -31,6 +31,7 @@ mcp = ["mcp"]
 aiohttp = ">=3.10.11"
 eth-account = ">=0.12.0"
 fast-stark-crypto = "==0.5.0"
+mcp = { version = ">=1.27.2", optional = true }
 pydantic = ">=2.9.0"
 python = "^3.10"
 pyyaml = ">=6.0.1"
@@ -38,7 +39,6 @@ sortedcontainers = ">=2.4.0"
 strenum = ">=0.4.15"
 tenacity = ">=9.1.2"
 websockets = ">=12.0"
-mcp = { version = ">=1.0", optional = true }
 
 [tool.poetry.group.dev.dependencies]
 black = "==23.12.0"
@@ -56,7 +56,7 @@ pytest-cov = "==4.1.0"
 pytest-forked = "==1.6.0"
 pytest-mock = "==3.12.0"
 python-dotenv = "==1.0.1"
-safety = "==3.5.1"
+safety = "==3.8.1"
 tox = "==4.11.4"
 types-pyyaml = "==6.0.12.12"
 typing-extensions = "==4.15.0"
