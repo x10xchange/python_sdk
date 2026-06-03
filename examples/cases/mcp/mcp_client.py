@@ -37,6 +37,7 @@ def _tool_result_text(result) -> str:
     texts = [content.text for content in result.content if hasattr(content, "text")]
     if not texts:
         return str(result.content)
+    # FIXME: ???
     if len(texts) == 1:
         return texts[0]
     # Multiple blocks — each may be a JSON-serialised item; reconstruct as array.
