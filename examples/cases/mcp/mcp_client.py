@@ -21,9 +21,10 @@ import os
 import sys
 from asyncio import run
 
-from examples.utils import BTC_USD_MARKET, init_env
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
+
+from examples.utils import BTC_USD_MARKET, init_env
 
 LOGGER = logging.getLogger()
 MARKET_NAME = BTC_USD_MARKET
@@ -82,15 +83,11 @@ async def run_example():
                 LOGGER.info("First market: %s", _pretty(markets[0]))
 
             LOGGER.info("--- get_market_statistics [%s] ---", MARKET_NAME)
-            stats_result = await session.call_tool(
-                "get_market_statistics", {"market_name": MARKET_NAME}
-            )
+            stats_result = await session.call_tool("get_market_statistics", {"market_name": MARKET_NAME})
             LOGGER.info("Stats: %s", _pretty(json.loads(_tool_result_text(stats_result))))
 
             LOGGER.info("--- get_orderbook_snapshot [%s] ---", MARKET_NAME)
-            ob_result = await session.call_tool(
-                "get_orderbook_snapshot", {"market_name": MARKET_NAME}
-            )
+            ob_result = await session.call_tool("get_orderbook_snapshot", {"market_name": MARKET_NAME})
             ob = json.loads(_tool_result_text(ob_result))
             LOGGER.info(
                 "Orderbook: %d bids, %d asks",
@@ -99,9 +96,7 @@ async def run_example():
             )
 
             LOGGER.info("--- get_asset_price [BTC] ---")
-            price_result = await session.call_tool(
-                "get_asset_price", {"asset_name": "BTC"}
-            )
+            price_result = await session.call_tool("get_asset_price", {"asset_name": "BTC"})
             LOGGER.info("BTC price: %s", _tool_result_text(price_result))
 
             LOGGER.info("--- get_candles_history [%s] ---", MARKET_NAME)
@@ -123,9 +118,7 @@ async def run_example():
             # 3. Authenticated tools — account data (skipped if no credentials)
             # ------------------------------------------------------------------
             env = init_env(require_private_api=False)
-            has_credentials = all(
-                [env.api_key, env.public_key, env.private_key, env.vault_id]
-            )
+            has_credentials = all([env.api_key, env.public_key, env.private_key, env.vault_id])
 
             if not has_credentials:
                 LOGGER.info(
