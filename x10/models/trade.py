@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Optional
 
 from pydantic import AliasChoices, Field
 from strenum import StrEnum
@@ -36,3 +37,22 @@ class AccountTradeModel(X10BaseModel):
     is_taker: bool
     trade_type: TradeType
     created_time: int
+
+
+class BuilderTradeModel(X10BaseModel):
+    """
+    A trade as seen by a builder. Only the side (maker/taker) that belongs to the
+    requesting builder is populated; the counterparty side is masked with `None`.
+    """
+
+    id: int
+    time: int
+    volume: Decimal
+    maker_id: Optional[int] = None
+    taker_id: Optional[int] = None
+    maker_builder_id: Optional[int] = None
+    taker_builder_id: Optional[int] = None
+    maker_fee: Optional[Decimal] = None
+    taker_fee: Optional[Decimal] = None
+    maker_builder_fee: Optional[Decimal] = None
+    taker_builder_fee: Optional[Decimal] = None
