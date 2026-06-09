@@ -14,7 +14,7 @@ from x10.models.base import EmptyModel
 from x10.models.bridge import BridgesConfigModel, QuoteModel
 from x10.models.client import ClientModel
 from x10.models.fee import TradingFeeModel
-from x10.models.order import OpenOrderModel, OrderSide, OrderType
+from x10.models.order import OpenOrderModel, OrderSide, OrderType, Sort
 from x10.models.position import PositionHistoryModel, PositionModel, PositionSide
 from x10.models.trade import AccountTradeModel, TradeType
 from x10.models.transfer import TransferResponseModel
@@ -97,6 +97,7 @@ class AccountModule(BaseModule):
         order_side: Optional[OrderSide] = None,
         cursor: Optional[int] = None,
         limit: Optional[int] = None,
+        sort: Optional[Sort] = None,
     ) -> WrappedApiResponseModel[List[OpenOrderModel]]:
         """
         https://api.docs.extended.exchange/#get-orders-history
@@ -104,7 +105,14 @@ class AccountModule(BaseModule):
 
         url = self._get_url(
             "/user/orders/history",
-            query={"market": market_names, "type": order_type, "side": order_side, "cursor": cursor, "limit": limit},
+            query={
+                "market": market_names,
+                "type": order_type,
+                "side": order_side,
+                "cursor": cursor,
+                "limit": limit,
+                "sort": sort,
+            },
         )
         return await send_get_request(await self._get_session(), url, List[OpenOrderModel], api_key=self._get_api_key())
 
