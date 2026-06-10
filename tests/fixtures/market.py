@@ -14,6 +14,7 @@ def get_btc_usd_market_json_data():
                 "collateralAssetName": "USD",
                 "collateralAssetPrecision": 6,
                 "active": true,
+                "isRfq": true,
                 "marketStats": {
                     "dailyVolume": "2410800.768021",
                     "dailyVolumeBase": "37.94502",

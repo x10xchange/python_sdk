@@ -369,6 +369,10 @@ components:
           type: string
         active:
           type: boolean
+        isRfq:
+          type: boolean
+        isOffHours:
+          type: boolean
         status:
           $ref: "#/components/schemas/MarketStatus"
         marketStats:
