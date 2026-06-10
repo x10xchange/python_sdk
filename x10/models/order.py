@@ -17,11 +17,17 @@ class OrderSide(StrEnum):
     SELL = "SELL"
 
 
+class Sort(StrEnum):
+    ID = "ID"
+    UPDATED_AT = "UPDATED_AT"
+
+
 class OrderType(StrEnum):
     LIMIT = "LIMIT"
     CONDITIONAL = "CONDITIONAL"
     MARKET = "MARKET"
     TPSL = "TPSL"
+    TWAP = "TWAP"
 
 
 class OrderTpslType(StrEnum):
