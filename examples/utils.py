@@ -38,7 +38,7 @@ def init_env(require_private_api: bool = True):
     return env_config
 
 
-def create_rest_client(config: ClientConfig | None = None):
+def create_rest_client():
     env_config = init_env()
 
     stark_account = StarkPerpetualAccount(
@@ -49,7 +49,7 @@ def create_rest_client(config: ClientConfig | None = None):
     )
 
     return RestApiClient(
-        config or get_config_by_name(env_config.client_config_name),
+        get_config_by_name(env_config.client_config_name),
         stark_account,
     )
 
