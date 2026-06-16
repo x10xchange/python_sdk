@@ -10,11 +10,6 @@ LOGGER = get_logger(__name__)
 
 
 class OrderManagementModule(BaseModule):
-    def _get_base_url(self) -> str:
-        orders_url = self._get_config().endpoints.orders_url
-        assert orders_url is not None
-        return orders_url
-
     async def place_order(self, order: NewOrderModel):
         """
         Placed new order on the exchange.
@@ -77,3 +72,6 @@ class OrderManagementModule(BaseModule):
             json=request_model.to_api_request_json(exclude_none=True),
             api_key=self._get_api_key(),
         )
+
+    def _get_base_url(self) -> str:
+        return self.__config.endpoints.api_base_order_management_url

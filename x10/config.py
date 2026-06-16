@@ -37,9 +37,9 @@ class EndpointsConfig:
 
     chain_rpc_url: str
     api_base_url: str
+    api_base_order_management_url: str
     stream_url: str
     onboarding_url: str
-    orders_url: Optional[str] = None
 
     asset_operations_contract: str
     collateral_asset_contract: str
@@ -48,10 +48,6 @@ class EndpointsConfig:
     collateral_asset_id: str
 
     vault_asset_name: str
-
-    def __post_init__(self):
-        if self.orders_url is None:
-            object.__setattr__(self, "orders_url", self.api_base_url)
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -72,6 +68,7 @@ TESTNET_CONFIG = Config(
     endpoints=EndpointsConfig(
         chain_rpc_url="https://rpc.sepolia.org",
         api_base_url="https://api.starknet.sepolia.extended.exchange/api/v1",
+        api_base_order_management_url="https://api.starknet.sepolia.extended.exchange/api/v1",
         stream_url="wss://api.starknet.sepolia.extended.exchange/stream.extended.exchange/v1",
         onboarding_url="https://api.starknet.sepolia.extended.exchange",
         asset_operations_contract="",
@@ -93,6 +90,7 @@ MAINNET_CONFIG = Config(
     endpoints=EndpointsConfig(
         chain_rpc_url="",
         api_base_url="https://api.starknet.extended.exchange/api/v1",
+        api_base_order_management_url="https://api.starknet.extended.exchange/api/v1",
         stream_url="wss://api.starknet.extended.exchange/stream.extended.exchange/v1",
         onboarding_url="https://api.starknet.extended.exchange",
         asset_operations_contract="",
