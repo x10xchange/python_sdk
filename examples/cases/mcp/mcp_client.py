@@ -1,18 +1,4 @@
-"""
-Demonstrates interacting with the X10 MCP server as a client over stdio transport.
 
-The script:
-  1. Spawns the MCP server as a subprocess (stdio transport).
-  2. Lists all available tools.
-  3. Calls public market-data tools (no credentials required).
-  4. Calls authenticated account tools when credentials are present in env.
-
-Run:
-    poetry run python examples/cases/mcp/mcp_client.py
-
-Auth env vars (optional – public tools work without them):
-    X10_API_KEY, X10_PUBLIC_KEY, X10_PRIVATE_KEY, X10_VAULT_ID
-"""
 
 import asyncio
 import json
@@ -56,7 +42,7 @@ async def run_example():
 
     server_params = StdioServerParameters(
         command=sys.executable,
-        args=["-m", "x10.mcp_server"],
+        args=["-m", "x10.tools.mcp_server"],
         env=os.environ
     )
 
@@ -145,4 +131,19 @@ async def run_example():
 
 
 if __name__ == "__main__":
+    """
+Demonstrates interacting with the X10 MCP server as a client over stdio transport.
+
+The script:
+  1. Spawns the MCP server as a subprocess (stdio transport).
+  2. Lists all available tools.
+  3. Calls public market-data tools (no credentials required).
+  4. Calls authenticated account tools when credentials are present in env.
+
+Run:
+    poetry run python examples/cases/mcp/mcp_client.py
+
+Auth env vars (optional – public tools work without them):
+    X10_API_KEY, X10_PUBLIC_KEY, X10_PRIVATE_KEY, X10_VAULT_ID
+"""
     run(main=run_example())
