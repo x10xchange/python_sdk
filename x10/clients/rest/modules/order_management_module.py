@@ -74,4 +74,4 @@ class OrderManagementModule(BaseModule):
         )
 
     def _get_base_url(self) -> str:
-        return self.__config.endpoints.api_base_order_management_url
+        return self._get_config().endpoints.api_base_order_management_url
