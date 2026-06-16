@@ -1,5 +1,8 @@
 from dataclasses import dataclass
 from decimal import Decimal
+from typing import Literal, TypeAlias
+
+ClientConfigName: TypeAlias = Literal["TESTNET", "MAINNET"]
 
 
 @dataclass(kw_only=True, frozen=True)

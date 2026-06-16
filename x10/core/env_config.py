@@ -1,7 +1,7 @@
 import os
 from dataclasses import dataclass
-from typing import Literal
 
+from core.client_config import ClientConfigName
 from utils.string import is_hex_string
 
 from x10.errors import ValidationError
@@ -9,7 +9,7 @@ from x10.errors import ValidationError
 
 @dataclass
 class EnvConfig:
-    client_config_name: Literal["TESTNET", "MAINNET"]
+    client_config_name: ClientConfigName
     api_key: str | None = None
     public_key: str | None = None
     private_key: str | None = None
@@ -18,12 +18,12 @@ class EnvConfig:
 
     @staticmethod
     def parse():
+        client_config_name = os.getenv("X10_CLIENT_CONFIG_NAME", "TESTNET").upper()
         api_key = os.getenv("X10_API_KEY")
         public_key = os.getenv("X10_PUBLIC_KEY")
         private_key = os.getenv("X10_PRIVATE_KEY")
         vault_id = os.getenv("X10_VAULT_ID")
         builder_id = os.getenv("X10_BUILDER_ID")
-        client_config_name = os.getenv("X10_CLIENT_CONFIG_NAME", "TESTNET").upper()
 
         if client_config_name != "TESTNET" or client_config_name != "MAINNET":
             raise ValidationError("X10_CLIENT_CONFIG_NAME must be either TESTNET or MAINNET")

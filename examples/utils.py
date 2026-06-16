@@ -1,27 +1,21 @@
 import logging
 import logging.config
 import logging.handlers
-import os
-from dataclasses import dataclass
 from decimal import Decimal
 from logging import Logger
 from pathlib import Path
-from typing import Literal
 
 import yaml
-from core import env_config
-from core.env_config import EnvConfig
 from dotenv import load_dotenv
 
 from x10.clients.blocking import BlockingTradingClient
 from x10.clients.rest import RestApiClient
 from x10.clients.stream import StreamClient
-from x10.config import MAINNET_CONFIG, TESTNET_CONFIG
+from x10.config import get_config_by_name
 from x10.core.client_config import ClientConfig
+from x10.core.env_config import EnvConfig
 from x10.core.stark_account import StarkPerpetualAccount
-from x10.errors import ValidationError
 from x10.models.market import TradingConfigModel
-from x10.utils.string import is_hex_string
 
 BTC_USD_MARKET = "BTC-USD"
 
@@ -54,12 +48,13 @@ def create_rest_client(config: ClientConfig | None = None):
         vault=env_config.vault_id,
     )
 
-    default_client_config = MAINNET_CONFIG if env_config.config_name == "MAINNET" else TESTNET_CONFIG
+    return RestApiClient(
+        config or get_config_by_name(env_config.client_config_name),
+        stark_account,
+    )
 
-    return RestApiClient(config or default_client_config, stark_account)
 
-
-def create_blocking_client(config: ClientConfig = TESTNET_CONFIG):
+def create_blocking_client(config: ClientConfig | None = None):
     env_config = init_env()
 
     stark_account = StarkPerpetualAccount(
@@ -69,10 +64,13 @@ def create_blocking_client(config: ClientConfig = TESTNET_CONFIG):
         vault=env_config.vault_id,
     )
 
-    return BlockingTradingClient(config, stark_account)
+    return BlockingTradingClient(
+        config or get_config_by_name(env_config.client_config_name),
+        stark_account,
+    )
 
 
-def create_stream_client(config: Config = TESTNET_CONFIG):
+def create_stream_client(config: ClientConfig):
     return StreamClient(api_url=config.endpoints.stream_url)
 
 

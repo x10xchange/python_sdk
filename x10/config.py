@@ -1,12 +1,14 @@
 from decimal import Decimal
 
-from core.client_config import (
+from x10.core.client_config import (
     ClientConfig,
+    ClientConfigName,
     DefaultsConfig,
     EndpointsConfig,
     SigningConfig,
     StarknetDomain,
 )
+from x10.errors import ValidationError
 
 DEFAULTS = DefaultsConfig(market_price_slippage=Decimal("0.0075"), request_timeout_seconds=500)
 
@@ -50,3 +52,13 @@ MAINNET_CONFIG = ClientConfig(
         vault_asset_name="XVS",
     ),
 )
+
+
+def get_config_by_name(name: ClientConfigName) -> ClientConfig:
+    if name == ClientConfigName.TESTNET:
+        return TESTNET_CONFIG
+
+    if name == ClientConfigName.MAINNET:
+        return MAINNET_CONFIG
+
+    raise ValidationError(f"Unknown config name: {name}")
