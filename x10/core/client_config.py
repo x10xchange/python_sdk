@@ -39,6 +39,7 @@ class EndpointsConfig:
 
     chain_rpc_url: str
     api_base_url: str
+    api_base_order_management_url: str
     stream_url: str
     onboarding_url: str
 

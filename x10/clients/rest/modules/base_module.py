@@ -30,7 +30,10 @@ class BaseModule:
         self.__session = None
 
     def _get_url(self, path: str, *, query: Optional[Dict] = None, **path_params) -> str:
-        return get_url(f"{self.__config.endpoints.api_base_url}{path}", query=query, **path_params)
+        return get_url(f"{self._get_base_url()}{path}", query=query, **path_params)
+
+    def _get_base_url(self) -> str:
+        return self.__config.endpoints.api_base_url
 
     def _get_config(self) -> ClientConfig:
         return self.__config
