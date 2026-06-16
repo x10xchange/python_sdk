@@ -72,3 +72,6 @@ class OrderManagementModule(BaseModule):
             json=request_model.to_api_request_json(exclude_none=True),
             api_key=self._get_api_key(),
         )
+
+    def _get_base_url(self) -> str:
+        return self._get_config().endpoints.api_base_order_management_url
