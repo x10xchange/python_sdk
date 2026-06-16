@@ -55,10 +55,10 @@ MAINNET_CONFIG = ClientConfig(
 
 
 def get_config_by_name(name: ClientConfigName) -> ClientConfig:
-    if name == ClientConfigName.TESTNET:
+    if name == "TESTNET":
         return TESTNET_CONFIG
 
-    if name == ClientConfigName.MAINNET:
+    if name == "MAINNET":
         return MAINNET_CONFIG
 
     raise ValidationError(f"Unknown config name: {name}")

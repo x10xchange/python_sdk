@@ -18,14 +18,14 @@ class EnvConfig:
 
     @staticmethod
     def parse():
-        client_config_name = os.getenv("X10_CLIENT_CONFIG_NAME", "TESTNET").upper()
+        client_config_name = os.getenv("X10_CLIENT_CONFIG_NAME", default="TESTNET").upper()
         api_key = os.getenv("X10_API_KEY")
         public_key = os.getenv("X10_PUBLIC_KEY")
         private_key = os.getenv("X10_PRIVATE_KEY")
         vault_id = os.getenv("X10_VAULT_ID")
         builder_id = os.getenv("X10_BUILDER_ID")
 
-        if client_config_name != "TESTNET" or client_config_name != "MAINNET":
+        if client_config_name != "TESTNET" and client_config_name != "MAINNET":
             raise ValidationError("X10_CLIENT_CONFIG_NAME must be either TESTNET or MAINNET")
 
         if public_key:

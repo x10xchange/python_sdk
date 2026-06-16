@@ -24,41 +24,38 @@ from typing import Any, Optional
 
 from mcp.server.fastmcp import FastMCP
 
+from config import get_config_by_name, TESTNET_CONFIG
+from core.env_config import EnvConfig
 from x10.clients.rest.rest_api_client import RestApiClient
-from x10.config import MAINNET_CONFIG, TESTNET_CONFIG, Config
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.candle import CandleInterval, CandleType
 from x10.models.order import OrderSide
 
 
-def _get_config() -> Config:
-    network = os.getenv("X10_NETWORK", "testnet").lower()
-    return MAINNET_CONFIG if network == "mainnet" else TESTNET_CONFIG
-
-
 def _get_public_client() -> RestApiClient:
-    return RestApiClient(_get_config())
+    env_config = EnvConfig.parse()
+    client_config = get_config_by_name(env_config.client_config_name)
+
+    return RestApiClient(client_config)
 
 
 def _get_auth_client() -> RestApiClient:
-    api_key = os.getenv("X10_API_KEY")
-    public_key = os.getenv("X10_PUBLIC_KEY")
-    private_key = os.getenv("X10_PRIVATE_KEY")
-    vault_id = os.getenv("X10_VAULT_ID")
+    env_config = EnvConfig.parse()
 
-    if not all([api_key, public_key, private_key, vault_id]):
-        raise RuntimeError(
-            "Authenticated tools require X10_API_KEY, X10_PUBLIC_KEY, "
-            "X10_PRIVATE_KEY, and X10_VAULT_ID environment variables."
-        )
+    assert env_config.api_key, "X10_API_KEY is not set"
+    assert env_config.public_key, "X10_PUBLIC_KEY is not set"
+    assert env_config.private_key, "X10_PRIVATE_KEY is not set"
+    assert env_config.vault_id, "X10_VAULT_ID is not set"
 
     stark_account = StarkPerpetualAccount(
-        api_key=api_key,
-        public_key=public_key.lower(),
-        private_key=private_key.lower(),
-        vault=int(vault_id),
+        api_key=env_config.api_key,
+        public_key=env_config.public_key,
+        private_key=env_config.private_key,
+        vault=env_config.vault_id,
     )
-    return RestApiClient(_get_config(), stark_account)
+    client_config = get_config_by_name(env_config.client_config_name)
+
+    return RestApiClient(client_config, stark_account)
 
 
 def _serialize(obj: Any) -> Any:
