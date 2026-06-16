@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
+from typing import Optional
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -38,6 +39,7 @@ class EndpointsConfig:
     api_base_url: str
     stream_url: str
     onboarding_url: str
+    orders_url: Optional[str] = None
 
     asset_operations_contract: str
     collateral_asset_contract: str
@@ -46,6 +48,10 @@ class EndpointsConfig:
     collateral_asset_id: str
 
     vault_asset_name: str
+
+    def __post_init__(self):
+        if self.orders_url is None:
+            object.__setattr__(self, "orders_url", self.api_base_url)
 
 
 @dataclass(kw_only=True, frozen=True)

@@ -10,6 +10,9 @@ LOGGER = get_logger(__name__)
 
 
 class OrderManagementModule(BaseModule):
+    def _get_base_url(self) -> str:
+        return self._get_config().endpoints.orders_url
+
     async def place_order(self, order: NewOrderModel):
         """
         Placed new order on the exchange.
