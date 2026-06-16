@@ -11,7 +11,9 @@ LOGGER = get_logger(__name__)
 
 class OrderManagementModule(BaseModule):
     def _get_base_url(self) -> str:
-        return self._get_config().endpoints.orders_url
+        orders_url = self._get_config().endpoints.orders_url
+        assert orders_url is not None
+        return orders_url
 
     async def place_order(self, order: NewOrderModel):
         """
