@@ -3,21 +3,21 @@ from typing import Dict, Optional
 import aiohttp
 from aiohttp import ClientTimeout
 
-from x10.config import Config
+from x10.core.client_config import ClientConfig
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.errors import ValidationError
 from x10.utils.http import get_url
 
 
 class BaseModule:
-    __config: Config
+    __config: ClientConfig
     __api_key: Optional[str]
     __stark_account: Optional[StarkPerpetualAccount]
     __session: Optional[aiohttp.ClientSession]
 
     def __init__(
         self,
-        config: Config,
+        config: ClientConfig,
         *,
         api_key: Optional[str] = None,
         stark_account: Optional[StarkPerpetualAccount] = None,
@@ -32,7 +32,7 @@ class BaseModule:
     def _get_url(self, path: str, *, query: Optional[Dict] = None, **path_params) -> str:
         return get_url(f"{self.__config.endpoints.api_base_url}{path}", query=query, **path_params)
 
-    def _get_config(self) -> Config:
+    def _get_config(self) -> ClientConfig:
         return self.__config
 
     def _get_api_key(self):

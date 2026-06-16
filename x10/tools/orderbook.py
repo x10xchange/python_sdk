@@ -7,7 +7,7 @@ from typing import Callable, Iterable, Tuple
 from sortedcontainers import SortedDict
 
 from x10.clients.stream import StreamClient
-from x10.config import Config
+from x10.core.client_config import ClientConfig
 from x10.models.http import StreamDataType
 from x10.models.orderbook import OrderbookUpdateModel
 
@@ -30,7 +30,7 @@ class ImpactDetails:
 class OrderBook:
     @staticmethod
     async def create(
-        config: Config,
+        config: ClientConfig,
         *,
         market_name: str,
         best_ask_change_callback: Callable[[OrderBookEntry | None], Awaitable[None]] | None = None,
@@ -45,7 +45,7 @@ class OrderBook:
 
     def __init__(
         self,
-        config: Config,
+        config: ClientConfig,
         market_name: str,
         best_ask_change_callback: Callable[[OrderBookEntry | None], Awaitable[None]] | None = None,
         best_bid_change_callback: Callable[[OrderBookEntry | None], Awaitable[None]] | None = None,

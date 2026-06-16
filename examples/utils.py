@@ -6,28 +6,24 @@ from dataclasses import dataclass
 from decimal import Decimal
 from logging import Logger
 from pathlib import Path
+from typing import Literal
 
 import yaml
+from core import env_config
+from core.env_config import EnvConfig
 from dotenv import load_dotenv
 
 from x10.clients.blocking import BlockingTradingClient
 from x10.clients.rest import RestApiClient
 from x10.clients.stream import StreamClient
-from x10.config import TESTNET_CONFIG, Config
+from x10.config import MAINNET_CONFIG, TESTNET_CONFIG
+from x10.core.client_config import ClientConfig
 from x10.core.stark_account import StarkPerpetualAccount
+from x10.errors import ValidationError
 from x10.models.market import TradingConfigModel
 from x10.utils.string import is_hex_string
 
 BTC_USD_MARKET = "BTC-USD"
-
-
-@dataclass
-class EnvConfig:
-    api_key: str | None = None
-    public_key: str | None = None
-    private_key: str | None = None
-    vault_id: int | None = None
-    builder_id: int | None = None
 
 
 def init_env(require_private_api: bool = True):
@@ -37,31 +33,18 @@ def init_env(require_private_api: bool = True):
     config = yaml.safe_load(config_as_str)
     logging.config.dictConfig(config)
 
-    api_key = os.getenv("X10_API_KEY")
-    public_key = os.getenv("X10_PUBLIC_KEY")
-    private_key = os.getenv("X10_PRIVATE_KEY")
-    vault_id = os.getenv("X10_VAULT_ID")
-    builder_id = os.getenv("X10_BUILDER_ID")
+    env_config = EnvConfig.parse()
 
     if require_private_api:
-        assert api_key, "X10_API_KEY is not set"
-        assert public_key, "X10_PUBLIC_KEY is not set"
-        assert private_key, "X10_PRIVATE_KEY is not set"
-        assert vault_id, "X10_VAULT_ID is not set"
+        assert env_config.api_key, "X10_API_KEY is not set"
+        assert env_config.public_key, "X10_PUBLIC_KEY is not set"
+        assert env_config.private_key, "X10_PRIVATE_KEY is not set"
+        assert env_config.vault_id, "X10_VAULT_ID is not set"
 
-        assert is_hex_string(public_key), "X10_PUBLIC_KEY must be a hex string"
-        assert is_hex_string(private_key), "X10_PRIVATE_KEY must be a hex string"
-
-    return EnvConfig(
-        api_key=api_key,
-        public_key=public_key.lower() if public_key else None,
-        private_key=private_key.lower() if private_key else None,
-        vault_id=int(vault_id) if vault_id else None,
-        builder_id=int(builder_id) if builder_id else None,
-    )
+    return env_config
 
 
-def create_rest_client(config: Config = TESTNET_CONFIG):
+def create_rest_client(config: ClientConfig | None = None):
     env_config = init_env()
 
     stark_account = StarkPerpetualAccount(
@@ -71,10 +54,12 @@ def create_rest_client(config: Config = TESTNET_CONFIG):
         vault=env_config.vault_id,
     )
 
-    return RestApiClient(config, stark_account)
+    default_client_config = MAINNET_CONFIG if env_config.config_name == "MAINNET" else TESTNET_CONFIG
+
+    return RestApiClient(config or default_client_config, stark_account)
 
 
-def create_blocking_client(config: Config = TESTNET_CONFIG):
+def create_blocking_client(config: ClientConfig = TESTNET_CONFIG):
     env_config = init_env()
 
     stark_account = StarkPerpetualAccount(

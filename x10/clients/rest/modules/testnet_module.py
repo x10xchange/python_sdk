@@ -4,7 +4,7 @@ import tenacity
 
 from x10.clients.rest.modules.account_module import AccountModule
 from x10.clients.rest.modules.base_module import BaseModule
-from x10.config import Config
+from x10.core.client_config import ClientConfig
 from x10.models.asset import AssetOperationModel, AssetOperationStatus
 from x10.models.testnet import ClaimResponseModel
 from x10.utils.http import WrappedApiResponseModel, send_post_request
@@ -13,7 +13,7 @@ from x10.utils.http import WrappedApiResponseModel, send_post_request
 class TestnetModule(BaseModule):
     def __init__(
         self,
-        config: Config,
+        config: ClientConfig,
         *,
         account_module: Optional[AccountModule] = None,
         api_key: Optional[str] = None,
