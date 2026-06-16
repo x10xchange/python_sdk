@@ -22,7 +22,7 @@ async def run_example():
 
     assert builder_id, "`builder_id` is not set"
 
-    markets_dict = await rest_client.markets_info.get_markets_dict()
+    markets_dict = await rest_client.info.get_markets_dict()
     fees = await rest_client.account.get_fees(market_names=[MARKET_NAME], builder_id=builder_id)
     builder_fee = fees.data[0].builder_fee_rate
 

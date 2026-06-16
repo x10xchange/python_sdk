@@ -3,6 +3,7 @@ from decimal import Decimal
 from typing import Dict, Optional
 
 from x10.clients.rest.modules.account_module import AccountModule
+from x10.clients.rest.modules.builder_module import BuilderModule
 from x10.clients.rest.modules.info_module import InfoModule
 from x10.clients.rest.modules.order_management_module import OrderManagementModule
 from x10.clients.rest.modules.testnet_module import TestnetModule
@@ -41,6 +42,7 @@ class RestApiClient:
     __order_management_module: OrderManagementModule
     __vault_module: VaultModule
     __testnet_module: TestnetModule
+    __builder_module: BuilderModule
 
     async def place_order(
         self,
@@ -106,6 +108,7 @@ class RestApiClient:
         await self.__order_management_module.close_session()
         await self.__vault_module.close_session()
         await self.__testnet_module.close_session()
+        await self.__builder_module.close_session()
 
     async def __aenter__(self):
         return self
@@ -131,6 +134,7 @@ class RestApiClient:
             api_key=api_key,
         )
         self.__testnet_module = TestnetModule(config, api_key=api_key, account_module=self.__account_module)
+        self.__builder_module = BuilderModule(config, api_key=api_key)
 
     @property
     def config(self):
@@ -159,3 +163,7 @@ class RestApiClient:
     @property
     def vault(self):
         return self.__vault_module
+
+    @property
+    def builder(self):
+        return self.__builder_module

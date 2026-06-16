@@ -12,8 +12,8 @@ MARKET_NAME = BTC_USD_MARKET
 
 async def run_example():
     rest_client = create_rest_client()
-    markets_dict = await rest_client.markets_info.get_markets_dict()
-    market_stats = await rest_client.markets_info.get_market_statistics(market_name=MARKET_NAME)
+    markets_dict = await rest_client.info.get_markets_dict()
+    market_stats = await rest_client.info.get_market_statistics(market_name=MARKET_NAME)
 
     market = markets_dict[MARKET_NAME]
 
