@@ -1,5 +1,4 @@
 import logging
-from decimal import Decimal
 from typing import Any, Optional
 
 from config import get_config_by_name
@@ -9,9 +8,10 @@ from mcp.server.fastmcp import FastMCP
 from x10.clients.rest.rest_api_client import RestApiClient
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.candle import CandleInterval, CandleType
-from x10.models.order import OrderSide
 
 LOGGER = logging.getLogger()
+
+mcp = FastMCP("Extended DEX MCP Server")
 
 
 def _create_public_rest_api_client() -> RestApiClient:
@@ -36,14 +36,6 @@ def _create_private_rest_api_client() -> RestApiClient:
     return RestApiClient(client_config, stark_account)
 
 
-mcp = FastMCP("x10-dex")
-
-
-# ---------------------------------------------------------------------------
-# Public tools
-# ---------------------------------------------------------------------------
-
-
 @mcp.tool()
 async def get_markets(market_names: Optional[list[str]] = None) -> list[dict]:
     """
@@ -54,7 +46,7 @@ async def get_markets(market_names: Optional[list[str]] = None) -> list[dict]:
     """
     async with _create_public_rest_api_client() as client:
         result = await client.info.get_markets(market_names=market_names)
-        return _serialize(result.data)
+        return _serialize_tool_result(result.data)
 
 
 @mcp.tool()
@@ -67,7 +59,7 @@ async def get_market_statistics(market_name: str) -> dict:
     """
     async with _create_public_rest_api_client() as client:
         result = await client.info.get_market_statistics(market_name=market_name)
-        return _serialize(result.data)
+        return _serialize_tool_result(result.data)
 
 
 @mcp.tool()
@@ -80,7 +72,7 @@ async def get_orderbook_snapshot(market_name: str) -> dict:
     """
     async with _create_public_rest_api_client() as client:
         result = await client.info.get_orderbook_snapshot(market_name=market_name)
-        return _serialize(result.data)
+        return _serialize_tool_result(result.data)
 
 
 @mcp.tool()
@@ -119,12 +111,7 @@ async def get_candles_history(
             interval=interval,
             limit=limit,
         )
-        return _serialize(result.data)
-
-
-# ---------------------------------------------------------------------------
-# Authenticated tools
-# ---------------------------------------------------------------------------
+        return _serialize_tool_result(result.data)
 
 
 @mcp.tool()
@@ -134,7 +121,7 @@ async def get_balance() -> dict:
     """
     async with _create_private_rest_api_client() as client:
         result = await client.account.get_balance()
-        return _serialize(result.data)
+        return _serialize_tool_result(result.data)
 
 
 @mcp.tool()
@@ -147,7 +134,7 @@ async def get_positions(market_names: Optional[list[str]] = None) -> list[dict]:
     """
     async with _create_private_rest_api_client() as client:
         result = await client.account.get_positions(market_names=market_names)
-        return _serialize(result.data)
+        return _serialize_tool_result(result.data)
 
 
 @mcp.tool()
@@ -160,92 +147,21 @@ async def get_open_orders(market_names: Optional[list[str]] = None) -> list[dict
     """
     async with _create_private_rest_api_client() as client:
         result = await client.account.get_open_orders(market_names=market_names)
-        return _serialize(result.data)
+        return _serialize_tool_result(result.data)
 
 
-@mcp.tool()
-async def place_order(
-    market_name: str,
-    side: str,
-    amount: str,
-    price: str,
-    taker_fee: str,
-    post_only: bool = False,
-    reduce_only: bool = False,
-    external_id: Optional[str] = None,
-) -> dict:
-    """
-    Place a limit order. Requires authentication env vars.
-
-    Args:
-        market_name: Market identifier, e.g. "BTC-USD".
-        side: "BUY" or "SELL".
-        amount: Amount of synthetic asset (e.g. "0.01" for 0.01 BTC).
-        price: Limit price (e.g. "50000").
-        taker_fee: Taker fee rate (e.g. "0.0005" for 0.05%).
-        post_only: If True, order will be cancelled if it would take liquidity.
-        reduce_only: If True, order can only reduce an existing position.
-        external_id: Optional client-assigned order ID.
-    """
-    async with _create_private_rest_api_client() as client:
-        result = await client.place_order(
-            market_name=market_name,
-            side=OrderSide(side.upper()),
-            amount_of_synthetic=Decimal(amount),
-            price=Decimal(price),
-            taker_fee=Decimal(taker_fee),
-            post_only=post_only,
-            reduce_only=reduce_only,
-            external_id=external_id,
-        )
-        return _serialize(result.data)
-
-
-@mcp.tool()
-async def cancel_order(order_id: int) -> dict:
-    """
-    Cancel an open order by its ID. Requires authentication env vars.
-
-    Args:
-        order_id: Numeric order ID returned when the order was placed.
-    """
-    async with _create_private_rest_api_client() as client:
-        result = await client.orders.cancel_order(order_id)
-        return _serialize(result.data)
-
-
-def _serialize(obj: Any) -> Any:
+def _serialize_tool_result(obj: Any) -> Any:
     if obj is None:
         return None
-    if hasattr(obj, "model_dump"):
-        return obj.model_dump(mode="json")
+
+    if hasattr(obj, "to_api_request_json"):
+        return obj.to_api_request_json()
+
     if isinstance(obj, list):
-        return [_serialize(item) for item in obj]
+        return [_serialize_tool_result(item) for item in obj]
+
     return obj
 
 
-def main():
-    mcp.run()
-
-
 if __name__ == "__main__":
-    """
-    MCP server exposing X10 DEX SDK capabilities as tools.
-
-    Public tools (no credentials needed):
-      get_markets, get_market_statistics, get_orderbook_snapshot,
-      get_asset_price, get_candles_history
-
-    Authenticated tools (require env vars):
-      get_balance, get_positions, get_open_orders,
-      place_order, cancel_order
-
-    Environment variables:
-      X10_NETWORK      "mainnet" or "testnet" (default: testnet)
-      X10_API_KEY      API key
-      X10_PUBLIC_KEY   Stark public key (hex)
-      X10_PRIVATE_KEY  Stark private key (hex)
-      X10_VAULT_ID     Vault ID (integer)
-    """
-
-    main()
+    mcp.run()

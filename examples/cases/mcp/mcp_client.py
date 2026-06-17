@@ -14,7 +14,7 @@ LOGGER = logging.getLogger()
 MARKET_NAME = BTC_USD_MARKET
 
 
-async def list_available_tools(session: ClientSession):
+async def list_available_mcp_tools(session: ClientSession):
     LOGGER.info("--- Available tools ---")
 
     tools_response = await session.list_tools()
@@ -46,7 +46,7 @@ async def run_example():
         async with ClientSession(read, write) as session:
             await session.initialize()
 
-            await list_available_tools(session)
+            await list_available_mcp_tools(session)
             await list_markets(session)
 
             # ------------------------------------------------------------------
