@@ -1,4 +1,3 @@
-import asyncio
 import json
 import logging
 import os
@@ -8,10 +7,9 @@ from asyncio import run
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
-from examples.utils import BTC_USD_MARKET, init_env
+from examples.utils import init_env
 
 LOGGER = logging.getLogger()
-MARKET_NAME = BTC_USD_MARKET
 
 
 async def list_available_mcp_tools(session: ClientSession):
@@ -135,18 +133,4 @@ def _tool_result_text(result) -> str:
 
 
 if __name__ == "__main__":
-    """
-    Demonstrates interacting with the X10 MCP server as a client over stdio transport.
-
-    The script:
-      1. Spawns the MCP server as a subprocess (stdio transport).
-      2. Lists all available tools.
-      3. Calls public market-data tools (no credentials required).
-      4. Calls authenticated account tools when credentials are present in env.
-
-    Run:
-        poetry run python examples/cases/mcp/mcp_client.py
-
-    Auth env vars (optional – public tools work without them):
-        X10_API_KEY, X10_PUBLIC_KEY, X10_PRIVATE_KEY, X10_VAULT_ID"""
     run(main=run_example())
