@@ -1,35 +1,19 @@
-"""
-MCP server exposing X10 DEX SDK capabilities as tools.
-
-Public tools (no credentials needed):
-  get_markets, get_market_statistics, get_orderbook_snapshot,
-  get_asset_price, get_candles_history
-
-Authenticated tools (require env vars):
-  get_balance, get_positions, get_open_orders,
-  place_order, cancel_order
-
-Environment variables:
-  X10_NETWORK      "mainnet" or "testnet" (default: testnet)
-  X10_API_KEY      API key
-  X10_PUBLIC_KEY   Stark public key (hex)
-  X10_PRIVATE_KEY  Stark private key (hex)
-  X10_VAULT_ID     Vault ID (integer)
-"""
-
+import logging
 import os
 from contextlib import asynccontextmanager
 from decimal import Decimal
 from typing import Any, Optional
 
+from config import TESTNET_CONFIG, get_config_by_name
+from core.env_config import EnvConfig
 from mcp.server.fastmcp import FastMCP
 
-from config import get_config_by_name, TESTNET_CONFIG
-from core.env_config import EnvConfig
 from x10.clients.rest.rest_api_client import RestApiClient
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.candle import CandleInterval, CandleType
 from x10.models.order import OrderSide
+
+LOGGER = logging.getLogger()
 
 
 def _get_public_client() -> RestApiClient:
@@ -41,11 +25,7 @@ def _get_public_client() -> RestApiClient:
 
 def _get_auth_client() -> RestApiClient:
     env_config = EnvConfig.parse()
-
-    assert env_config.api_key, "X10_API_KEY is not set"
-    assert env_config.public_key, "X10_PUBLIC_KEY is not set"
-    assert env_config.private_key, "X10_PRIVATE_KEY is not set"
-    assert env_config.vault_id, "X10_VAULT_ID is not set"
+    env_config.validate_private_api_credentials()
 
     stark_account = StarkPerpetualAccount(
         api_key=env_config.api_key,
@@ -251,4 +231,23 @@ def main():
 
 
 if __name__ == "__main__":
+    """
+    MCP server exposing X10 DEX SDK capabilities as tools.
+
+    Public tools (no credentials needed):
+      get_markets, get_market_statistics, get_orderbook_snapshot,
+      get_asset_price, get_candles_history
+
+    Authenticated tools (require env vars):
+      get_balance, get_positions, get_open_orders,
+      place_order, cancel_order
+
+    Environment variables:
+      X10_NETWORK      "mainnet" or "testnet" (default: testnet)
+      X10_API_KEY      API key
+      X10_PUBLIC_KEY   Stark public key (hex)
+      X10_PRIVATE_KEY  Stark private key (hex)
+      X10_VAULT_ID     Vault ID (integer)
+    """
+
     main()

@@ -1,5 +1,3 @@
-
-
 import asyncio
 import json
 import logging
@@ -16,59 +14,44 @@ LOGGER = logging.getLogger()
 MARKET_NAME = BTC_USD_MARKET
 
 
-def _pretty(obj) -> str:
-    return json.dumps(obj, indent=2, default=str)
+async def list_available_tools(session: ClientSession):
+    LOGGER.info("--- Available tools ---")
+
+    tools_response = await session.list_tools()
+    tool_names = [t.name for t in tools_response.tools]
+
+    LOGGER.info("Tools (%d): %s", len(tool_names), tool_names)
 
 
-def _tool_result_text(result) -> str:
-    texts = [content.text for content in result.content if hasattr(content, "text")]
-    if not texts:
-        return str(result.content)
-    # FIXME: ???
-    if len(texts) == 1:
-        return texts[0]
-    # Multiple blocks — each may be a JSON-serialised item; reconstruct as array.
-    items = []
-    for t in texts:
-        try:
-            items.append(json.loads(t))
-        except json.JSONDecodeError:
-            items.append(t)
-    return json.dumps(items, default=str)
+async def list_markets(session: ClientSession):
+    LOGGER.info("--- Markets ---")
+
+    markets_result = await session.call_tool("get_markets", {})
+    markets_result_as_text = _tool_result_text(markets_result)
+    markets_result_as_json = json.loads(markets_result_as_text)
+
+    LOGGER.info("Markets count: %d", len(markets_result_as_json))
+
+    if markets_result_as_json:
+        first_market = markets_result_as_json[0]
+        LOGGER.info("First market: %s", first_market["name"])
 
 
 async def run_example():
     init_env()
 
-    server_params = StdioServerParameters(
-        command=sys.executable,
-        args=["-m", "x10.tools.mcp_server"],
-        env=os.environ
-    )
+    server_params = StdioServerParameters(command=sys.executable, args=["-m", "x10.tools.mcp_server"], env=os.environ)
 
     async with stdio_client(server_params) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()
 
-            # ------------------------------------------------------------------
-            # 1. List available tools
-            # ------------------------------------------------------------------
-            tools_response = await session.list_tools()
-            tool_names = [t.name for t in tools_response.tools]
-            LOGGER.info("Available MCP tools (%d): %s", len(tool_names), tool_names)
+            await list_available_tools(session)
+            await list_markets(session)
 
             # ------------------------------------------------------------------
             # 2. Public tools — market data
             # ------------------------------------------------------------------
-            LOGGER.info("--- get_markets ---")
-            markets_result = await session.call_tool("get_markets", {})
-            markets_text = _tool_result_text(markets_result)
-            print('markets_text')
-            print(markets_text)
-            markets = json.loads(markets_text)
-            LOGGER.info("Markets count: %d", len(markets))
-            if markets:
-                LOGGER.info("First market: %s", _pretty(markets[0]))
 
             # LOGGER.info("--- get_market_statistics [%s] ---", MARKET_NAME)
             # stats_result = await session.call_tool("get_market_statistics", {"market_name": MARKET_NAME})
@@ -130,20 +113,40 @@ async def run_example():
             # LOGGER.info("Open orders: %d", len(orders))
 
 
+def _pretty(obj) -> str:
+    return json.dumps(obj, indent=2, default=str)
+
+
+def _tool_result_text(result) -> str:
+    texts = [content.text for content in result.content if hasattr(content, "text")]
+    if not texts:
+        return str(result.content)
+    # FIXME: ???
+    if len(texts) == 1:
+        return texts[0]
+    # Multiple blocks — each may be a JSON-serialised item; reconstruct as array.
+    items = []
+    for t in texts:
+        try:
+            items.append(json.loads(t))
+        except json.JSONDecodeError:
+            items.append(t)
+    return json.dumps(items, default=str)
+
+
 if __name__ == "__main__":
     """
-Demonstrates interacting with the X10 MCP server as a client over stdio transport.
+    Demonstrates interacting with the X10 MCP server as a client over stdio transport.
 
-The script:
-  1. Spawns the MCP server as a subprocess (stdio transport).
-  2. Lists all available tools.
-  3. Calls public market-data tools (no credentials required).
-  4. Calls authenticated account tools when credentials are present in env.
+    The script:
+      1. Spawns the MCP server as a subprocess (stdio transport).
+      2. Lists all available tools.
+      3. Calls public market-data tools (no credentials required).
+      4. Calls authenticated account tools when credentials are present in env.
 
-Run:
-    poetry run python examples/cases/mcp/mcp_client.py
+    Run:
+        poetry run python examples/cases/mcp/mcp_client.py
 
-Auth env vars (optional – public tools work without them):
-    X10_API_KEY, X10_PUBLIC_KEY, X10_PRIVATE_KEY, X10_VAULT_ID
-"""
+    Auth env vars (optional – public tools work without them):
+        X10_API_KEY, X10_PUBLIC_KEY, X10_PRIVATE_KEY, X10_VAULT_ID"""
     run(main=run_example())

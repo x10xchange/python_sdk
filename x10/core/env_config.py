@@ -42,3 +42,16 @@ class EnvConfig:
             vault_id=int(vault_id) if vault_id else None,
             builder_id=int(builder_id) if builder_id else None,
         )
+
+    def validate_private_api_credentials(self):
+        if not self.api_key:
+            raise ValidationError("X10_API_KEY is not set")
+
+        if not self.public_key:
+            raise ValidationError("X10_PUBLIC_KEY is not set")
+
+        if not self.private_key:
+            raise ValidationError("X10_PRIVATE_KEY is not set")
+
+        if not self.vault_id:
+            raise ValidationError("X10_VAULT_ID is not set")

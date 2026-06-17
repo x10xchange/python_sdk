@@ -30,10 +30,7 @@ def init_env(require_private_api: bool = True):
     env_config = EnvConfig.parse()
 
     if require_private_api:
-        assert env_config.api_key, "X10_API_KEY is not set"
-        assert env_config.public_key, "X10_PUBLIC_KEY is not set"
-        assert env_config.private_key, "X10_PRIVATE_KEY is not set"
-        assert env_config.vault_id, "X10_VAULT_ID is not set"
+        env_config.validate_private_api_credentials()
 
     return env_config
 
