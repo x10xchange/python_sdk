@@ -26,7 +26,7 @@ async def call_get_markets(session: ClientSession):
     LOGGER.info("--- Markets ---")
 
     result = await session.call_tool("get_markets", {})
-    result_as_text = _tool_result_text(result)
+    result_as_text = _tool_result_as_text(result)
     result_as_json = json.loads(result_as_text)
 
     LOGGER.info("Markets count: %d", len(result_as_json))
@@ -40,7 +40,7 @@ async def call_get_market_statistics(session: ClientSession, market_name: str):
     LOGGER.info("--- Market statistics for %s ---", market_name)
 
     result = await session.call_tool("get_market_statistics", {"market_name": market_name})
-    result_as_text = _tool_result_text(result)
+    result_as_text = _tool_result_as_text(result)
     result_as_json = json.loads(result_as_text)
 
     LOGGER.info("Last price: %s", result_as_json["lastPrice"])
@@ -50,7 +50,7 @@ async def call_get_orderbook_snapshot(session: ClientSession, market_name: str):
     LOGGER.info("--- Orderbook snapshot for %s ---", market_name)
 
     result = await session.call_tool("get_orderbook_snapshot", {"market_name": MARKET_NAME})
-    result_as_text = _tool_result_text(result)
+    result_as_text = _tool_result_as_text(result)
     result_as_json = json.loads(result_as_text)
 
     LOGGER.info(
@@ -72,7 +72,7 @@ async def call_get_candles_history(session: ClientSession, market_name: str):
             "limit": 5,
         },
     )
-    result_as_text = _tool_result_text(result)
+    result_as_text = _tool_result_as_text(result)
     result_as_json = json.loads(result_as_text)
 
     LOGGER.info("Candles returned: %d", len(result_as_json))
@@ -85,7 +85,7 @@ async def call_get_balance(session: ClientSession):
     LOGGER.info("--- Balance ---")
 
     result = await session.call_tool("get_balance", {})
-    result_as_text = _tool_result_text(result)
+    result_as_text = _tool_result_as_text(result)
     result_as_json = json.loads(result_as_text)
 
     LOGGER.info("Balance: %s", result_as_json["balance"])
@@ -95,7 +95,7 @@ async def call_get_positions(session: ClientSession):
     LOGGER.info("--- Positions ---")
 
     result = await session.call_tool("get_positions", {})
-    result_as_text = _tool_result_text(result, force_list=True)
+    result_as_text = _tool_result_as_text(result, force_list=True)
     result_as_json = json.loads(result_as_text)
 
     LOGGER.info("Positions (%d): %s", len(result_as_json), [p["market"] for p in result_as_json])
@@ -105,7 +105,7 @@ async def call_get_open_orders(session: ClientSession):
     LOGGER.info("--- Open orders ---")
 
     result = await session.call_tool("get_open_orders", {})
-    result_as_text = _tool_result_text(result, force_list=True)
+    result_as_text = _tool_result_as_text(result, force_list=True)
     result_as_json = json.loads(result_as_text)
 
     LOGGER.info("Open orders (%d): %s", len(result_as_json), [p["market"] for p in result_as_json])
@@ -136,11 +136,7 @@ async def run_example():
             await call_get_open_orders(session)
 
 
-def _pretty(obj) -> str:
-    return json.dumps(obj, indent=2, default=str)
-
-
-def _tool_result_text(result, *, force_list=False) -> str:
+def _tool_result_as_text(result, *, force_list=False) -> str:
     texts = [content.text for content in result.content if hasattr(content, "text")]
 
     if not texts:
