@@ -114,7 +114,11 @@ async def call_get_open_orders(session: ClientSession):
 async def run_example():
     init_env()
 
-    server_params = StdioServerParameters(command=sys.executable, args=["-m", "x10.tools.mcp_server"], env=os.environ)
+    server_params = StdioServerParameters(
+        command=sys.executable,
+        args=["-m", "x10.tools.mcp_server"],
+        env=os.environ,  # type: ignore[arg-type]
+    )
 
     async with stdio_client(server_params) as (read, write):
         async with ClientSession(read, write) as session:

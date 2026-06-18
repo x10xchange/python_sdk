@@ -1,10 +1,9 @@
 import os
 from dataclasses import dataclass
 
-from core.client_config import ClientConfigName
-from utils.string import is_hex_string
-
+from x10.core.client_config import ClientConfigName
 from x10.errors import ValidationError
+from x10.utils.string import is_hex_string
 
 
 @dataclass
@@ -35,7 +34,7 @@ class EnvConfig:
             assert is_hex_string(private_key), "X10_PRIVATE_KEY must be a hex string"
 
         return EnvConfig(
-            client_config_name=client_config_name,
+            client_config_name=client_config_name,  # type: ignore[arg-type]
             api_key=api_key,
             public_key=public_key.lower() if public_key else None,
             private_key=private_key.lower() if private_key else None,

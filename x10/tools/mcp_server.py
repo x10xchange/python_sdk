@@ -1,11 +1,11 @@
 import logging
 from typing import Any, Optional
 
-from config import get_config_by_name
-from core.env_config import EnvConfig
 from mcp.server.fastmcp import FastMCP
 
 from x10.clients.rest.rest_api_client import RestApiClient
+from x10.config import get_config_by_name
+from x10.core.env_config import EnvConfig
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.candle import CandleInterval, CandleType
 
