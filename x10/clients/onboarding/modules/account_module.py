@@ -7,6 +7,11 @@ from x10.utils.http import RequestHeader, send_post_request
 
 class AccountModule(BaseModule):
     async def create_api_key(self, *, account_id: int, description: str) -> str:
+        """
+        Generates an API key for a specified account. You can provide an optional description
+        for the API key. It returns the newly created API key as a string.
+        """
+
         request_path = "/api/v1/user/account/api-key"
         signature = sign_api_request(request_path, self._sign_message)
         headers: dict[str, str] = {

@@ -39,6 +39,7 @@ class AccountModule(BaseModule):
 
     async def get_balance(self) -> WrappedApiResponseModel[BalanceModel]:
         """
+        Fetches the balance of the user's account.
         https://api.docs.extended.exchange/#get-balance
         """
 
@@ -49,6 +50,8 @@ class AccountModule(BaseModule):
         self, *, market_names: Optional[List[str]] = None, position_side: Optional[PositionSide] = None
     ) -> WrappedApiResponseModel[List[PositionModel]]:
         """
+        Fetches the current positions of the user's account.
+        Can filter the positions based on market names and position side.
         https://api.docs.extended.exchange/#get-positions
         """
 
@@ -63,6 +66,8 @@ class AccountModule(BaseModule):
         limit: Optional[int] = None,
     ) -> WrappedApiResponseModel[List[PositionHistoryModel]]:
         """
+        Fetches the historical positions of the user's account.
+        Can filter the positions based on market names and position side.
         https://api.docs.extended.exchange/#get-positions-history
         """
 
@@ -81,6 +86,8 @@ class AccountModule(BaseModule):
         order_side: Optional[OrderSide] = None,
     ) -> WrappedApiResponseModel[List[OpenOrderModel]]:
         """
+        Fetches the open orders of the user's account.
+        Can filter the orders based on market names, order type, and order side.
         https://api.docs.extended.exchange/#get-open-orders
         """
 
@@ -100,6 +107,8 @@ class AccountModule(BaseModule):
         sort: Optional[Sort] = None,
     ) -> WrappedApiResponseModel[List[OpenOrderModel]]:
         """
+        Fetches the historical orders of the user's account.
+        Can filter the orders based on market names, order type, and order side.
         https://api.docs.extended.exchange/#get-orders-history
         """
 
@@ -153,6 +162,8 @@ class AccountModule(BaseModule):
         limit: Optional[int] = None,
     ) -> WrappedApiResponseModel[List[AccountTradeModel]]:
         """
+        Fetches the trades of the user's account.
+        Can filter the trades based on market names, trade side, and trade type.
         https://api.docs.extended.exchange/#get-trades
         """
 
@@ -169,6 +180,7 @@ class AccountModule(BaseModule):
         self, *, market_names: Optional[List[str]] = None, builder_id: Optional[int] = None
     ) -> WrappedApiResponseModel[List[TradingFeeModel]]:
         """
+        Fetches the trading fees for the specified markets.
         https://api.docs.extended.exchange/#get-fees
         """
 
@@ -187,6 +199,7 @@ class AccountModule(BaseModule):
         self, market_names: Optional[List[str]] = None
     ) -> WrappedApiResponseModel[List[AccountLeverageModel]]:
         """
+        Fetches the leverage for the specified markets.
         https://api.docs.extended.exchange/#get-current-leverage
         """
 
@@ -197,6 +210,7 @@ class AccountModule(BaseModule):
 
     async def update_leverage(self, market_name: str, leverage: Decimal) -> WrappedApiResponseModel[EmptyModel]:
         """
+        Updates the leverage for a specific market.
         https://api.docs.extended.exchange/#update-leverage
         """
 

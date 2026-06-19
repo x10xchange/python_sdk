@@ -73,13 +73,12 @@ rest_client = RestApiClient(TESTNET_CONFIG, stark_account)
 
 ## OpenAPI Specifications
 
-Available specifications can be found in [specs](./specs) directory.
-
-## Tools
+Available specifications can be found in the [specs](./specs) directory.
 
 ## Clients
 
-The SDK currently provides functionality using so called clients.
+The SDK currently provides functionality using so-called clients.
+And each client is divided into feature-specific modules.
 
 ### Onboarding
 
@@ -92,14 +91,15 @@ The SDK currently provides functionality using so called clients.
 
 ### REST API
 
-| Module           | Description |
-|------------------|-------------|
-| account          | TBD         |
-| builder          | TBD         |
-| info             | TBD         |
-| order_management | TBD         |
-| testnet          | TBD         |
-| vault            | TBD         |
+| Module           | Description                                                          |
+|------------------|----------------------------------------------------------------------|
+| account          | Exposes functionality related to managing an active trading account. |
+| builder          | TBD                                                                  |
+| info             | TBD                                                                  |
+| order_management | TBD                                                                  |
+| testnet          | TBD                                                                  |
+| vault            | TBD                                                                  |
 
 ### Streaming
 
+## Tools
