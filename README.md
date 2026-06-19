@@ -82,27 +82,30 @@ And each client is divided into feature-specific modules.
 
 ### Onboarding
 
-| Module  | Description |
-|---------|-------------|
-| auth    | TBD         |
-| account | TBD         |
+| Module  | Description                                       |
+|---------|---------------------------------------------------|
+| auth    | Functionality related to client/account creation. |
+| account | Account API keys creation.                        |
 
 ### Blocking Trading
 
+Placing orders and receiving updates in a blocking (synchronous) manner.
+
 ### REST API
 
-| Module           | Description                                                          |
-|------------------|----------------------------------------------------------------------|
-| account          | Exposes functionality related to managing an active trading account. |
-| builder          | TBD                                                                  |
-| info             | TBD                                                                  |
-| order_management | TBD                                                                  |
-| testnet          | TBD                                                                  |
-| vault            | TBD                                                                  |
+| Module           | Description                                                                                         |
+|------------------|-----------------------------------------------------------------------------------------------------|
+| account          | Functionality related to managing an active trading account (e.g., leverage/positions/orders/etc).  |
+| builder          | Functionality related to builders-specific data.                                                    |
+| info             | Functionality related to public market data (including historical data).                            |
+| order_management | Functionality related to managing orders (place/cancel).                                            |
+| testnet          | Functionality related to TESTNET specific actions (e.g., claiming TESTNET tokens).                  |
+| vault            | Functionality related to Vault public data and user's Vault token management (deposits/withrawals). | 
 
 ### Streaming
 
-## Tools
+Provides functionality for subscribing to real-time WebSocket updates.
+Each topic (stream) requires a separate WebSocket connection.
 
 ## Onboarding via SDK
 
