@@ -12,6 +12,12 @@ info:
     - **API Key**: `X-API-Key` header (not supported on some sensitive endpoints)
 
     Public informational endpoints do not require authentication.
+
+    ## Spec status
+    This document is a partial, hand-maintained snapshot and is **not** auto-generated from
+    the live API. Some schemas are simplified and may omit fields or use names that differ
+    from the actual responses. The Python SDK models under `x10/models/` are the source of
+    truth; treat this spec as illustrative, not authoritative.
   version: 1.0.0
 
 servers:
@@ -151,7 +157,7 @@ components:
 
     AssetType:
       type: string
-      enum: [COLLATERAL, SYNTHETIC, SPOT]
+      enum: [SPOT, PERPETUAL]
 
     OperationalStatus:
       type: string
@@ -671,6 +677,15 @@ components:
           type: string
           format: decimal
         marginRatio:
+          type: string
+          format: decimal
+        spotEquity:
+          type: string
+          format: decimal
+        spotEquityForAvailableForTrade:
+          type: string
+          format: decimal
+        collateralReservedForSpotOrders:
           type: string
           format: decimal
         updatedTime:
@@ -1335,6 +1350,18 @@ components:
           type: string
           format: decimal
         availableToWithdraw:
+          type: string
+          format: decimal
+          nullable: true
+        absolutePnl:
+          type: string
+          format: decimal
+          nullable: true
+        pnlPercentage:
+          type: string
+          format: decimal
+          nullable: true
+        averageEntryPrice:
           type: string
           format: decimal
           nullable: true

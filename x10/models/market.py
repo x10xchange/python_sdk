@@ -2,6 +2,8 @@ from decimal import ROUND_CEILING, Decimal
 from functools import cached_property
 from typing import List
 
+from strenum import StrEnum
+
 from x10.models.asset import Asset
 from x10.models.base import X10BaseModel
 from x10.utils.order import round_price as round_order_price_util
@@ -93,8 +95,14 @@ class L2ConfigModel(X10BaseModel):
     synthetic_resolution: int
 
 
+class MarketType(StrEnum):
+    SPOT = "SPOT"
+    PERPETUAL = "PERPETUAL"
+
+
 class MarketModel(X10BaseModel):
     name: str
+    type: MarketType = MarketType.PERPETUAL
     asset_name: str
     asset_precision: int
     collateral_asset_name: str

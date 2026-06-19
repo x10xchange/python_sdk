@@ -40,6 +40,7 @@ class StreamDataType(StrEnum):
     DELTA = "DELTA"
 
     BALANCE = "BALANCE"
+    SPOT_BALANCE = "SPOT_BALANCE"
     DEPOSIT = "DEPOSIT"
     ORDER = "ORDER"
     POSITION = "POSITION"

@@ -45,6 +45,7 @@ async def test_get_markets(aiohttp_server, create_btc_usd_market):
         equal_to(
             {
                 "name": "BTC-USD",
+                "type": "PERPETUAL",
                 "assetName": "BTC",
                 "assetPrecision": 5,
                 "collateralAssetName": "USD",

@@ -8,6 +8,16 @@ from x10.errors import ValidationError
 from x10.models.base import HexValue, X10BaseModel
 
 
+class AssetType(StrEnum):
+    SPOT = "SPOT"
+    PERPETUAL = "PERPETUAL"
+
+
+class RiskFactorSegmentModel(X10BaseModel):
+    upper_bound: Decimal
+    risk_factor: Decimal
+
+
 class AssetModel(X10BaseModel):
     id: int
     name: str
@@ -20,6 +30,8 @@ class AssetModel(X10BaseModel):
     l1_id: str
     l1_resolution: int
     version: int
+    type: AssetType = AssetType.PERPETUAL
+    can_be_used_as_collateral: bool = False
 
 
 # FIXME: Replace with AssetModel
