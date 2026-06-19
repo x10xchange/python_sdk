@@ -8,6 +8,7 @@ def get_btc_usd_market_json_data():
         "data": [
             {
                 "name": "BTC-USD",
+                "type": "PERPETUAL",
                 "category": "L1",
                 "assetName": "BTC",
                 "assetPrecision": 5,

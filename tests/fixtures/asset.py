@@ -5,6 +5,7 @@ from x10.models.asset import (
     AssetOperationModel,
     AssetOperationStatus,
     AssetOperationType,
+    AssetType,
 )
 
 
@@ -47,6 +48,8 @@ def get_asset_usd():
         l1_id="0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
         l1_resolution=1000000,
         version=3,
+        type=AssetType.SPOT,
+        can_be_used_as_collateral=True,
     )
 
 
@@ -63,4 +66,6 @@ def get_asset_xvs():
         l1_id="0x07DB365513Df1eE2Eb8fC2d157d4D1cBA3d4a2eF59b44Dd3D61124C88b4f6084",
         l1_resolution=1000000,
         version=6,
+        type=AssetType.PERPETUAL,
+        can_be_used_as_collateral=False,
     )
