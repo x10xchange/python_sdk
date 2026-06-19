@@ -11,7 +11,7 @@ Minimum Python version required to use this library is `3.10`
 pip install x10-python-trading-starknet
 ```
 
-Our SDK makes use of a [Rust Library](https://github.com/x10xchange/stark-crypto-wrapper-py) to speed up signing and hashing of stark components.
+Our SDK makes use of a [Rust Library Python Wrapper](https://github.com/x10xchange/stark-crypto-wrapper-py) to speed up signing and hashing of stark components.
 Currently, this library supports the following environments (please refer to the library repository for the most up to date information):
 
 |                       | 3.9 | 3.10 | 3.11 | 3.12 | 3.13 |
@@ -103,3 +103,48 @@ And each client is divided into feature-specific modules.
 ### Streaming
 
 ## Tools
+
+## Onboarding via SDK
+
+The process of obtaining a Stark key pair from an Ethereum account is a cryptographic procedure
+that involves generating a private and public key pair used in the StarkWare ecosystem.
+This process leverages the Ethereum account to create a deterministic Stark key pair that can be used
+for operations on StarkWare-based systems such as StarkEx and StarkNet.
+
+### Process of Obtaining a Stark Key Pair from an Ethereum Account
+
+1. **Context and Purpose.** StarkWare-based systems require their own cryptographic keys (Stark keys)
+   separate from Ethereum keys. However, to maintain a consistent user experience, StarkWare allows users
+   to derive these keys deterministically from their existing Ethereum accounts. The process of obtaining
+   a Stark key pair from an Ethereum account involves generating a signing message that the Ethereum account
+   can sign and then using that signature to derive the Stark private key.
+2. **Generating the Signing Structure.** The first step in the process is to generate a signing structure
+   that will be signed by the Ethereum account. This structure is constructed using the EIP-712 standard,
+   which allows for typed data to be signed in a structured way on Ethereum.
+    1. **Define the Signing Structure.** The message to be signed includes: (1) account index,
+       (2) the Ethereum wallet address, (3) and whether the terms of service (TOS) are accepted.
+       Check `get_key_derivation_struct_to_sign` function implementation for more details.
+    2. **EIP-712 Typed Data.** The signing structure uses EIP-712 typed data, which consists of:
+        - **Domain.** This is a structured domain object that helps to prevent cross-domain replay attacks.
+          In this case, it typically includes the name field (which might be the name of the application or system).
+        - **Message.** This is the main data being signed, which includes the accountIndex, wallet address, and tosAccepted fields.
+        - **Types.** This describes the types of the fields in both the domain and message.
+        - **Primary Type.** This indicates the primary type being signed (in this case, `AccountCreation`).
+    3. **Encoding the Typed Data.** The structure is encoded into a format that can be signed by
+       the Ethereum account. This is done using the `encode_typed_data` function,
+       which creates a `SignableMessage`. The `SignableMessage` includes the hash of the typed data
+       according to the EIP-712 standard.
+3. **Signing the Structure with the Ethereum Account.** Once the signing structure is prepared,
+   it is signed using the Ethereum private key.
+4. Deriving the Stark Private Key. The signature obtained from the Ethereum account is then used to
+   derive the Stark private key. This is done by truncating the r value from the Ethereum signature and
+   using it as the basis for the Stark private key. Check `get_private_key_from_eth_signature` function
+   implementation in [Rust Library](https://github.com/x10xchange/rust-crypto-lib-base) for more details.
+
+## Breaking changes
+
+For a detailed list of breaking changes, please refer to the [MIGRATION.md](MIGRATION.md) file.
+
+## Contributing
+
+See the [CONTRIBUTING.md](CONTRIBUTING.md) file.
