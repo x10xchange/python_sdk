@@ -22,7 +22,7 @@ classifiers = [
 packages = [{ include = "x10" }]
 
 [tool.poetry.scripts]
-x10-mcp = "x10.mcp_server:main"
+x10-mcp = "x10.tools.mcp_server:main"
 
 [tool.poetry.extras]
 mcp = ["mcp"]

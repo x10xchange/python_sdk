@@ -1,6 +1,7 @@
 import logging
 from typing import Any, Optional
 
+from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
 from x10.clients.rest.rest_api_client import RestApiClient
