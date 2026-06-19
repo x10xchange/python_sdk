@@ -30,8 +30,8 @@ class AssetModel(X10BaseModel):
     l1_id: str
     l1_resolution: int
     version: int
-    type: AssetType = AssetType.PERPETUAL
-    can_be_used_as_collateral: bool = False
+    type: AssetType
+    can_be_used_as_collateral: bool
 
 
 # FIXME: Replace with AssetModel

@@ -102,7 +102,7 @@ class MarketType(StrEnum):
 
 class MarketModel(X10BaseModel):
     name: str
-    type: MarketType = MarketType.PERPETUAL
+    type: MarketType
     asset_name: str
     asset_precision: int
     collateral_asset_name: str
