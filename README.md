@@ -2,74 +2,88 @@
 
 Python client for [Extended API](https://api.docs.extended.exchange/).
 
-Minimum Python version required to use this library is `3.10` (you can use [pyenv](https://github.com/pyenv/pyenv) to manage your Python versions easily).
+Minimum Python version required to use this library is `3.10`
+(you can use [pyenv](https://github.com/pyenv/pyenv) to manage your Python versions easily).
 
-## Installation 
+## Installation
 
 ```shell
 pip install x10-python-trading-starknet
 ```
 
-Our SDK makes use of a [Rust Library](https://github.com/x10xchange/stark-crypto-wrapper) to accelerate signing and hashing of stark components. Currently this library supports the following environments
+Our SDK makes use of a [Rust Library](https://github.com/x10xchange/stark-crypto-wrapper-py) to speed up signing and hashing of stark components.
+Currently, this library supports the following environments (please refer to the library repository for the most up to date information):
 
-|                       |  3.9  | 3.10  | 3.11  | 3.12  |
-| --------------------- | :---: | :---: | :---: | :---: |
-| linux (glibc) - x86   |   ✅   |   ✅   |   ✅   |   ✅   |
-| linux (musl) - x86    |   ✅   |   ✅   |   ✅   |   ✅   |
-| linux (glibc) - arm64 |   ✅   |   ✅   |   ✅   |   ✅   |
-| linux (musl) - arm64  |   ✅   |   ✅   |   ✅   |   ✅   |
-| OSX - arm64           |   ✅   |   ✅   |   ✅   |   ✅   |
-| windows - x86         |   ✅   |   ✅   |   ✅   |   ✅   |
-| windows - arm64       |   ⚠️   |   ⚠️   |   ⚠️   |   ⚠️   |
+|                       | 3.9 | 3.10 | 3.11 | 3.12 | 3.13 |
+|-----------------------|:---:|:----:|:----:|:----:|:----:|
+| linux (glibc) - x86   |  ✅  |  ✅   |  ✅   |  ✅   |  ✅   |
+| linux (musl) - x86    |  ✅  |  ✅   |  ✅   |  ✅   |  ✅   |
+| linux (glibc) - arm64 |  ✅  |  ✅   |  ✅   |  ✅   |  ✅   |
+| linux (musl) - arm64  |  ✅  |  ✅   |  ✅   |  ✅   |  ✅   |
+| OSX - arm64           |  ✅  |  ✅   |  ✅   |  ✅   |  ✅   |
+| windows - x86         |  ✅  |  ✅   |  ✅   |  ✅   |  ✅   |
+| windows - arm64       | ⚠️  |  ⚠️  |  ⚠️  |  ⚠️  |  ⚠️  |
 
+## TLDR
 
+Register at [Extended Testnet](https://starknet.sepolia.extended.exchange/). 
 
-## TLDR:
-
-Register at [Extended Testnet](https://testnet.extended.exchange/) by connecting a supported Ethereum Wallet. 
-
-Navigate to [Api Management](https://testnet.extended.exchange/api-management)
+Navigate to [API Management](https://starknet.sepolia.extended.exchange/api-management):
 1. Generate an API key
-2. Show API details (You will need these details to initialise a trading client)
+2. Show API details (you will need these details to initialize a trading client)
 
-Instantiate a Trading Account
-
-```python 
-from x10.perpetual.accounts import StarkPerpetualAccount
-api_key:str = "<api>" #from api-management
-public_key:str = "<public>" #from api-management
-private_key:str = "<private>" #from api-management
-vault:int = <vault> #from api-management
-
-stark_account = StarkPerpetualAccount(
-    vault=vault,
-    private_key=private_key,
-    public_key=public_key,
-    api_key=api_key,
-)
+Create an `.env` file (see below) in the examples directory root:
+```properties
+X10_API_KEY=<your_api_key>
+X10_PUBLIC_KEY=<your_public_key>
+X10_PRIVATE_KEY=<your_private_key>
+X10_VAULT_ID=<your_vault_id>
 ```
 
-Instantiate a Trading Client
+Refer to the [cases](./examples/cases) directory for the specific examples of how to use the SDK.
+
+Each example follows the same pattern:
 ```python
-from x10.perpetual.accounts import StarkPerpetualAccount
-from x10.perpetual.configuration import TESTNET_CONFIG
-from x10.perpetual.orders import OrderSide
-from x10.perpetual.trading_client import PerpetualTradingClient
+from dotenv import load_dotenv
+from x10.core.env_config import EnvConfig
+from x10.core.stark_account import StarkPerpetualAccount
+from x10.config import TESTNET_CONFIG
+from x10.clients.rest import RestApiClient
 
-trading_client = PerpetualTradingClient.create(TESTNET_CONFIG, stark_account)
-placed_order = await trading_client.place_order(
-    market_name="BTC-USD",
-    amount_of_synthetic=Decimal("1"),
-    price=Decimal("63000.1"),
-    side=OrderSide.SELL,
+
+# Load environment variables from `.env` file and parse them into a `EnvConfig` object.
+load_dotenv()
+env_config = EnvConfig.parse()
+env_config.validate_private_api_credentials()
+
+# Instantiate a `StarkPerpetualAccount` object with the parsed environment variables.
+stark_account = StarkPerpetualAccount(
+    api_key=env_config.api_key,
+    public_key=env_config.public_key,
+    private_key=env_config.private_key,
+    vault=env_config.vault_id,
 )
-await trading_client.orders.cancel_order(order_id=placed_order.id)
-print(placed_order)
+
+# Instantiate REST API/Streaming/etc client.
+rest_client = RestApiClient(TESTNET_CONFIG, stark_account)
+
+# Perform example action using the instantiated client.
 ```
+
+
 
 for more information see [placing an order example](examples/placed_order_example_simple.py).
 
 There is also a skeleton implementation of a [blocking client](examples/simple_client_example.py).
+
+
+
+
+
+
+
+
+
 
 ## Modules
 
