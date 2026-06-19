@@ -40,7 +40,7 @@ X10_PRIVATE_KEY=<your_private_key>
 X10_VAULT_ID=<your_vault_id>
 ```
 
-Refer to the [cases](./examples/cases) directory for the specific examples of how to use the SDK.
+Refer to the [cases](examples/cases) directory for the specific examples of how to use the SDK.
 
 Each example follows the same pattern:
 ```python
@@ -73,7 +73,7 @@ rest_client = RestApiClient(TESTNET_CONFIG, stark_account)
 
 ## OpenAPI Specifications
 
-Available specifications can be found in the [specs](./specs) directory.
+Available specifications can be found in the [specs](specs) directory.
 
 ## Clients
 
@@ -139,7 +139,7 @@ for operations on StarkWare-based systems such as StarkEx and StarkNet.
        according to the EIP-712 standard.
 3. **Signing the Structure with the Ethereum Account.** Once the signing structure is prepared,
    it is signed using the Ethereum private key.
-4. Deriving the Stark Private Key. The signature obtained from the Ethereum account is then used to
+4. **Deriving the Stark Private Key.** The signature obtained from the Ethereum account is then used to
    derive the Stark private key. This is done by truncating the r value from the Ethereum signature and
    using it as the basis for the Stark private key. Check `get_private_key_from_eth_signature` function
    implementation in [Rust Library](https://github.com/x10xchange/rust-crypto-lib-base) for more details.
