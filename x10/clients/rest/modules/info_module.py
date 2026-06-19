@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import List, Optional
 
 from x10.clients.rest.modules.base_module import BaseModule
-from x10.models.asset import AssetModel
+from x10.models.asset import AssetModel, AssetType
 from x10.models.candle import CandleInterval, CandleModel, CandleType
 from x10.models.funding_rate import FundingRateModel
 from x10.models.market import MarketModel, MarketStatsModel
@@ -18,8 +18,8 @@ class InfoModule(BaseModule):
         url = self._get_url("/info/settings")
         return await send_get_request(await self._get_session(), url, SettingsModel)
 
-    async def get_assets(self):
-        url = self._get_url("/info/assets")
+    async def get_assets(self, *, asset_type: Optional[AssetType] = None):
+        url = self._get_url("/info/assets", query={"type": asset_type})
         return await send_get_request(await self._get_session(), url, List[AssetModel])
 
     async def get_assets_dict(self):

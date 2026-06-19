@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from pydantic import AliasChoices, Field
 
-from x10.models.balance import BalanceModel
+from x10.models.balance import BalanceModel, SpotBalanceModel
 from x10.models.base import X10BaseModel
 from x10.models.order import OpenOrderModel
 from x10.models.position import PositionModel
@@ -15,6 +15,7 @@ class AccountStreamDataModel(X10BaseModel):
     positions: Optional[List[PositionModel]] = None
     trades: Optional[List[AccountTradeModel]] = None
     balance: Optional[BalanceModel] = None
+    spot_balances: Optional[List[SpotBalanceModel]] = None
 
 
 class AccountLeverageModel(X10BaseModel):

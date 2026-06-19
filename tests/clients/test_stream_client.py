@@ -84,6 +84,7 @@ async def test_account_update_trade_stream(create_account_update_trade_message):
                             }
                         ],
                         "balance": None,
+                        "spotBalances": None,
                     },
                     "error": None,
                     "ts": 1704798222748,
