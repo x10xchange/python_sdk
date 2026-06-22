@@ -29,17 +29,17 @@ def create_limit_order_settlement_data(
     quote_asset = quote_asset_model.to_settlement_asset()
     base_asset = base_asset_model.to_settlement_asset()
 
-    quote_amount_human = InternalAmount(
+    quote_amount_internal = InternalAmount(
         asset=quote_asset,
         value=-quote_amount if is_buy else quote_amount,
     )
-    base_amount_human = InternalAmount(
+    base_amount_internal = InternalAmount(
         asset=base_asset,
         value=base_amount if is_buy else -base_amount,
     )
 
-    quote_amount_stark = quote_amount_human.to_stark_amount(decimal.Context(rounding=decimal.ROUND_UP))
-    base_amount_stark = base_amount_human.to_stark_amount(decimal.Context(rounding=decimal.ROUND_UP))
+    quote_amount_stark = quote_amount_internal.to_stark_amount(decimal.Context(rounding=decimal.ROUND_UP))
+    base_amount_stark = base_amount_internal.to_stark_amount(decimal.Context(rounding=decimal.ROUND_UP))
 
     nonce = generate_nonce()
     expire_time = utc_now() + timedelta(hours=1)
@@ -69,4 +69,4 @@ def create_limit_order_settlement_data(
         signature=SettlementSignatureModel(r=order_signature[0], s=order_signature[1]),
     )
 
-    return settlement, quote_amount_human, base_amount_human
+    return settlement, quote_amount_internal, base_amount_internal
