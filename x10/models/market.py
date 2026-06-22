@@ -1,10 +1,10 @@
-from dataclasses import dataclass
 from decimal import ROUND_CEILING, Decimal
 from functools import cached_property
 from typing import List
 
 from strenum import StrEnum
 
+from x10.core.amount import SettlementAsset
 from x10.models.base import X10BaseModel
 from x10.utils.order import round_price as round_order_price_util
 
@@ -100,20 +100,6 @@ class MarketType(StrEnum):
     PERPETUAL = "PERPETUAL"
 
 
-@dataclass(frozen=True)
-class MarketAsset:
-    """
-    Wrapper around market asset properties (subset of `AssetModel`) to be used
-    for settlement without needing to depend on the full asset model.
-    """
-
-    name: str
-    precision: int
-    is_collateral: bool
-    starkex_id: str
-    starkex_resolution: int
-
-
 class MarketModel(X10BaseModel):
     name: str
     type: MarketType
@@ -127,8 +113,8 @@ class MarketModel(X10BaseModel):
     l2_config: L2ConfigModel
 
     @cached_property
-    def synthetic_asset(self) -> MarketAsset:
-        return MarketAsset(
+    def synthetic_asset(self) -> SettlementAsset:
+        return SettlementAsset(
             name=self.asset_name,
             precision=self.asset_precision,
             is_collateral=False,
@@ -137,8 +123,8 @@ class MarketModel(X10BaseModel):
         )
 
     @cached_property
-    def collateral_asset(self) -> MarketAsset:
-        return MarketAsset(
+    def collateral_asset(self) -> SettlementAsset:
+        return SettlementAsset(
             name=self.collateral_asset_name,
             precision=self.collateral_asset_precision,
             is_collateral=True,

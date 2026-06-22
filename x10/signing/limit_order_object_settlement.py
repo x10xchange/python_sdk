@@ -2,9 +2,9 @@ import decimal
 from datetime import timedelta
 
 from x10.config import StarknetDomain
-from x10.core.amount import HumanReadableAmount, StarkAmount
+from x10.core.amount import InternalAmount, StarkAmount
 from x10.core.stark_account import StarkPerpetualAccount
-from x10.models.asset import Asset, AssetModel
+from x10.models.asset import AssetModel
 from x10.models.base import SettlementSignatureModel
 from x10.models.order import LimitOrderSettlementModel
 from x10.signing.order_object_settlement import (
@@ -26,14 +26,14 @@ def create_limit_order_settlement_data(
     starknet_domain: StarknetDomain,
     is_buy: bool,
 ):
-    quote_asset = Asset.from_model(quote_asset_model)
-    base_asset = Asset.from_model(base_asset_model)
+    quote_asset = quote_asset_model.to_settlement_asset()
+    base_asset = base_asset_model.to_settlement_asset()
 
-    quote_amount_human = HumanReadableAmount(
+    quote_amount_human = InternalAmount(
         asset=quote_asset,
         value=-quote_amount if is_buy else quote_amount,
     )
-    base_amount_human = HumanReadableAmount(
+    base_amount_human = InternalAmount(
         asset=base_asset,
         value=base_amount if is_buy else -base_amount,
     )
