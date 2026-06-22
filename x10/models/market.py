@@ -1,10 +1,10 @@
+from dataclasses import dataclass
 from decimal import ROUND_CEILING, Decimal
 from functools import cached_property
 from typing import List
 
 from strenum import StrEnum
 
-from x10.models.asset import Asset
 from x10.models.base import X10BaseModel
 from x10.utils.order import round_price as round_order_price_util
 
@@ -100,6 +100,20 @@ class MarketType(StrEnum):
     PERPETUAL = "PERPETUAL"
 
 
+@dataclass(frozen=True)
+class MarketAsset:
+    """
+    Wrapper around market asset properties (subset of `AssetModel`) to be used
+    for settlement without needing to depend on the full asset model.
+    """
+
+    name: str
+    precision: int
+    is_collateral: bool
+    starkex_id: str
+    starkex_resolution: int
+
+
 class MarketModel(X10BaseModel):
     name: str
     type: MarketType
@@ -113,29 +127,21 @@ class MarketModel(X10BaseModel):
     l2_config: L2ConfigModel
 
     @cached_property
-    def synthetic_asset(self) -> Asset:
-        return Asset(
-            id=1,
+    def synthetic_asset(self) -> MarketAsset:
+        return MarketAsset(
             name=self.asset_name,
             precision=self.asset_precision,
-            active=self.active,
             is_collateral=False,
-            settlement_external_id=self.l2_config.synthetic_id,
-            settlement_resolution=self.l2_config.synthetic_resolution,
-            l1_external_id="",
-            l1_resolution=0,
+            starkex_id=self.l2_config.synthetic_id,
+            starkex_resolution=self.l2_config.synthetic_resolution,
         )
 
     @cached_property
-    def collateral_asset(self) -> Asset:
-        return Asset(
-            id=2,
+    def collateral_asset(self) -> MarketAsset:
+        return MarketAsset(
             name=self.collateral_asset_name,
             precision=self.collateral_asset_precision,
-            active=self.active,
             is_collateral=True,
-            settlement_external_id=self.l2_config.collateral_id,
-            settlement_resolution=self.l2_config.collateral_resolution,
-            l1_external_id="",
-            l1_resolution=0,
+            starkex_id=self.l2_config.collateral_id,
+            starkex_resolution=self.l2_config.collateral_resolution,
         )
