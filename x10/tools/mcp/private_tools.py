@@ -58,12 +58,11 @@ def register_tools(mcp: FastMCP):
         """
         async with _create_private_rest_api_client() as client:
             markets = await client.info.get_markets_dict()
-            market = markets[market_name]
 
             order = create_order_object(
                 account=client.stark_account,
                 starknet_domain=client.config.signing.starknet_domain,
-                market=market,
+                market=markets[market_name],
                 side=side,
                 amount_of_synthetic=amount_of_synthetic,
                 price=price,
