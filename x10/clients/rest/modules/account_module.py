@@ -14,7 +14,7 @@ from x10.models.base import EmptyModel
 from x10.models.bridge import BridgesConfigModel, QuoteModel
 from x10.models.client import ClientModel
 from x10.models.fee import TradingFeeModel
-from x10.models.order import OpenOrderModel, OrderSide, OrderType, Sort
+from x10.models.order import OpenOrderModel, OrderSide, OrderSortBy, OrderType
 from x10.models.position import PositionHistoryModel, PositionModel, PositionSide
 from x10.models.trade import AccountTradeModel, TradeType
 from x10.models.transfer import TransferResponseModel
@@ -29,13 +29,17 @@ from x10.utils.http import (
 
 
 class AccountModule(BaseModule):
-    async def get_account(self) -> WrappedApiResponseModel[AccountModel]:
-        url = self._get_url("/user/account/info")
-        return await send_get_request(await self._get_session(), url, AccountModel, api_key=self._get_api_key())
-
     async def get_client(self) -> WrappedApiResponseModel[ClientModel]:
         url = self._get_url("/user/client/info")
         return await send_get_request(await self._get_session(), url, ClientModel, api_key=self._get_api_key())
+
+    async def get_accounts(self) -> WrappedApiResponseModel[list[AccountModel]]:
+        url = self._get_url("/user/accounts")
+        return await send_get_request(await self._get_session(), url, list[AccountModel], api_key=self._get_api_key())
+
+    async def get_account(self) -> WrappedApiResponseModel[AccountModel]:
+        url = self._get_url("/user/account/info")
+        return await send_get_request(await self._get_session(), url, AccountModel, api_key=self._get_api_key())
 
     async def get_balance(self) -> WrappedApiResponseModel[BalanceModel]:
         """
@@ -104,7 +108,7 @@ class AccountModule(BaseModule):
         order_side: Optional[OrderSide] = None,
         cursor: Optional[int] = None,
         limit: Optional[int] = None,
-        sort: Optional[Sort] = None,
+        sort: Optional[OrderSortBy] = None,
     ) -> WrappedApiResponseModel[List[OpenOrderModel]]:
         """
         Fetches the historical orders of the user's account.
@@ -252,22 +256,25 @@ class AccountModule(BaseModule):
 
     async def transfer(
         self,
+        *,
         to_vault: int,
-        to_l2_key: int | str,
+        to_l2_public_key: int | str,
         amount: Decimal,
+        asset_id: str,
         nonce: int | None = None,
     ) -> WrappedApiResponseModel[TransferResponseModel]:
         from_vault = self._get_stark_account().vault
         url = self._get_url("/user/transfer/onchain")
 
-        if isinstance(to_l2_key, str):
-            to_l2_key = int(to_l2_key, base=16)
+        if isinstance(to_l2_public_key, str):
+            to_l2_public_key = int(to_l2_public_key, base=16)
 
         request_model = create_transfer_object(
             from_vault=from_vault,
             to_vault=to_vault,
-            to_l2_key=to_l2_key,
+            to_l2_public_key=to_l2_public_key,
             amount=amount,
+            asset_id=asset_id,
             config=self._get_config(),
             stark_account=self._get_stark_account(),
             nonce=nonce,

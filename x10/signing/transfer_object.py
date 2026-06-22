@@ -17,16 +17,13 @@ from x10.utils.nonce import generate_nonce
 SETTLEMENT_EXPIRATION_BUFFER_DAYS = 21
 
 
-def find_account_by_id(accounts: List[AccountModel], account_id: int):
-    return next((account for account in accounts if account.id == account_id), None)
-
-
-# FIXME: Transfers are broken
 def create_transfer_object(
+    *,
     from_vault: int,
     to_vault: int,
-    to_l2_key: int,
+    to_l2_public_key: int,
     amount: Decimal,
+    asset_id: str,
     config: Config,
     stark_account: StarkPerpetualAccount,
     nonce: int | None = None,
@@ -42,6 +39,7 @@ def create_transfer_object(
     transfer_hash = get_transfer_msg_hash(
         recipient_position_id=to_vault,
         sender_position_id=from_vault,
+        collateral_id=int(asset_id, 16),
         amount=int(stark_amount),
         expiration=expiration_timestamp,
         salt=nonce,
@@ -50,17 +48,16 @@ def create_transfer_object(
         domain_version=starknet_domain.version,
         domain_chain_id=starknet_domain.chain_id,
         domain_revision=starknet_domain.revision,
-        collateral_id=int(config.endpoints.collateral_asset_on_chain_id, base=16),
     )
 
     (transfer_signature_r, transfer_signature_s) = stark_account.sign(transfer_hash)
     settlement = StarkTransferSettlementModel(
         amount=int(stark_amount),
-        asset_id=int(config.endpoints.collateral_asset_on_chain_id, base=16),
+        asset_id=int(asset_id, base=16),
         expiration_timestamp=expiration_timestamp,
         nonce=nonce,
         receiver_position_id=to_vault,
-        receiver_public_key=to_l2_key,
+        receiver_public_key=to_l2_public_key,
         sender_position_id=from_vault,
         sender_public_key=stark_account.public_key,
         signature=SettlementSignatureModel(r=transfer_signature_r, s=transfer_signature_s),
@@ -71,5 +68,5 @@ def create_transfer_object(
         to_vault=to_vault,
         amount=amount,
         settlement=settlement,
-        transferred_asset=config.endpoints.collateral_asset_on_chain_id,
+        transferred_asset=asset_id,
     )

@@ -27,8 +27,8 @@ class OnChainPerpetualTransferModel(X10BaseModel):
     from_vault: int
     to_vault: int
     amount: Decimal
-    settlement: StarkTransferSettlementModel
     transferred_asset: str
+    settlement: StarkTransferSettlementModel
 
 
 class TransferResponseModel(X10BaseModel):
