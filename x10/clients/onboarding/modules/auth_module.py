@@ -20,6 +20,13 @@ class SubAccountExists(SdkError):
 
 class AuthModule(BaseModule):
     async def onboard_client(self, *, referral_code: str | None = None) -> OnBoardedAccount:
+        """
+        Handles the onboarding process of a user. It generates an L2 key pair from
+        the user's L1 Ethereum account, creates an onboarding payload, and sends it
+        to the onboarding endpoint. Upon successful onboarding, it returns an `OnBoardedAccount`
+        object containing the default account and the L2 key pair.
+        """
+
         l2_key_pair = get_l2_keys_from_l1_account(
             account_index=0,
             account_address=self._get_account_address(),
@@ -48,6 +55,14 @@ class AuthModule(BaseModule):
         return OnBoardedAccount(account=onboarded_client.default_account, l2_key_pair=l2_key_pair)
 
     async def onboard_subaccount(self, *, account_index: int, description: str):
+        """
+        This method onboards a subaccount associated with the user's main account.
+        It allows you to specify an `account_index` and an optional description.
+        If a subaccount with the given index already exists, it raises a `ValidationError` exception.
+        Otherwise, it creates a new subaccount and returns an `OnBoardedAccount` object with
+        the subaccount details and the associated L2 key pair.
+        """
+
         request_path = "/auth/onboard/subaccount"
         signature = sign_api_request(request_path, self._sign_message)
         headers: dict[str, str] = {
