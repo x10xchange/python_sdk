@@ -4,6 +4,7 @@ from fast_stark_crypto import get_transfer_msg_hash
 
 from x10.core.client_config import ClientConfig, StarknetDomain
 from x10.core.stark_account import StarkPerpetualAccount
+from x10.core.types import HexString
 from x10.models.base import SettlementSignatureModel
 from x10.models.transfer import (
     OnChainPerpetualTransferModel,
@@ -21,7 +22,7 @@ def create_transfer_object(
     to_vault: int,
     to_l2_public_key: int,
     amount: Decimal,
-    asset_id: str,
+    asset_id: HexString,
     config: ClientConfig,
     stark_account: StarkPerpetualAccount,
     nonce: int | None = None,

@@ -2,6 +2,7 @@ from decimal import Decimal
 from typing import List, Optional
 
 from x10.clients.rest.modules.base_module import BaseModule
+from x10.core.types import HexString
 from x10.errors import ValidationError
 from x10.models.account import AccountLeverageModel, AccountModel
 from x10.models.asset import (
@@ -258,9 +259,9 @@ class AccountModule(BaseModule):
         self,
         *,
         to_vault: int,
-        to_l2_public_key: int | str,
+        to_l2_public_key: int | HexString,
         amount: Decimal,
-        asset_id: str,
+        asset_id: HexString,
         nonce: int | None = None,
     ) -> WrappedApiResponseModel[TransferResponseModel]:
         from_vault = self._get_stark_account().vault
@@ -356,18 +357,19 @@ class AccountModule(BaseModule):
         cursor: Optional[int] = None,
         limit: Optional[int] = None,
     ) -> WrappedApiResponseModel[List[AssetOperationModel]]:
+        type_query = [operation_type.name for operation_type in operations_type] if operations_type else None
+        status_query = [operation_status.name for operation_status in operations_status] if operations_status else None
+
         url = self._get_url(
             "/user/assetOperations",
             query={
-                "type": [operation_type.name for operation_type in operations_type] if operations_type else None,
-                "status": [operation_status.name for operation_status in operations_status]
-                if operations_status
-                else None,
+                "id": id if id is not None else None,
+                "type": type_query,
+                "status": status_query,
                 "startTime": start_time,
                 "endTime": end_time,
                 "cursor": cursor,
                 "limit": limit,
-                "id": id if id is not None else None,
             },
         )
         return await send_get_request(
