@@ -25,7 +25,6 @@ class SettlementAsset:
     l1_resolution: int | None = None
 
 
-# FIXME: Add test
 @dataclass(frozen=True)
 class InternalAmount:
     """
@@ -54,7 +53,6 @@ class InternalAmount:
         return StarkAmount(converted_value, self.asset)
 
 
-# FIXME: Add test
 @dataclass(frozen=True)
 class L1Amount:
     value: int
@@ -70,7 +68,6 @@ class L1Amount:
         return InternalAmount(converted_value, self.asset)
 
 
-# FIXME: Add test
 @dataclass(frozen=True)
 class StarkAmount:
     value: int

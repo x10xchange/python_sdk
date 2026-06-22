@@ -32,12 +32,12 @@ class AssetModel(X10BaseModel):
     type: AssetType
     can_be_used_as_collateral: bool
 
-    def to_settlement_asset(self):
+    def to_settlement_asset(self) -> SettlementAsset:
         return SettlementAsset(
             name=self.name,
             precision=self.precision,
             is_collateral=self.is_collateral,
-            starkex_id=str(self.starkex_id),
+            starkex_id=hex(self.starkex_id),
             starkex_resolution=self.starkex_resolution,
             l1_id=self.l1_id,
             l1_resolution=self.l1_resolution,
