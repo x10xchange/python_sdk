@@ -28,8 +28,6 @@ def create_transfer_object(
     nonce: int | None = None,
 ) -> OnChainPerpetualTransferModel:
     expiration_timestamp = calc_settlement_expiration(SETTLEMENT_EXPIRATION_BUFFER_DAYS)
-    # scaled_amount = amount.scaleb(config.endpoints.collateral_decimals)
-    # stark_amount = scaled_amount.to_integral_exact()
     stark_amount = InternalAmount(amount, asset).to_stark_amount()
     starknet_domain: StarknetDomain = config.signing.starknet_domain
 
