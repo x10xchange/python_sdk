@@ -5,7 +5,7 @@ from mcp.server.fastmcp import FastMCP
 from x10.clients.rest.rest_api_client import RestApiClient
 from x10.config import get_config_by_name
 from x10.core.env_config import EnvConfig
-from x10.core.stark_account import StarkPerpetualAccount
+from x10.models.asset import AssetType
 from x10.models.candle import CandleInterval, CandleType
 from x10.tools.mcp.utils import serialize_tool_result
 
@@ -18,6 +18,18 @@ def _create_public_rest_api_client() -> RestApiClient:
 
 
 def register_tools(mcp: FastMCP):
+    @mcp.tool()
+    async def get_assets(asset_type: Optional[AssetType] = None) -> list[dict]:
+        """
+        List available assets. Optionally filter by type.
+
+        Args:
+            asset_type: Optional asset type to filter by. One of "SPOT", "PERPETUAL".
+        """
+        async with _create_public_rest_api_client() as client:
+            result = await client.info.get_assets(asset_type=asset_type)
+            return serialize_tool_result(result.data)
+
     @mcp.tool()
     async def get_markets(market_names: Optional[list[str]] = None) -> list[dict]:
         """
