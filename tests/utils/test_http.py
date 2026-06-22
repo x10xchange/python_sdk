@@ -10,6 +10,7 @@ class _QueryParamValueEnum(StrEnum):
 
 
 def test_generate_valid_url_from_template():
+    assert_that(get_url("/info/candles", query={"param1": None}), equal_to("/info/candles"))
     assert_that(
         get_url(
             "/info/candles",

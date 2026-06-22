@@ -2,6 +2,7 @@ import decimal
 from dataclasses import dataclass
 from decimal import Decimal
 
+from x10.core.types import HexString
 from x10.errors import ValidationError
 
 ROUNDING_SELL_CONTEXT = decimal.Context(rounding=decimal.ROUND_DOWN)
@@ -19,9 +20,9 @@ class SettlementAsset:
     name: str
     precision: int
     is_collateral: bool
-    starkex_id: str
+    starkex_id: HexString
     starkex_resolution: int
-    l1_id: str | None = None
+    l1_id: HexString | None = None
     l1_resolution: int | None = None
 
 

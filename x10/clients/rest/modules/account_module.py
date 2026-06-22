@@ -3,6 +3,7 @@ from typing import List, Optional
 
 from x10.clients.rest.modules.base_module import BaseModule
 from x10.core.amount import SettlementAsset
+from x10.core.types import HexString
 from x10.errors import ValidationError
 from x10.models.account import AccountLeverageModel, AccountModel
 from x10.models.asset import (
@@ -15,7 +16,7 @@ from x10.models.base import EmptyModel
 from x10.models.bridge import BridgesConfigModel, QuoteModel
 from x10.models.client import ClientModel
 from x10.models.fee import TradingFeeModel
-from x10.models.order import OpenOrderModel, OrderSide, OrderType, Sort
+from x10.models.order import OpenOrderModel, OrderSide, OrderSortBy, OrderType
 from x10.models.position import PositionHistoryModel, PositionModel, PositionSide
 from x10.models.trade import AccountTradeModel, TradeType
 from x10.models.transfer import TransferResponseModel
@@ -30,13 +31,17 @@ from x10.utils.http import (
 
 
 class AccountModule(BaseModule):
-    async def get_account(self) -> WrappedApiResponseModel[AccountModel]:
-        url = self._get_url("/user/account/info")
-        return await send_get_request(await self._get_session(), url, AccountModel, api_key=self._get_api_key())
-
     async def get_client(self) -> WrappedApiResponseModel[ClientModel]:
         url = self._get_url("/user/client/info")
         return await send_get_request(await self._get_session(), url, ClientModel, api_key=self._get_api_key())
+
+    async def get_accounts(self) -> WrappedApiResponseModel[list[AccountModel]]:
+        url = self._get_url("/user/accounts")
+        return await send_get_request(await self._get_session(), url, list[AccountModel], api_key=self._get_api_key())
+
+    async def get_account(self) -> WrappedApiResponseModel[AccountModel]:
+        url = self._get_url("/user/account/info")
+        return await send_get_request(await self._get_session(), url, AccountModel, api_key=self._get_api_key())
 
     async def get_balance(self) -> WrappedApiResponseModel[BalanceModel]:
         """
@@ -105,7 +110,7 @@ class AccountModule(BaseModule):
         order_side: Optional[OrderSide] = None,
         cursor: Optional[int] = None,
         limit: Optional[int] = None,
-        sort: Optional[Sort] = None,
+        sort: Optional[OrderSortBy] = None,
     ) -> WrappedApiResponseModel[List[OpenOrderModel]]:
         """
         Fetches the historical orders of the user's account.
@@ -253,22 +258,25 @@ class AccountModule(BaseModule):
 
     async def transfer(
         self,
+        *,
         to_vault: int,
-        to_l2_key: int | str,
+        to_l2_public_key: int | HexString,
         amount: Decimal,
+        asset: SettlementAsset,
         nonce: int | None = None,
     ) -> WrappedApiResponseModel[TransferResponseModel]:
         from_vault = self._get_stark_account().vault
         url = self._get_url("/user/transfer/onchain")
 
-        if isinstance(to_l2_key, str):
-            to_l2_key = int(to_l2_key, base=16)
+        if isinstance(to_l2_public_key, str):
+            to_l2_public_key = int(to_l2_public_key, base=16)
 
         request_model = create_transfer_object(
             from_vault=from_vault,
             to_vault=to_vault,
-            to_l2_key=to_l2_key,
+            to_l2_public_key=to_l2_public_key,
             amount=amount,
+            asset=asset,
             config=self._get_config(),
             stark_account=self._get_stark_account(),
             nonce=nonce,
@@ -352,18 +360,19 @@ class AccountModule(BaseModule):
         cursor: Optional[int] = None,
         limit: Optional[int] = None,
     ) -> WrappedApiResponseModel[List[AssetOperationModel]]:
+        type_query = [operation_type.name for operation_type in operations_type] if operations_type else None
+        status_query = [operation_status.name for operation_status in operations_status] if operations_status else None
+
         url = self._get_url(
             "/user/assetOperations",
             query={
-                "type": [operation_type.name for operation_type in operations_type] if operations_type else None,
-                "status": [operation_status.name for operation_status in operations_status]
-                if operations_status
-                else None,
+                "id": id if id is not None else None,
+                "type": type_query,
+                "status": status_query,
                 "startTime": start_time,
                 "endTime": end_time,
                 "cursor": cursor,
                 "limit": limit,
-                "id": id if id is not None else None,
             },
         )
         return await send_get_request(
