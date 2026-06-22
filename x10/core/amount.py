@@ -42,7 +42,7 @@ class InternalAmount:
                 f"Not supported or missing for {self.asset.name}. Only collateral assets have an L1 representation."
             )
 
-        converted_value = int(self.value * Decimal(self.asset.l1_resolution))
+        converted_value = int(self.value * self.asset.l1_resolution)
         return L1Amount(converted_value, self.asset)
 
     def to_stark_amount(self, rounding_context: decimal.Context | None = None) -> "StarkAmount":
@@ -66,7 +66,7 @@ class L1Amount:
                 f"Not supported or missing for {self.asset.name}. Only collateral assets have an L1 representation."
             )
 
-        converted_value = Decimal(self.value) / Decimal(self.asset.l1_resolution)
+        converted_value = Decimal(self.value) / self.asset.l1_resolution
         return InternalAmount(converted_value, self.asset)
 
 
@@ -79,5 +79,5 @@ class StarkAmount:
         return StarkAmount(-self.value, self.asset)
 
     def to_internal_amount(self) -> InternalAmount:
-        converted_value = Decimal(self.value) / Decimal(self.asset.starkex_resolution)
+        converted_value = Decimal(self.value) / self.asset.starkex_resolution
         return InternalAmount(converted_value, self.asset)
