@@ -50,9 +50,7 @@ class InternalAmount:
             return StarkAmount(int((self.value * self.asset.starkex_resolution).to_integral_exact()), self.asset)
 
         converted_value = int(
-            rounding_context.multiply(self.value, Decimal(self.asset.starkex_resolution)).to_integral(
-                context=rounding_context
-            )
+            rounding_context.multiply(self.value, self.asset.starkex_resolution).to_integral(context=rounding_context)
         )
         return StarkAmount(converted_value, self.asset)
 
