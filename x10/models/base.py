@@ -9,7 +9,7 @@ from typing_extensions import Annotated
 
 
 class X10BaseModel(BaseModel):
-    model_config = ConfigDict(frozen=True, extra="ignore", use_enum_values=True)
+    model_config = ConfigDict(frozen=True, extra="ignore", populate_by_name=True, use_enum_values=True)
 
     # Read this to get more context why `alias_generator` can't be used:
     # https://github.com/pydantic/pydantic/discussions/7877

@@ -8,7 +8,7 @@ from x10.clients.rest.modules.info_module import InfoModule
 from x10.clients.rest.modules.order_management_module import OrderManagementModule
 from x10.clients.rest.modules.testnet_module import TestnetModule
 from x10.clients.rest.modules.vault_module import VaultModule
-from x10.config import Config
+from x10.core.client_config import ClientConfig
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.errors import ValidationError
 from x10.models.market import MarketModel
@@ -34,7 +34,7 @@ class RestApiClient:
 
     __markets: Dict[str, MarketModel] | None
 
-    __config: Config
+    __config: ClientConfig
     __stark_account: StarkPerpetualAccount | None
 
     __info_module: InfoModule
@@ -116,7 +116,7 @@ class RestApiClient:
     async def __aexit__(self, exc_type, exc_value, traceback):
         await self.close()
 
-    def __init__(self, config: Config, stark_account: StarkPerpetualAccount | None = None):
+    def __init__(self, config: ClientConfig, stark_account: StarkPerpetualAccount | None = None):
         api_key = stark_account.api_key if stark_account else None
 
         self.__config = config

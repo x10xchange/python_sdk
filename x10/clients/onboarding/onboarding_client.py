@@ -2,7 +2,7 @@ from eth_typing import ChecksumAddress
 
 from x10.clients.onboarding.modules.account_module import AccountModule
 from x10.clients.onboarding.modules.auth_module import AuthModule
-from x10.config import Config
+from x10.core.client_config import ClientConfig
 from x10.signing.onboarding import SignMessageCallback
 
 
@@ -20,7 +20,7 @@ class OnboardingClient:
     async def __aexit__(self, exc_type, exc_value, traceback):
         await self.close()
 
-    def __init__(self, config: Config, *, account_address: ChecksumAddress, sign_message: SignMessageCallback):
+    def __init__(self, config: ClientConfig, *, account_address: ChecksumAddress, sign_message: SignMessageCallback):
         self.__account_module = AccountModule(config, account_address=account_address, sign_message=sign_message)
         self.__auth_module = AuthModule(config, account_address=account_address, sign_message=sign_message)
 

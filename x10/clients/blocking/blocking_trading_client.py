@@ -7,7 +7,7 @@ from typing import Awaitable, Dict, Optional, cast
 from x10.clients.rest.modules.info_module import InfoModule
 from x10.clients.rest.modules.order_management_module import OrderManagementModule
 from x10.clients.stream import StreamClient, StreamConnection
-from x10.config import Config
+from x10.core.client_config import ClientConfig
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.errors import SdkError, ValidationError
 from x10.models.account import AccountStreamDataModel
@@ -77,7 +77,7 @@ class BlockingTradingClient:
     Waits for the confirmation from the WS stream after placing or canceling an order.
     """
 
-    def __init__(self, config: Config, account: StarkPerpetualAccount):
+    def __init__(self, config: ClientConfig, account: StarkPerpetualAccount):
         if not asyncio.get_event_loop().is_running():
             raise SdkError(
                 "BlockingTradingClient must be initialized from an async function, use BlockingTradingClient.create()"
@@ -95,7 +95,7 @@ class BlockingTradingClient:
         self.__stream_task = asyncio.create_task(self.__order_stream())
 
     @staticmethod
-    async def create(config: Config, account: StarkPerpetualAccount) -> "BlockingTradingClient":
+    async def create(config: ClientConfig, account: StarkPerpetualAccount) -> "BlockingTradingClient":
         client = BlockingTradingClient(config, account)
         await client.__stream_client.subscribe_to_account_updates(account.api_key)
         return client

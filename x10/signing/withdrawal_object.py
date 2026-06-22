@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from fast_stark_crypto import get_withdrawal_msg_hash
 
-from x10.config import Config, StarknetDomain
+from x10.core.client_config import ClientConfig, StarknetDomain
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.base import SettlementSignatureModel
 from x10.models.withdrawal import (
@@ -20,7 +20,7 @@ def create_withdrawal_object(
     amount: Decimal,
     recipient_stark_address: str,
     stark_account: StarkPerpetualAccount,
-    config: Config,
+    config: ClientConfig,
     account_id: int,
     chain_id: str,
     description: str | None = None,

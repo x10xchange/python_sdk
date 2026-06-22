@@ -28,7 +28,7 @@ jobs:
           poetry config virtualenvs.create false
 
       - name: Install deps
-        run: poetry install --no-root
+        run: poetry install -E mcp --no-root
 
       - name: Run linter
         run: make lint

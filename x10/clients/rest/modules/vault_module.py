@@ -6,7 +6,7 @@ from typing import Optional
 from x10.clients.rest.modules.account_module import AccountModule
 from x10.clients.rest.modules.base_module import BaseModule
 from x10.clients.rest.modules.info_module import InfoModule
-from x10.config import Config
+from x10.core.client_config import ClientConfig
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.errors import ApiError, ValidationError
 from x10.models.vault import DepositRequestModel, WithdrawRequestModel
@@ -21,7 +21,7 @@ COLLATERAL_ASSET_NAME = "USD"
 class VaultModule(BaseModule):
     def __init__(
         self,
-        config: Config,
+        config: ClientConfig,
         *,
         info_module: InfoModule,
         account_module: AccountModule,
