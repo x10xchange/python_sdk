@@ -1,10 +1,9 @@
-from dataclasses import dataclass
-from decimal import Context, Decimal
+from decimal import Decimal
 from typing import Optional
 
 from strenum import StrEnum
 
-from x10.errors import ValidationError
+from x10.core.amount import SettlementAsset
 from x10.models.base import HexValue, X10BaseModel
 
 
@@ -33,50 +32,15 @@ class AssetModel(X10BaseModel):
     type: AssetType
     can_be_used_as_collateral: bool
 
-
-# FIXME: Replace with AssetModel
-@dataclass(frozen=True)
-class Asset:
-    id: int
-    name: str
-    precision: int
-    active: bool
-    is_collateral: bool
-    settlement_external_id: str
-    settlement_resolution: int
-    l1_external_id: str
-    l1_resolution: int
-
-    def convert_human_readable_to_stark_quantity(self, internal: Decimal, rounding_context: Context) -> int:
-        return int(
-            rounding_context.multiply(internal, Decimal(self.settlement_resolution)).to_integral(
-                context=rounding_context
-            )
-        )
-
-    def convert_stark_to_internal_quantity(self, stark: int) -> Decimal:
-        return Decimal(stark) / Decimal(self.settlement_resolution)
-
-    def convert_l1_quantity_to_internal_quantity(self, l1: int) -> Decimal:
-        return Decimal(l1) / Decimal(self.l1_resolution)
-
-    def convert_internal_quantity_to_l1_quantity(self, internal: Decimal) -> int:
-        if not self.is_collateral:
-            raise ValidationError("Only collateral assets have an L1 representation")
-        return int(internal * Decimal(self.l1_resolution))
-
-    @staticmethod
-    def from_model(model: AssetModel):
-        return Asset(
-            id=model.id,
-            name=model.name,
-            precision=model.precision,
-            active=model.is_active,
-            is_collateral=model.is_collateral,
-            settlement_external_id=hex(model.starkex_id),
-            settlement_resolution=model.starkex_resolution,
-            l1_external_id=model.l1_id,
-            l1_resolution=model.l1_resolution,
+    def to_settlement_asset(self) -> SettlementAsset:
+        return SettlementAsset(
+            name=self.name,
+            precision=self.precision,
+            is_collateral=self.is_collateral,
+            starkex_id=hex(self.starkex_id),
+            starkex_resolution=self.starkex_resolution,
+            l1_id=self.l1_id,
+            l1_resolution=self.l1_resolution,
         )
 
 

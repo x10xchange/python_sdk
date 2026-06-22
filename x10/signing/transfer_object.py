@@ -3,7 +3,7 @@ from typing import List
 
 from fast_stark_crypto import get_transfer_msg_hash
 
-from x10.config import Config, StarknetDomain
+from x10.core.client_config import ClientConfig, StarknetDomain
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.account import AccountModel
 from x10.models.base import SettlementSignatureModel
@@ -24,7 +24,7 @@ def create_transfer_object(
     to_l2_public_key: int,
     amount: Decimal,
     asset_id: str,
-    config: Config,
+    config: ClientConfig,
     stark_account: StarkPerpetualAccount,
     nonce: int | None = None,
 ) -> OnChainPerpetualTransferModel:

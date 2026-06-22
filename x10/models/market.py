@@ -4,7 +4,7 @@ from typing import List
 
 from strenum import StrEnum
 
-from x10.models.asset import Asset
+from x10.core.amount import SettlementAsset
 from x10.models.base import X10BaseModel
 from x10.utils.order import round_price as round_order_price_util
 
@@ -113,29 +113,21 @@ class MarketModel(X10BaseModel):
     l2_config: L2ConfigModel
 
     @cached_property
-    def synthetic_asset(self) -> Asset:
-        return Asset(
-            id=1,
+    def synthetic_asset(self) -> SettlementAsset:
+        return SettlementAsset(
             name=self.asset_name,
             precision=self.asset_precision,
-            active=self.active,
             is_collateral=False,
-            settlement_external_id=self.l2_config.synthetic_id,
-            settlement_resolution=self.l2_config.synthetic_resolution,
-            l1_external_id="",
-            l1_resolution=0,
+            starkex_id=self.l2_config.synthetic_id,
+            starkex_resolution=self.l2_config.synthetic_resolution,
         )
 
     @cached_property
-    def collateral_asset(self) -> Asset:
-        return Asset(
-            id=2,
+    def collateral_asset(self) -> SettlementAsset:
+        return SettlementAsset(
             name=self.collateral_asset_name,
             precision=self.collateral_asset_precision,
-            active=self.active,
             is_collateral=True,
-            settlement_external_id=self.l2_config.collateral_id,
-            settlement_resolution=self.l2_config.collateral_resolution,
-            l1_external_id="",
-            l1_resolution=0,
+            starkex_id=self.l2_config.collateral_id,
+            starkex_resolution=self.l2_config.collateral_resolution,
         )

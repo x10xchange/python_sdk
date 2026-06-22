@@ -4,17 +4,17 @@ from decimal import Decimal
 
 from examples.utils import create_rest_client
 from x10.config import MAINNET_CONFIG
+from x10.errors import ValidationError
 
 LOGGER = logging.getLogger()
 FEE_THRESHOLD_USDC = 2
 
 
 async def run_example():
-    """
-    Example works on MAINNET only with EVM wallets.
-    """
+    rest_client = create_rest_client()
 
-    rest_client = create_rest_client(MAINNET_CONFIG)
+    if rest_client.config != MAINNET_CONFIG:
+        raise ValidationError("Example works on MAINNET only with EVM wallets")
 
     amount_usdc = Decimal("5")
     chain_in = "STRK"

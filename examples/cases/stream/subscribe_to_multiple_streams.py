@@ -4,6 +4,7 @@ from asyncio import run
 from signal import SIGINT, SIGTERM
 
 from examples.utils import BTC_USD_MARKET, create_stream_client, init_env
+from x10.config import get_config_by_name
 
 LOGGER = logging.getLogger()
 MARKET_NAME = BTC_USD_MARKET
@@ -11,7 +12,8 @@ MARKET_NAME = BTC_USD_MARKET
 
 async def subscribe_to_streams(stop_event: asyncio.Event):
     env_config = init_env()
-    stream_client = create_stream_client()
+    client_config = get_config_by_name(env_config.client_config_name)
+    stream_client = create_stream_client(client_config)
 
     async def subscribe_to_orderbook():
         async with stream_client.subscribe_to_orderbooks(MARKET_NAME) as orderbook_stream:

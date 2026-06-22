@@ -10,7 +10,7 @@ from x10.core.amount import (
     ROUNDING_BUY_CONTEXT,
     ROUNDING_FEE_CONTEXT,
     ROUNDING_SELL_CONTEXT,
-    HumanReadableAmount,
+    InternalAmount,
     StarkAmount,
 )
 from x10.models.base import SettlementSignatureModel
@@ -27,7 +27,7 @@ SETTLEMENT_EXPIRATION_BUFFER_DAYS = 14
 
 @dataclass(kw_only=True, frozen=True)
 class OrderSettlementData:
-    synthetic_amount_human: HumanReadableAmount
+    synthetic_amount_human: InternalAmount
     order_hash: int
     settlement: StarkSettlementModel
     debugging_amounts: StarkDebuggingOrderAmountsModel
@@ -62,12 +62,12 @@ def hash_limit_order(
     return get_limit_order_msg_hash(
         source_position_id=position_id,
         receive_position_id=position_id,
-        base_asset_id=int(synthetic_asset.settlement_external_id, 16),
+        base_asset_id=int(synthetic_asset.starkex_id, 16),
         base_amount=amount_base.value,
-        quote_asset_id=int(collateral_asset.settlement_external_id, 16),
+        quote_asset_id=int(collateral_asset.starkex_id, 16),
         quote_amount=amount_quote.value,
         fee_amount=max_fee.value,
-        fee_asset_id=int(collateral_asset.settlement_external_id, 16),
+        fee_asset_id=int(collateral_asset.starkex_id, 16),
         expiration=calc_settlement_expiration(SETTLEMENT_EXPIRATION_BUFFER_DAYS, expiration_timestamp),
         salt=nonce,
         user_public_key=public_key,
@@ -93,12 +93,12 @@ def hash_order(
 
     return get_order_msg_hash(
         position_id=position_id,
-        base_asset_id=int(synthetic_asset.settlement_external_id, 16),
+        base_asset_id=int(synthetic_asset.starkex_id, 16),
         base_amount=amount_synthetic.value,
-        quote_asset_id=int(collateral_asset.settlement_external_id, 16),
+        quote_asset_id=int(collateral_asset.starkex_id, 16),
         quote_amount=amount_collateral.value,
         fee_amount=max_fee.value,
-        fee_asset_id=int(collateral_asset.settlement_external_id, 16),
+        fee_asset_id=int(collateral_asset.starkex_id, 16),
         expiration=calc_settlement_expiration(SETTLEMENT_EXPIRATION_BUFFER_DAYS, expiration_timestamp),
         salt=nonce,
         user_public_key=public_key,
@@ -119,10 +119,10 @@ def create_order_settlement_data(
     is_buying_synthetic = side == OrderSide.BUY
     rounding_context = ROUNDING_BUY_CONTEXT if is_buying_synthetic else ROUNDING_SELL_CONTEXT
 
-    synthetic_amount_human = HumanReadableAmount(synthetic_amount, ctx.market.synthetic_asset)
-    collateral_amount_human = HumanReadableAmount(synthetic_amount * price, ctx.market.collateral_asset)
+    synthetic_amount_human = InternalAmount(synthetic_amount, ctx.market.synthetic_asset)
+    collateral_amount_human = InternalAmount(synthetic_amount * price, ctx.market.collateral_asset)
     total_fee = ctx.taker_fee + (ctx.builder_fee if ctx.builder_fee is not None else 0)
-    fee_amount_human = HumanReadableAmount(
+    fee_amount_human = InternalAmount(
         total_fee * collateral_amount_human.value,
         ctx.market.collateral_asset,
     )
