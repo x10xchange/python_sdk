@@ -51,7 +51,7 @@ async def run_example():
         to_vault=to_subaccount.l2_vault,
         to_l2_public_key=to_subaccount.l2_key,
         amount=Decimal(USDC_TRANSFER_AMOUNT),
-        asset_id=hex(usd_asset.starkex_id),
+        asset=usd_asset.to_settlement_asset(),
     )
     transfer = transfer_response.data
 

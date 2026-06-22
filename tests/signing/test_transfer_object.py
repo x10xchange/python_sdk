@@ -25,7 +25,7 @@ async def test_create_transfer(mocker: MockerFixture, create_trading_account, cr
         to_vault=int(accounts[1].l2_vault),
         to_l2_public_key=accounts[1].l2_key,
         amount=Decimal("1.1"),
-        asset_id=hex(usd_asset.starkex_id),
+        asset=usd_asset.to_settlement_asset(),
         stark_account=trading_account,
         config=TESTNET_CONFIG,
         nonce=FROZEN_NONCE,

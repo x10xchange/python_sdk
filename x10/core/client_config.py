@@ -27,27 +27,10 @@ class SigningConfig:
 
 @dataclass(kw_only=True, frozen=True)
 class EndpointsConfig:
-    """
-    Attributes:
-        chain_rpc_url (str): Field is deprecated and will be removed.
-        asset_operations_contract (str): Field is deprecated and will be removed.
-        collateral_asset_contract (str): Field is deprecated and will be removed.
-        collateral_asset_on_chain_id (str): Field is deprecated and will be removed.
-        collateral_decimals (int): Field is deprecated and will be removed.
-        collateral_asset_id (str): Field is deprecated and will be removed.
-    """
-
-    chain_rpc_url: str
     api_base_url: str
     api_base_order_management_url: str
     stream_url: str
     onboarding_url: str
-
-    asset_operations_contract: str
-    collateral_asset_contract: str
-    collateral_asset_on_chain_id: str
-    collateral_decimals: int
-    collateral_asset_id: str
 
     vault_asset_name: str
 

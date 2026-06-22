@@ -2,6 +2,7 @@ from decimal import Decimal
 from typing import List, Optional
 
 from x10.clients.rest.modules.base_module import BaseModule
+from x10.core.amount import SettlementAsset
 from x10.core.types import HexString
 from x10.errors import ValidationError
 from x10.models.account import AccountLeverageModel, AccountModel
@@ -261,7 +262,7 @@ class AccountModule(BaseModule):
         to_vault: int,
         to_l2_public_key: int | HexString,
         amount: Decimal,
-        asset_id: HexString,
+        asset: SettlementAsset,
         nonce: int | None = None,
     ) -> WrappedApiResponseModel[TransferResponseModel]:
         from_vault = self._get_stark_account().vault
@@ -275,7 +276,7 @@ class AccountModule(BaseModule):
             to_vault=to_vault,
             to_l2_public_key=to_l2_public_key,
             amount=amount,
-            asset_id=asset_id,
+            asset=asset,
             config=self._get_config(),
             stark_account=self._get_stark_account(),
             nonce=nonce,
@@ -292,6 +293,7 @@ class AccountModule(BaseModule):
     async def withdraw(
         self,
         amount: Decimal,
+        asset: SettlementAsset,
         chain_id: str = "STRK",
         stark_address: str | None = None,
         nonce: int | None = None,
@@ -331,6 +333,7 @@ class AccountModule(BaseModule):
         recipient_stark_address = await get_recipient_stark_address()
         request_model = create_withdrawal_object(
             amount=amount,
+            asset=asset,
             recipient_stark_address=recipient_stark_address,
             stark_account=self._get_stark_account(),
             config=self._get_config(),

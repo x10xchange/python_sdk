@@ -2,9 +2,9 @@ from decimal import Decimal
 
 from fast_stark_crypto import get_transfer_msg_hash
 
+from x10.core.amount import InternalAmount, SettlementAsset
 from x10.core.client_config import ClientConfig, StarknetDomain
 from x10.core.stark_account import StarkPerpetualAccount
-from x10.core.types import HexString
 from x10.models.base import SettlementSignatureModel
 from x10.models.transfer import (
     OnChainPerpetualTransferModel,
@@ -22,14 +22,13 @@ def create_transfer_object(
     to_vault: int,
     to_l2_public_key: int,
     amount: Decimal,
-    asset_id: HexString,
+    asset: SettlementAsset,
     config: ClientConfig,
     stark_account: StarkPerpetualAccount,
     nonce: int | None = None,
 ) -> OnChainPerpetualTransferModel:
     expiration_timestamp = calc_settlement_expiration(SETTLEMENT_EXPIRATION_BUFFER_DAYS)
-    scaled_amount = amount.scaleb(config.endpoints.collateral_decimals)
-    stark_amount = scaled_amount.to_integral_exact()
+    stark_amount = InternalAmount(amount, asset).to_stark_amount()
     starknet_domain: StarknetDomain = config.signing.starknet_domain
 
     if nonce is None:
@@ -38,8 +37,8 @@ def create_transfer_object(
     transfer_hash = get_transfer_msg_hash(
         recipient_position_id=to_vault,
         sender_position_id=from_vault,
-        collateral_id=int(asset_id, 16),
-        amount=int(stark_amount),
+        collateral_id=int(asset.starkex_id, 16),
+        amount=stark_amount.value,
         expiration=expiration_timestamp,
         salt=nonce,
         user_public_key=stark_account.public_key,
@@ -51,8 +50,8 @@ def create_transfer_object(
 
     (transfer_signature_r, transfer_signature_s) = stark_account.sign(transfer_hash)
     settlement = StarkTransferSettlementModel(
-        amount=int(stark_amount),
-        asset_id=int(asset_id, base=16),
+        amount=stark_amount.value,
+        asset_id=int(asset.starkex_id, base=16),
         expiration_timestamp=expiration_timestamp,
         nonce=nonce,
         receiver_position_id=to_vault,
@@ -67,5 +66,5 @@ def create_transfer_object(
         to_vault=to_vault,
         amount=amount,
         settlement=settlement,
-        transferred_asset=asset_id,
+        transferred_asset=asset.starkex_id,
     )
