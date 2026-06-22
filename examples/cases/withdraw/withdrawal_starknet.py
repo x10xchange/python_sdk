@@ -23,11 +23,19 @@ async def run_example():
 
     assert is_hex_string(target_wallet_address), "`target_wallet_address` must be a hex string"
 
+    assets = await rest_client.info.get_assets().data
+    usd_asset = next((asset for asset in assets if asset.symbol == "USD"), None)
+
+    if usd_asset is None:
+        LOGGER.error("USD asset not found")
+        return
+
     LOGGER.info("Creating withdrawal of %s USDC to %s...", amount_usdc, target_wallet_address)
 
     withdrawal_id = (
         await rest_client.account.withdraw(
             amount=amount_usdc,
+            asset=usd_asset,
             stark_address=target_wallet_address.lower(),
             nonce=nonce,
         )

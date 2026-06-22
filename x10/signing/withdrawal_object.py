@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from fast_stark_crypto import get_withdrawal_msg_hash
 
+from x10.core.amount import InternalAmount, SettlementAsset
 from x10.core.client_config import ClientConfig, StarknetDomain
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.models.base import SettlementSignatureModel
@@ -17,7 +18,9 @@ SETTLEMENT_EXPIRATION_BUFFER_DAYS = 15
 
 
 def create_withdrawal_object(
+    *,
     amount: Decimal,
+    asset: SettlementAsset,
     recipient_stark_address: str,
     stark_account: StarkPerpetualAccount,
     config: ClientConfig,
@@ -28,8 +31,7 @@ def create_withdrawal_object(
     quote_id: str | None = None,
 ) -> WithdrawalRequestModel:
     expiration_timestamp = calc_settlement_expiration(SETTLEMENT_EXPIRATION_BUFFER_DAYS)
-    scaled_amount = amount.scaleb(config.endpoints.collateral_decimals)
-    stark_amount = scaled_amount.to_integral_exact()
+    stark_amount = InternalAmount(amount, asset).to_stark_amount()
     starknet_domain: StarknetDomain = config.signing.starknet_domain
 
     if nonce is None:
@@ -38,7 +40,8 @@ def create_withdrawal_object(
     withdrawal_hash = get_withdrawal_msg_hash(
         recipient_hex=recipient_stark_address,
         position_id=stark_account.vault,
-        amount=int(stark_amount),
+        collateral_id=int(asset.starkex_id, base=16),
+        amount=stark_amount.value,
         expiration=expiration_timestamp,
         salt=nonce,
         user_public_key=stark_account.public_key,
@@ -46,7 +49,6 @@ def create_withdrawal_object(
         domain_version=starknet_domain.version,
         domain_chain_id=starknet_domain.chain_id,
         domain_revision=starknet_domain.revision,
-        collateral_id=int(config.endpoints.collateral_asset_on_chain_id, base=16),
     )
 
     (transfer_signature_r, transfer_signature_s) = stark_account.sign(withdrawal_hash)
@@ -54,8 +56,8 @@ def create_withdrawal_object(
     settlement = StarkWithdrawalSettlementModel(
         recipient=int(recipient_stark_address, 16),
         position_id=stark_account.vault,
-        collateral_id=int(config.endpoints.collateral_asset_on_chain_id, base=16),
-        amount=int(stark_amount),
+        collateral_id=int(asset.starkex_id, base=16),
+        amount=stark_amount.value,
         expiration=TimestampModel(seconds=expiration_timestamp),
         salt=nonce,
         signature=SettlementSignatureModel(

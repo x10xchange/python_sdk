@@ -44,7 +44,10 @@ class InternalAmount:
         converted_value = int(self.value * Decimal(self.asset.l1_resolution))
         return L1Amount(converted_value, self.asset)
 
-    def to_stark_amount(self, rounding_context: decimal.Context) -> "StarkAmount":
+    def to_stark_amount(self, rounding_context: decimal.Context | None = None) -> "StarkAmount":
+        if rounding_context is None:
+            return StarkAmount(int((self.value * self.asset.starkex_resolution).to_integral_exact()), self.asset)
+
         converted_value = int(
             rounding_context.multiply(self.value, Decimal(self.asset.starkex_resolution)).to_integral(
                 context=rounding_context

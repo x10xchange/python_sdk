@@ -2,6 +2,7 @@ from decimal import Decimal
 from typing import List, Optional
 
 from x10.clients.rest.modules.base_module import BaseModule
+from x10.core.amount import SettlementAsset
 from x10.errors import ValidationError
 from x10.models.account import AccountLeverageModel, AccountModel
 from x10.models.asset import (
@@ -284,6 +285,7 @@ class AccountModule(BaseModule):
     async def withdraw(
         self,
         amount: Decimal,
+        asset: SettlementAsset,
         chain_id: str = "STRK",
         stark_address: str | None = None,
         nonce: int | None = None,
@@ -323,6 +325,7 @@ class AccountModule(BaseModule):
         recipient_stark_address = await get_recipient_stark_address()
         request_model = create_withdrawal_object(
             amount=amount,
+            asset=asset,
             recipient_stark_address=recipient_stark_address,
             stark_account=self._get_stark_account(),
             config=self._get_config(),

@@ -37,17 +37,17 @@ class EndpointsConfig:
         collateral_asset_id (str): Field is deprecated and will be removed.
     """
 
-    chain_rpc_url: str
+    # chain_rpc_url: str
     api_base_url: str
     api_base_order_management_url: str
     stream_url: str
     onboarding_url: str
 
-    asset_operations_contract: str
-    collateral_asset_contract: str
-    collateral_asset_on_chain_id: str
-    collateral_decimals: int
-    collateral_asset_id: str
+    # asset_operations_contract: str
+    # collateral_asset_contract: str
+    # collateral_asset_on_chain_id: str
+    # collateral_decimals: int
+    # collateral_asset_id: str
 
     vault_asset_name: str
 
