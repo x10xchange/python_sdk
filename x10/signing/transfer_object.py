@@ -1,11 +1,9 @@
 from decimal import Decimal
-from typing import List
 
 from fast_stark_crypto import get_transfer_msg_hash
 
 from x10.core.client_config import ClientConfig, StarknetDomain
 from x10.core.stark_account import StarkPerpetualAccount
-from x10.models.account import AccountModel
 from x10.models.base import SettlementSignatureModel
 from x10.models.transfer import (
     OnChainPerpetualTransferModel,
