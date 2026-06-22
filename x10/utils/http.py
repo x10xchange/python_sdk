@@ -126,7 +126,7 @@ async def send_post_request(
 ) -> WrappedApiResponseModel[ApiResponseType]:
     headers = __get_headers(api_key=api_key, request_headers=request_headers)
 
-    LOGGER.debug("Sending POST %s, headers=%s", url, headers)
+    LOGGER.debug("Sending POST %s, headers=%s", url, __mask_headers(headers))
 
     async with session.post(url, json=json, headers=headers) as response:
         response_text = await response.text()
@@ -152,7 +152,7 @@ async def send_patch_request(
 ) -> WrappedApiResponseModel[ApiResponseType]:
     headers = __get_headers(api_key=api_key, request_headers=request_headers)
 
-    LOGGER.debug("Sending PATCH %s, headers=%s, data=%s", url, headers, json)
+    LOGGER.debug("Sending PATCH %s, headers=%s, data=%s", url, __mask_headers(headers), json)
 
     async with session.patch(url, json=json, headers=headers) as response:
         response_text = await response.text()
@@ -176,7 +176,7 @@ async def send_delete_request(
 ):
     headers = __get_headers(api_key=api_key, request_headers=request_headers)
 
-    LOGGER.debug("Sending DELETE %s, headers=%s", url, headers)
+    LOGGER.debug("Sending DELETE %s, headers=%s", url, __mask_headers(headers))
 
     async with session.delete(url, headers=headers) as response:
         response_text = await response.text()
@@ -201,6 +201,10 @@ def handle_known_errors(
     if response.status not in SUCCESS_HTTP_CODES:
         LOGGER.error("Error response from %s: %s", url, response_text)
         raise ApiError(f"Error response from {url}: code {response.status} - {response_text}")
+
+
+def __mask_headers(headers: Dict[str, str]) -> Dict[str, str]:
+    return {key: "***" if key.lower() in ["x-api-key"] else value for key, value in headers.items()}
 
 
 def __get_headers(*, api_key: Optional[str] = None, request_headers: Optional[Dict[str, str]] = None) -> Dict[str, str]:
