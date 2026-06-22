@@ -87,6 +87,9 @@ def get_url(template: str, *, query: Optional[Dict[str, UrlQueryParam]] = None, 
         for key, value in query.items():
             query_parts.extend(serialize_query_param(key, value))
 
+        if not query_parts:
+            return template
+
         template += "?" + "&".join(query_parts)
 
     return template
