@@ -13,6 +13,4 @@ register_public_tools(mcp)
 register_private_tools(mcp)
 
 if __name__ == "__main__":
-    # FIXME
     mcp.run(transport="streamable-http")
-    # mcp.run()

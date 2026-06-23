@@ -10,6 +10,7 @@ from x10.config import get_config_by_name
 from x10.core.env_config import EnvConfig
 from x10.core.stark_account import StarkPerpetualAccount
 from x10.errors import ValidationError
+from x10.models.market import MarketModel
 from x10.models.order import OrderSide, OrderType, SelfTradeProtectionLevel, TimeInForce
 from x10.models.orderbook import OrderbookQuantityModel
 from x10.signing.order_object import create_order_object
@@ -77,6 +78,29 @@ async def _get_top_of_book(market_name: str) -> tuple[OrderbookQuantityModel, Or
         finally:
             await orderbook_stream.close()
 
+    return None
+
+
+async def _get_order_price(
+    *, client: RestApiClient, market: MarketModel, side: OrderSide, order_type: OrderType, price: Decimal | None
+) -> Decimal:
+    if price is not None:
+        return price
+
+    best_bid_and_ask = await _get_top_of_book(market.name)
+
+    if best_bid_and_ask is None:
+        raise ValidationError(f"Failed to fetch top of book for {market.name}")
+
+    best_bid, best_ask = best_bid_and_ask
+
+    return get_price_with_slippage(
+        side=side,
+        price=best_ask.price if side == OrderSide.BUY else best_bid.price,
+        min_price_change=market.trading_config.min_price_change,
+        slippage=client.config.defaults.market_price_slippage,
+    )
+
 
 def register_tools(mcp: FastMCP):
     @mcp.tool()
@@ -108,26 +132,20 @@ def register_tools(mcp: FastMCP):
             reduce_only: If True, the order will only reduce an existing position.
         """
 
+        if order_type != OrderType.MARKET and not price:
+            raise ValidationError("Price is required for non-MARKET orders")
+
         async with _create_private_rest_api_client() as client:
             markets = await client.info.get_markets_dict()
             market = markets[market_name]
 
-            # FIXME
-            if order_type == OrderType.MARKET and price is None:
-                r = await _get_top_of_book(market_name)
-
-                if r is None:
-                    raise ValidationError(f"Failed to fetch top of book for {market_name}")
-
-                best_bid, best_ask = r
-                price = best_ask.price if side == OrderSide.BUY else best_bid.price
-
-                price = get_price_with_slippage(
-                    side=side,
-                    price=price,
-                    min_price_change=market.trading_config.min_price_change,
-                    slippage=client.config.defaults.market_price_slippage,
-                )
+            order_price = await _get_order_price(
+                client=client,
+                market=market,
+                side=side,
+                order_type=order_type,
+                price=price,
+            )
 
             order = create_order_object(
                 account=client.stark_account,
@@ -135,7 +153,7 @@ def register_tools(mcp: FastMCP):
                 order_type=order_type,
                 side=side,
                 amount_of_synthetic=amount_of_synthetic,
-                price=price,
+                price=order_price,
                 post_only=post_only,
                 time_in_force=time_in_force,
                 reduce_only=reduce_only,
