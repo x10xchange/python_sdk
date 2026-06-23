@@ -234,7 +234,9 @@ class BlockingTradingClient:
             raise ValidationError(f"order with {order.id} hash already placed")
 
         self.__order_waiters[order.id] = OrderWaiter(asyncio.Condition(), None, start_nanos=time.time_ns())
-        place_order = self.__orders_module.place_rfq_order(order) if market.is_rfq else self.__orders_module.place_order(order)
+        place_order = (
+            self.__orders_module.place_rfq_order(order) if market.is_rfq else self.__orders_module.place_order(order)
+        )
         placed_order_task = asyncio.create_task(place_order)
         order_waiter = self.__order_waiters[order.id]
         if order_waiter.open_order:
