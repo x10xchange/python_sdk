@@ -1,16 +1,33 @@
+import asyncio
 import json
 import logging
 import os
 import sys
-from asyncio import run
 
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
+import httpx
+from mcp import ClientSession
+from mcp.client.streamable_http import streamable_http_client
 
 from examples.utils import BTC_USD_MARKET, init_env
 
 LOGGER = logging.getLogger()
 MARKET_NAME = BTC_USD_MARKET
+
+SERVER_HOST = "127.0.0.1"
+SERVER_PORT = 8000
+SERVER_URL = f"http://{SERVER_HOST}:{SERVER_PORT}/mcp"
+
+
+async def _wait_for_server(timeout: float = 10.0):
+    deadline = asyncio.get_event_loop().time() + timeout
+    async with httpx.AsyncClient() as client:
+        while asyncio.get_event_loop().time() < deadline:
+            try:
+                await client.get(f"http://{SERVER_HOST}:{SERVER_PORT}/mcp", timeout=1.0)
+                return
+            except (httpx.ConnectError, httpx.ReadError, httpx.RemoteProtocolError):
+                await asyncio.sleep(0.2)
+    raise TimeoutError(f"MCP server did not become ready at {SERVER_URL} within {timeout}s")
 
 
 async def list_available_mcp_tools(session: ClientSession):
@@ -49,7 +66,7 @@ async def call_get_market_statistics(session: ClientSession, market_name: str):
 async def call_get_orderbook_snapshot(session: ClientSession, market_name: str):
     LOGGER.info("--- Orderbook snapshot for %s ---", market_name)
 
-    result = await session.call_tool("get_orderbook_snapshot", {"market_name": MARKET_NAME})
+    result = await session.call_tool("get_orderbook_snapshot", {"market_name": market_name})
     result_as_text = _tool_result_as_text(result)
     result_as_json = json.loads(result_as_text)
 
@@ -114,26 +131,35 @@ async def call_get_open_orders(session: ClientSession):
 async def run_example():
     init_env()
 
-    server_params = StdioServerParameters(
-        command=sys.executable,
-        args=["-m", "x10.tools.mcp.mcp_server"],
-        env=os.environ,  # type: ignore[arg-type]
+    server_proc = await asyncio.create_subprocess_exec(
+        sys.executable,
+        "-m",
+        "x10.tools.mcp.mcp_server",
+        env=os.environ,
+        stdout=asyncio.subprocess.DEVNULL,
+        stderr=asyncio.subprocess.DEVNULL,
     )
 
-    async with stdio_client(server_params) as (read, write):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
+    try:
+        await _wait_for_server()
 
-            await list_available_mcp_tools(session)
+        async with streamable_http_client(SERVER_URL) as (read, write, _):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
 
-            await call_get_markets(session)
-            await call_get_market_statistics(session, MARKET_NAME)
-            await call_get_orderbook_snapshot(session, MARKET_NAME)
-            await call_get_candles_history(session, MARKET_NAME)
+                await list_available_mcp_tools(session)
 
-            await call_get_balance(session)
-            await call_get_positions(session)
-            await call_get_open_orders(session)
+                await call_get_markets(session)
+                await call_get_market_statistics(session, MARKET_NAME)
+                await call_get_orderbook_snapshot(session, MARKET_NAME)
+                await call_get_candles_history(session, MARKET_NAME)
+
+                await call_get_balance(session)
+                await call_get_positions(session)
+                await call_get_open_orders(session)
+    finally:
+        server_proc.terminate()
+        await server_proc.wait()
 
 
 def _tool_result_as_text(result, *, force_list=False) -> str:
@@ -154,4 +180,4 @@ def _tool_result_as_text(result, *, force_list=False) -> str:
 
 
 if __name__ == "__main__":
-    run(main=run_example())
+    asyncio.run(run_example())

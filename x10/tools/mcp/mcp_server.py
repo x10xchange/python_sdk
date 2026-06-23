@@ -12,5 +12,10 @@ mcp = FastMCP("Extended DEX MCP Server")
 register_public_tools(mcp)
 register_private_tools(mcp)
 
-if __name__ == "__main__":
+
+def start_server():
     mcp.run(transport="streamable-http")
+
+
+if __name__ == "__main__":
+    start_server()
