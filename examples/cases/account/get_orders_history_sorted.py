@@ -2,7 +2,7 @@ import logging.handlers
 from asyncio import run
 
 from examples.utils import BTC_USD_MARKET, create_rest_client, init_env
-from x10.models.order import Sort
+from x10.models.order import OrderSortBy
 
 LOGGER = logging.getLogger()
 
@@ -15,12 +15,12 @@ async def run_example():
     rest_client = create_rest_client()
 
     # Sort by last update time instead of the default (order id).
-    LOGGER.info("Fetching order history for %s sorted by %s...", MARKET_NAME, Sort.UPDATED_AT)
+    LOGGER.info("Fetching order history for %s sorted by %s...", MARKET_NAME, OrderSortBy.UPDATED_AT)
 
     response = await rest_client.account.get_orders_history(
         market_names=[MARKET_NAME],
         limit=PAGE_LIMIT,
-        sort=Sort.UPDATED_AT,
+        sort=OrderSortBy.UPDATED_AT,
     )
     orders = response.data or []
 

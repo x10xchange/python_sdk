@@ -17,7 +17,7 @@ class OrderSide(StrEnum):
     SELL = "SELL"
 
 
-class Sort(StrEnum):
+class OrderSortBy(StrEnum):
     ID = "ID"
     UPDATED_AT = "UPDATED_AT"
 

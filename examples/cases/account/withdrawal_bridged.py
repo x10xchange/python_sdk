@@ -22,6 +22,7 @@ async def run_example():
 
     LOGGER.info("Getting quote...")
 
+    assets = await rest_client.info.get_assets().data
     quote = (
         await rest_client.account.get_bridge_quote(
             chain_in=chain_in,
@@ -30,8 +31,14 @@ async def run_example():
         )
     ).data
 
+    usd_asset = next((asset for asset in assets if asset.symbol == "USD"), None)
+
     if quote.fee > FEE_THRESHOLD_USDC:
         LOGGER.warning("Fee is too high: %s USDC", quote.fee)
+        return
+
+    if usd_asset is None:
+        LOGGER.error("USD asset not found")
         return
 
     LOGGER.info("Expected fee: %s USDC", quote.fee)
@@ -44,6 +51,7 @@ async def run_example():
     withdrawal_id = (
         await rest_client.account.withdraw(
             amount=amount_usdc,
+            asset=usd_asset,
             chain_id=chain_out,
             quote_id=quote.id,
         )

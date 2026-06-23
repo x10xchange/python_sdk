@@ -1,11 +1,10 @@
 from decimal import Decimal
-from typing import List
 
 from fast_stark_crypto import get_transfer_msg_hash
 
+from x10.core.amount import InternalAmount, SettlementAsset
 from x10.core.client_config import ClientConfig, StarknetDomain
 from x10.core.stark_account import StarkPerpetualAccount
-from x10.models.account import AccountModel
 from x10.models.base import SettlementSignatureModel
 from x10.models.transfer import (
     OnChainPerpetualTransferModel,
@@ -17,23 +16,19 @@ from x10.utils.nonce import generate_nonce
 SETTLEMENT_EXPIRATION_BUFFER_DAYS = 21
 
 
-def find_account_by_id(accounts: List[AccountModel], account_id: int):
-    return next((account for account in accounts if account.id == account_id), None)
-
-
-# FIXME: Transfers are broken
 def create_transfer_object(
+    *,
     from_vault: int,
     to_vault: int,
-    to_l2_key: int,
+    to_l2_public_key: int,
     amount: Decimal,
+    asset: SettlementAsset,
     config: ClientConfig,
     stark_account: StarkPerpetualAccount,
     nonce: int | None = None,
 ) -> OnChainPerpetualTransferModel:
     expiration_timestamp = calc_settlement_expiration(SETTLEMENT_EXPIRATION_BUFFER_DAYS)
-    scaled_amount = amount.scaleb(config.endpoints.collateral_decimals)
-    stark_amount = scaled_amount.to_integral_exact()
+    stark_amount = InternalAmount(amount, asset).to_stark_amount()
     starknet_domain: StarknetDomain = config.signing.starknet_domain
 
     if nonce is None:
@@ -42,7 +37,8 @@ def create_transfer_object(
     transfer_hash = get_transfer_msg_hash(
         recipient_position_id=to_vault,
         sender_position_id=from_vault,
-        amount=int(stark_amount),
+        collateral_id=int(asset.starkex_id, 16),
+        amount=stark_amount.value,
         expiration=expiration_timestamp,
         salt=nonce,
         user_public_key=stark_account.public_key,
@@ -50,17 +46,16 @@ def create_transfer_object(
         domain_version=starknet_domain.version,
         domain_chain_id=starknet_domain.chain_id,
         domain_revision=starknet_domain.revision,
-        collateral_id=int(config.endpoints.collateral_asset_on_chain_id, base=16),
     )
 
     (transfer_signature_r, transfer_signature_s) = stark_account.sign(transfer_hash)
     settlement = StarkTransferSettlementModel(
-        amount=int(stark_amount),
-        asset_id=int(config.endpoints.collateral_asset_on_chain_id, base=16),
+        amount=stark_amount.value,
+        asset_id=int(asset.starkex_id, base=16),
         expiration_timestamp=expiration_timestamp,
         nonce=nonce,
         receiver_position_id=to_vault,
-        receiver_public_key=to_l2_key,
+        receiver_public_key=to_l2_public_key,
         sender_position_id=from_vault,
         sender_public_key=stark_account.public_key,
         signature=SettlementSignatureModel(r=transfer_signature_r, s=transfer_signature_s),
@@ -71,5 +66,5 @@ def create_transfer_object(
         to_vault=to_vault,
         amount=amount,
         settlement=settlement,
-        transferred_asset=config.endpoints.collateral_asset_on_chain_id,
+        transferred_asset=asset.starkex_id,
     )
