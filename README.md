@@ -107,6 +107,16 @@ Placing orders and receiving updates in a blocking (synchronous) manner.
 Provides functionality for subscribing to real-time WebSocket updates.
 Each topic (stream) requires a separate WebSocket connection.
 
+## MCP (experimental)
+
+SDK has an experimental support for MCP (Model Context Protocol).
+You can start MCP server by (SDK must be installed in the same environment):
+- Running `x10-mcp` -- starts HTTP MCP server (available at `http://localhost:8080/mcp`).
+- Running `python -m x10.tools.mcp.mcp_server` -- starts STDIO MCP server.
+- Importing `from x10.tools.mcp.mcp_server import mcp` and running server with the params required.
+
+MCP server expects credentials to be passed via `X10_*` env variables. See `EnvConfig` for more details.
+
 ## Onboarding via SDK
 
 The process of obtaining a Stark key pair from an Ethereum account is a cryptographic procedure
