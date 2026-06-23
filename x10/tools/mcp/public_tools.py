@@ -26,6 +26,7 @@ def register_tools(mcp: FastMCP):
         Args:
             asset_type: Optional asset type to filter by. One of "SPOT", "PERPETUAL".
         """
+
         async with _create_public_rest_api_client() as client:
             result = await client.info.get_assets(asset_type=asset_type)
             return serialize_tool_result(result.data)
@@ -38,6 +39,7 @@ def register_tools(mcp: FastMCP):
         Args:
             market_names: Optional list of market names to filter (e.g. ["BTC-USD", "ETH-USD"]).
         """
+
         async with _create_public_rest_api_client() as client:
             result = await client.info.get_markets(market_names=market_names)
             return serialize_tool_result(result.data)
@@ -50,6 +52,7 @@ def register_tools(mcp: FastMCP):
         Args:
             market_name: Market identifier, e.g. "BTC-USD".
         """
+
         async with _create_public_rest_api_client() as client:
             result = await client.info.get_market_statistics(market_name=market_name)
             return serialize_tool_result(result.data)
@@ -62,6 +65,7 @@ def register_tools(mcp: FastMCP):
         Args:
             market_name: Market identifier, e.g. "BTC-USD".
         """
+
         async with _create_public_rest_api_client() as client:
             result = await client.info.get_orderbook_snapshot(market_name=market_name)
             return serialize_tool_result(result.data)
@@ -74,6 +78,7 @@ def register_tools(mcp: FastMCP):
         Args:
             asset_name: Asset name, e.g. "BTC".
         """
+
         async with _create_public_rest_api_client() as client:
             result = await client.info.get_asset_price(asset_name=asset_name)
             return str(result.data)
@@ -94,6 +99,7 @@ def register_tools(mcp: FastMCP):
             interval: One of "PT1M", "PT5M", "PT15M", "PT30M", "PT1H", "PT2H", "PT4H", "P1D".
             limit: Number of candles to return (default 100).
         """
+
         async with _create_public_rest_api_client() as client:
             result = await client.info.get_candles_history(
                 market_name=market_name,

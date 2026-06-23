@@ -22,9 +22,7 @@ LOGGER = get_logger(__name__)
 
 def _create_public_stream_client() -> StreamClient:
     env_config = EnvConfig.parse()
-    # client_config = get_config_by_name(env_config.client_config_name)
-    # FIXME
-    client_config = get_config_by_name("MAINNET")
+    client_config = get_config_by_name(env_config.client_config_name)
 
     return StreamClient(api_url=client_config.endpoints.stream_url, close_timeout=1)
 
@@ -160,6 +158,7 @@ def register_tools(mcp: FastMCP):
         """
         Get account balance. Requires authentication env vars.
         """
+
         async with _create_private_rest_api_client() as client:
             result = await client.account.get_balance()
             return serialize_tool_result(result.data)
@@ -172,6 +171,7 @@ def register_tools(mcp: FastMCP):
         Args:
             market_names: Optional list of market names to filter.
         """
+
         async with _create_private_rest_api_client() as client:
             result = await client.account.get_positions(market_names=market_names)
             return serialize_tool_result(result.data)
@@ -184,10 +184,7 @@ def register_tools(mcp: FastMCP):
         Args:
             market_names: Optional list of market names to filter.
         """
+
         async with _create_private_rest_api_client() as client:
             result = await client.account.get_open_orders(market_names=market_names)
             return serialize_tool_result(result.data)
-
-
-if __name__ == "__main__":
-    asyncio.run(test_me())
