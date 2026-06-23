@@ -115,7 +115,8 @@ You can start MCP server by (SDK must be installed in the same environment):
 - Running `python -m x10.tools.mcp.mcp_server` -- starts STDIO MCP server.
 - Importing `from x10.tools.mcp.mcp_server import mcp` and running server with the params required.
 
-MCP server expects credentials to be passed via `X10_*` env variables. See `EnvConfig` for more details.
+MCP server expects credentials to be passed via `X10_*` env variables.
+See `EnvConfig` implementation for more details.
 
 ## Onboarding via SDK
 
