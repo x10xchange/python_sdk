@@ -110,7 +110,7 @@ Each topic (stream) requires a separate WebSocket connection.
 ## MCP (experimental)
 
 SDK has an experimental support for MCP (Model Context Protocol).
-You can start MCP server by (SDK must be installed in the same environment):
+You can start MCP server by (SDK must be installed with `mcp` extra in the same environment):
 - Running `x10-mcp` -- starts HTTP MCP server (available at `http://localhost:8080/mcp`).
 - Running `python -m x10.tools.mcp.mcp_server` -- starts STDIO MCP server.
 - Importing `from x10.tools.mcp.mcp_server import mcp` and running server with the params required.
