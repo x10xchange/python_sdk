@@ -116,7 +116,7 @@ async def run_example():
 
     server_params = StdioServerParameters(
         command=sys.executable,
-        args=["-m", "x10.tools.mcp_server"],
+        args=["-m", "x10.tools.mcp.mcp_server"],
         env=os.environ,  # type: ignore[arg-type]
     )
 

@@ -1,5 +1,14 @@
 # Migration Guide
 
+## 2.0.0 -> 2.3.0
+
+- `Config` dataclass has been renamed to `ClientConfig` and moved to `x10.core.client_config`.
+  All client constructors now accept `ClientConfig` in their type signatures.
+- `EndpointsConfig` has a new required field `api_base_order_management_url` (if you construct a custom config directly).
+- New `EnvConfig` dataclass in `x10.core.env_config`. It reads all credentials from environment variables.
+- The legacy `Asset` dataclass (`x10.models.asset.Asset`) has been deleted (replaced with `SettlementAsset`).
+- `HumanReadableAmount` in `x10.core.amount` has been renamed to `InternalAmount`.
+
 ## 1.4.x -> 2.0.0 (new project structure)
 
 - `x10.perpetual.trading_client.PerpetualTradingClient` has been replaced with

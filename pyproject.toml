@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "x10-python-trading-starknet"
-version = "2.2.0"
+version = "2.3.0"
 description = "Python client for X10 API"
 authors = ["X10 <tech@ex10.org>"]
 repository = "https://github.com/x10xchange/python_sdk"
@@ -23,6 +23,9 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 packages = [{ include = "x10" }]
+
+[tool.poetry.scripts]
+x10-mcp = "x10.tools.mcp.mcp_server:start_http_server"
 
 [tool.poetry.extras]
 mcp = ["mcp"]
