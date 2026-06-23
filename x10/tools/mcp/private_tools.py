@@ -153,6 +153,20 @@ def register_tools(mcp: FastMCP):
             result = await client.orders.place_order(order=order)
             return serialize_tool_result(result.data)
 
+
+    @mcp.tool()
+    async def cancel_order(order_id: int) -> dict:
+        """
+        Cancel an open order by its ID. Requires authentication env vars.
+
+        Args:
+            order_id: The numeric ID of the order to cancel.
+        """
+
+        async with _create_private_rest_api_client() as client:
+            result = await client.orders.cancel_order(order_id=order_id)
+            return serialize_tool_result(result.data)
+
     @mcp.tool()
     async def get_balance() -> dict:
         """
