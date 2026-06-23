@@ -16,18 +16,22 @@ class StreamClient:
     """
 
     __api_url: str
+    __close_timeout: float | None = None
 
-    def __init__(self, *, api_url: str):
+    def __init__(self, *, api_url: str, close_timeout: float | None = None):
         super().__init__()
 
         self.__api_url = api_url
+        self.__close_timeout = close_timeout
 
     def subscribe_to_orderbooks(self, market_name: Optional[str] = None, depth: int | None = None):
         """
         https://api.docs.extended.exchange/#orderbooks-stream
         """
+        if depth and depth != 1:
+            raise ValueError("Depth must be either `1` or `None`")
 
-        url = self.__get_url("/orderbooks/<market?>" + (f"?depth={depth}" if depth else ""), market=market_name)
+        url = self.__get_url("/orderbooks/<market?>", market=market_name, query={"depth": depth})
         return self.__connect(url, WrappedStreamResponseModel[OrderbookUpdateModel])
 
     def subscribe_to_public_trades(self, market_name: Optional[str] = None):
@@ -72,10 +76,12 @@ class StreamClient:
     def __get_url(self, path: str, *, query: Optional[Dict[str, UrlQueryParam]] = None, **path_params) -> str:
         return get_url(f"{self.__api_url}{path}", query=query, **path_params)
 
-    @staticmethod
     def __connect(
-        stream_url: str,
-        msg_model_class: Type[StreamMsgResponseType],
-        api_key: Optional[str] = None,
+        self, stream_url: str, msg_model_class: Type[StreamMsgResponseType], api_key: Optional[str] = None
     ) -> StreamConnection[StreamMsgResponseType]:
-        return StreamConnection(stream_url, msg_model_class, api_key)
+        return StreamConnection(
+            stream_url=stream_url,
+            msg_model_class=msg_model_class,
+            api_key=api_key,
+            close_timeout=self.__close_timeout,
+        )

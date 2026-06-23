@@ -17,19 +17,25 @@ class StreamConnection(Generic[StreamMsgResponseType]):
     __stream_url: str
     __msg_model_class: Type[StreamMsgResponseType]
     __api_key: Optional[str]
+    __close_timeout: float | None = None
+
     __websocket: Optional[WebSocketClientProtocol]
 
     def __init__(
         self,
+        *,
         stream_url: str,
         msg_model_class: Type[StreamMsgResponseType],
         api_key: Optional[str],
+        close_timeout: float | None = None,
     ):
         super().__init__()
 
         self.__stream_url = stream_url
         self.__msg_model_class = msg_model_class
         self.__api_key = api_key
+        self.__close_timeout = close_timeout
+
         self.__websocket = None
 
     async def send(self, data):
@@ -102,6 +108,10 @@ class StreamConnection(Generic[StreamMsgResponseType]):
         if self.__api_key is not None:
             extra_headers[RequestHeader.API_KEY] = self.__api_key
 
-        self.__websocket = await websockets.connect(self.__stream_url, extra_headers=extra_headers)
+        self.__websocket = await websockets.connect(
+            self.__stream_url,
+            extra_headers=extra_headers,
+            close_timeout=self.__close_timeout,
+        )
 
         LOGGER.debug("Connected to stream: %s", self.__stream_url)
