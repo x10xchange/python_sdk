@@ -4,7 +4,7 @@ import logging
 import os
 import sys
 
-import httpx
+import aiohttp
 from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
 
@@ -12,22 +12,7 @@ from examples.utils import BTC_USD_MARKET, init_env
 
 LOGGER = logging.getLogger()
 MARKET_NAME = BTC_USD_MARKET
-
-SERVER_HOST = "127.0.0.1"
-SERVER_PORT = 8000
-SERVER_URL = f"http://{SERVER_HOST}:{SERVER_PORT}/mcp"
-
-
-async def _wait_for_server(timeout: float = 10.0):
-    deadline = asyncio.get_event_loop().time() + timeout
-    async with httpx.AsyncClient() as client:
-        while asyncio.get_event_loop().time() < deadline:
-            try:
-                await client.get(f"http://{SERVER_HOST}:{SERVER_PORT}/mcp", timeout=1.0)
-                return
-            except (httpx.ConnectError, httpx.ReadError, httpx.RemoteProtocolError):
-                await asyncio.sleep(0.2)
-    raise TimeoutError(f"MCP server did not become ready at {SERVER_URL} within {timeout}s")
+MCP_SERVER_URL = "http://127.0.0.1:8000/mcp"
 
 
 async def list_available_mcp_tools(session: ClientSession):
@@ -141,9 +126,9 @@ async def run_example():
     )
 
     try:
-        await _wait_for_server()
+        await _wait_for_server(10.0)
 
-        async with streamable_http_client(SERVER_URL) as (read, write, _):
+        async with streamable_http_client(MCP_SERVER_URL) as (read, write, _):
             async with ClientSession(read, write) as session:
                 await session.initialize()
 
@@ -160,6 +145,20 @@ async def run_example():
     finally:
         server_proc.terminate()
         await server_proc.wait()
+
+
+async def _wait_for_server(timeout: float):
+    deadline = asyncio.get_event_loop().time() + timeout
+
+    async with aiohttp.ClientSession() as client:
+        while asyncio.get_event_loop().time() < deadline:
+            try:
+                await client.get(MCP_SERVER_URL, timeout=aiohttp.ClientTimeout(total=1.0))
+                return
+            except aiohttp.ClientConnectorError:
+                await asyncio.sleep(0.2)
+
+    raise TimeoutError(f"MCP server did not become ready at {MCP_SERVER_URL} within {timeout}s")
 
 
 def _tool_result_as_text(result, *, force_list=False) -> str:
