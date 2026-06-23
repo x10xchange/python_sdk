@@ -30,6 +30,26 @@ class OrderManagementModule(BaseModule):
         )
         return response
 
+    async def place_rfq_order(self, order: NewOrderModel):
+        """
+        Placed new RFQ order on the exchange.
+
+        :param order: Order object created by `create_order_object` method.
+
+        https://api.docs.extended.exchange/#create-rfq-order
+        """
+        LOGGER.debug("Placing an RFQ order: id=%s", order.id)
+
+        url = self._get_url("/user/order/rfq")
+        response = await send_post_request(
+            await self._get_session(),
+            url,
+            PlacedOrderModel,
+            json=order.to_api_request_json(exclude_none=True),
+            api_key=self._get_api_key(),
+        )
+        return response
+
     async def cancel_order(self, order_id: int):
         """
         https://api.docs.extended.exchange/#cancel-order
