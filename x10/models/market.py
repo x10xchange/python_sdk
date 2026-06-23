@@ -101,6 +101,7 @@ class MarketModel(X10BaseModel):
     collateral_asset_precision: int
     active: bool
     is_rfq: bool
+    is_off_hours: bool
     market_stats: MarketStatsModel
     trading_config: TradingConfigModel
     l2_config: L2ConfigModel
