@@ -13,9 +13,9 @@ register_public_tools(mcp)
 register_private_tools(mcp)
 
 
-def start_server():
+def start_http_server():
     mcp.run(transport="streamable-http")
 
 
 if __name__ == "__main__":
-    start_server()
+    mcp.run(transport="stdio")
