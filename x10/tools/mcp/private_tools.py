@@ -153,7 +153,6 @@ def register_tools(mcp: FastMCP):
             result = await client.orders.place_order(order=order)
             return serialize_tool_result(result.data)
 
-
     @mcp.tool()
     async def cancel_order(order_id: int) -> dict:
         """
@@ -165,6 +164,32 @@ def register_tools(mcp: FastMCP):
 
         async with _create_private_rest_api_client() as client:
             result = await client.orders.cancel_order(order_id=order_id)
+            return serialize_tool_result(result.data)
+
+    @mcp.tool()
+    async def mass_cancel_orders(
+        order_ids: Optional[list[int]] = None,
+        external_order_ids: Optional[list[str]] = None,
+        markets: Optional[list[str]] = None,
+        cancel_all: bool = False,
+    ) -> dict:
+        """
+        Cancel multiple open orders at once. Requires authentication env vars.
+
+        Args:
+            order_ids: List of numeric order IDs to cancel.
+            external_order_ids: List of client-assigned order IDs to cancel.
+            markets: List of market names to cancel all orders in, e.g. ["BTC-USD"].
+            cancel_all: If True, cancel all open orders regardless of other filters.
+        """
+
+        async with _create_private_rest_api_client() as client:
+            result = await client.orders.mass_cancel(
+                order_ids=order_ids,
+                external_order_ids=external_order_ids,
+                markets=markets,
+                cancel_all=cancel_all,
+            )
             return serialize_tool_result(result.data)
 
     @mcp.tool()
