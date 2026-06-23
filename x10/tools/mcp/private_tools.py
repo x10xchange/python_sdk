@@ -9,11 +9,13 @@ from x10.clients.stream import StreamClient
 from x10.config import get_config_by_name
 from x10.core.env_config import EnvConfig
 from x10.core.stark_account import StarkPerpetualAccount
+from x10.errors import ValidationError
 from x10.models.order import OrderSide, OrderType, SelfTradeProtectionLevel, TimeInForce
 from x10.models.orderbook import OrderbookQuantityModel
 from x10.signing.order_object import create_order_object
 from x10.tools.mcp.utils import serialize_tool_result
 from x10.utils.log import get_logger
+from x10.utils.order import get_price_with_slippage
 
 LOGGER = get_logger(__name__)
 
@@ -90,7 +92,7 @@ def register_tools(mcp: FastMCP):
         market_name: str,
         side: OrderSide,
         amount_of_synthetic: Decimal,
-        price: Decimal,
+        price: Decimal | None = None,
         order_type: OrderType = OrderType.LIMIT,
         post_only: bool = False,
         time_in_force: TimeInForce = TimeInForce.GTT,
@@ -105,7 +107,7 @@ def register_tools(mcp: FastMCP):
             market_name: Market identifier, e.g. "BTC-USD".
             side: Order side, one of "BUY" or "SELL".
             amount_of_synthetic: Order quantity in base asset units.
-            price: Order price.
+            price: Order price. If not provided for MARKET orders, the best bid/ask price will be used.
             order_type: One of "LIMIT", "MARKET". Defaults to "LIMIT".
             post_only: If True, the order will be rejected if it would trade immediately.
             time_in_force: One of "GTT", "IOC", "FOK". Defaults to "GTT".
@@ -116,10 +118,28 @@ def register_tools(mcp: FastMCP):
 
         async with _create_private_rest_api_client() as client:
             markets = await client.info.get_markets_dict()
+            market = markets[market_name]
+
+            # FIXME
+            if order_type == OrderType.MARKET and price is None:
+                r = await _get_top_of_book(market_name)
+
+                if r is None:
+                    raise ValidationError(f"Failed to fetch top of book for {market_name}")
+
+                best_bid, best_ask = r
+                price = best_ask.price if side == OrderSide.BUY else best_bid.price
+
+                price = get_price_with_slippage(
+                    side=side,
+                    price=price,
+                    min_price_change=market.trading_config.min_price_change,
+                    slippage=client.config.defaults.market_price_slippage,
+                )
 
             order = create_order_object(
                 account=client.stark_account,
-                market=markets[market_name],
+                market=market,
                 order_type=order_type,
                 side=side,
                 amount_of_synthetic=amount_of_synthetic,
