@@ -78,12 +78,6 @@ async def _get_top_of_book(market_name: str) -> tuple[OrderbookQuantityModel, Or
             await orderbook_stream.close()
 
 
-async def test_me():
-    bb, ba = await _get_top_of_book("BTC-USD")
-    print("Best bid:", bb)
-    print("Best ask:", ba)
-
-
 def register_tools(mcp: FastMCP):
     @mcp.tool()
     async def place_order(
