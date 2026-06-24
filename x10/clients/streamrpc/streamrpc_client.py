@@ -1,0 +1,2 @@
+class StreamRPCClient:
+    pass
