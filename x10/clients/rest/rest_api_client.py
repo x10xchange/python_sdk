@@ -100,6 +100,8 @@ class RestApiClient:
             take_profit=take_profit,
             stop_loss=stop_loss,
         )
+        if market.is_rfq:
+            return await self.__order_management_module.place_rfq_order(order)
         return await self.__order_management_module.place_order(order)
 
     async def close(self):
