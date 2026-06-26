@@ -15,6 +15,7 @@ from x10.utils.log import get_logger
 
 LOGGER = get_logger(__name__)
 DEFAULT_REQUEST_TIMEOUT_SECONDS = 10
+CONNECTION_LOOP_TASK_NAME = "x10-rpc-connection-loop"
 
 T = TypeVar("T")
 RequestId: TypeAlias = str
@@ -38,7 +39,33 @@ class StreamRpcClient:
     """
 
     async def connect(self):
+        """
+        Starts the client's connection management loop and waits for the first connection to be established.
+        :raises StreamRpcConnectionError: If the initial connection fails (reconnect is not attempted).
+        """
+
+        if self._connection_loop_task is not None:
+            LOGGER.debug("Connection loop already running")
+            return
+
         LOGGER.debug("Connecting to %s", self._api_url)
+
+        loop = asyncio.get_running_loop()
+
+        self._is_stopped = False
+        self._connection_loop_task = loop.create_task(self._run_connection_loop(), name=CONNECTION_LOOP_TASK_NAME)
+
+        try:
+            await asyncio.wait_for(self._ready.wait(), timeout=self._request_timeout)
+        except asyncio.TimeoutError as exc:
+            self._is_stopped = True
+
+            if self._connection_loop_task:
+                self._connection_loop_task.cancel()
+
+            raise StreamRpcConnectionError(
+                f"Connection to {self._api_url} timed out after {self._request_timeout}s"
+            ) from exc
 
     async def close(self):
         raise NotImplementedError
@@ -118,7 +145,7 @@ class StreamRpcClient:
         self._ready = asyncio.Event()
 
         # FIXME: Rename?
-        self._run_task: asyncio.Task[None] | None = None
+        self._connection_loop_task: asyncio.Task[None] | None = None
 
         # FIXME: Update description
         # Pending RPC request futures keyed by request id.
@@ -168,3 +195,6 @@ class StreamRpcClient:
             ) from exc
         finally:
             self._pending_requests.pop(request_id, None)
+
+    async def _run_connection_loop(self):
+        pass

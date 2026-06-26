@@ -23,7 +23,7 @@ async def subscribe_to_rpc_stream(stop_event: asyncio.Event):
     client_config = get_config_by_name(env_config.client_config_name)
 
     async with create_stream_rpc_client(client_config) as client:
-        await client.subscribe(TradesParams(market="BTC-USD"), on_trade)
+        await client.subscribe(params=TradesParams(market="BTC-USD"), handler=on_trade)
         await stop_event.wait()
 
 
