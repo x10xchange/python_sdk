@@ -4,15 +4,18 @@ from asyncio import run
 from signal import SIGINT, SIGTERM
 
 from examples.utils import BTC_USD_MARKET, create_stream_rpc_client, init_env
+from x10.clients.streamrpc.subscription import TradesParams
 from x10.config import get_config_by_name
+from x10.models.stream_rpc import StreamMessageEnvelope
+from x10.models.trade import PublicTradeModel
 
 LOGGER = logging.getLogger()
 MARKET_NAME = BTC_USD_MARKET
 
 
-# def on_trade(env: StreamEnvelope[PublicTrade]) -> None:
-#     for t in env.data:
-#         print(f"[trade] {t.market} {t.side.value} {t.qty} @ {t.price} (seq={env.seq})")
+def on_trade(env: StreamMessageEnvelope[list[PublicTradeModel]]) -> None:
+    for t in env.data:
+        print(f"[trade] {t.market} {t.side.value} {t.qty} @ {t.price} (seq={env.seq})")
 
 
 async def subscribe_to_rpc_stream(stop_event: asyncio.Event):
@@ -20,6 +23,7 @@ async def subscribe_to_rpc_stream(stop_event: asyncio.Event):
     client_config = get_config_by_name(env_config.client_config_name)
 
     async with create_stream_rpc_client(client_config) as client:
+        await client.subscribe(TradesParams(market="BTC-USD"), on_trade)
         await stop_event.wait()
 
 

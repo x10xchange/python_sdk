@@ -28,7 +28,7 @@ class SubscribeParams(ABC, Generic[T]):
         """
 
     @abstractmethod
-    def deserialize(self, data: dict[str, Any], msg_type: str) -> T:
+    def deserialize_data(self, data: Any, msg_type: str) -> T:
         """
         Convert a raw JSON payload into the typed domain model ``T``.
 
@@ -38,7 +38,7 @@ class SubscribeParams(ABC, Generic[T]):
         """
 
 
-class TradesParams(SubscribeParams[PublicTradeModel]):
+class TradesParams(SubscribeParams[list[PublicTradeModel]]):
     """
     Subscribe to public trade events for a market (or all markets).
     """
@@ -53,8 +53,8 @@ class TradesParams(SubscribeParams[PublicTradeModel]):
     def to_dict(self) -> dict[str, Any]:
         return {"scope": "trades", "selector": {"market": self.market}}
 
-    def deserialize(self, data: dict[str, Any], msg_type: str) -> PublicTradeModel:
-        return PublicTradeModel.model_validate(data)
+    def deserialize_data(self, data: list[dict[str, Any]], msg_type: str) -> list[PublicTradeModel]:
+        return [PublicTradeModel.model_validate(item) for item in data]
 
 
 @dataclass

@@ -1,9 +1,9 @@
 import asyncio
-from dataclasses import dataclass
 from typing import Any, Callable, Coroutine
 
 import websockets
 
+from x10.clients.streamrpc.subscription import TopicSubscription
 from x10.utils.log import get_logger
 
 LOGGER = get_logger(__name__)
@@ -73,7 +73,7 @@ class StreamRPCClient:
         self._pending: dict[str, asyncio.Future[dict[str, Any]]] = {}
 
         # Active subscriptions keyed by topic_id.
-        self._subscriptions: dict[str, _Subscription] = {}
+        self._subscriptions: dict[str, TopicSubscription] = {}
 
     async def __aenter__(self) -> "StreamRPCClient":
         await self.connect()
