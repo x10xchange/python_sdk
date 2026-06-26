@@ -56,7 +56,16 @@ class StreamRPCClient:
         :param handler: Callable invoked for each message. May be sync or async.
         :returns: The ``topic_id`` string.
         """
-        pass
+
+        await self._ready.wait()
+
+        result = await self._rpc("subscribe", params=params.to_dict())
+        topic_id: str = result["subscription"]
+        self._subscriptions[topic_id] = TopicSubscription(params=params, handler=handler)
+
+        LOGGER.debug("Subscribed to %s", topic_id)
+
+        return topic_id
 
     async def unsubscribe(self):
         raise NotImplementedError
@@ -95,3 +104,6 @@ class StreamRPCClient:
 
     async def __aexit__(self, exc_type, exc_value, traceback) -> None:
         await self.close()
+
+    async def _rpc(self, method: str, **kwargs: Any) -> dict[str, Any]:
+        raise NotImplementedError

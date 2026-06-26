@@ -4,6 +4,7 @@ from typing import Generic, TypeVar
 T = TypeVar("T")
 
 
+# FIXME: Not a model?
 @dataclass(frozen=True)
 class StreamMessageEnvelope(Generic[T]):
     type: str
