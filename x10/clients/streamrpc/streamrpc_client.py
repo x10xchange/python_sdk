@@ -1,14 +1,19 @@
 import asyncio
-from typing import Any, Callable, Coroutine
+from typing import Any, Callable, Coroutine, TypeVar
 
 import websockets
 
-from x10.clients.streamrpc.subscription import TopicSubscription
+from x10.clients.streamrpc.subscription import (
+    StreamMessageHandler,
+    SubscribeParams,
+    TopicSubscription,
+)
 from x10.utils.log import get_logger
 
 LOGGER = get_logger(__name__)
 
 
+T = TypeVar("T")
 OnReconnectCallback = Callable[[list[str]], Coroutine[Any, Any, None]]
 OnSequenceBreakCallback = Callable[[str, int, int], Coroutine[Any, Any, None]]
 
@@ -30,22 +35,31 @@ class StreamRPCClient:
 
     async def connect(self):
         LOGGER.debug("Connecting to %s", self._api_url)
-        pass
 
     async def close(self):
-        pass
+        raise NotImplementedError
 
     async def ping(self):
-        pass
+        raise NotImplementedError
 
     async def list_subscriptions(self):
-        pass
+        raise NotImplementedError
 
-    async def subscribe(self):
+    async def subscribe(self, *, params: SubscribeParams[T], handler: StreamMessageHandler):
+        """
+        Subscribe to a topic and register a handler for incoming messages.
+
+        If a subscription with the same topic_id already exists it is replaced
+        (the server cancels the previous one automatically).
+
+        :param params: Subscription parameters.
+        :param handler: Callable invoked for each message. May be sync or async.
+        :returns: The ``topic_id`` string.
+        """
         pass
 
     async def unsubscribe(self):
-        pass
+        raise NotImplementedError
 
     def __init__(
         self,
