@@ -1,9 +1,10 @@
 import asyncio
 import json
+import random
 from typing import Any, Callable, Coroutine, TypeAlias, TypeVar
 
 import websockets
-from errors import StreamRpcConnectionError, StreamRpcError, StreamRpcTimeoutError
+from websockets import ConnectionClosed
 
 from x10.clients.streamrpc.subscription import (
     StreamMessageHandler,
@@ -11,10 +12,11 @@ from x10.clients.streamrpc.subscription import (
     TopicId,
     TopicSubscription,
 )
+from x10.errors import StreamRpcConnectionError, StreamRpcError, StreamRpcTimeoutError
+from x10.utils.http import USER_AGENT, RequestHeader
 from x10.utils.log import get_logger
 
 LOGGER = get_logger(__name__)
-DEFAULT_REQUEST_TIMEOUT_SECONDS = 10
 CONNECTION_LOOP_TASK_NAME = "x10-rpc-connection-loop"
 
 T = TypeVar("T")
@@ -131,7 +133,9 @@ class StreamRpcClient:
         self._on_sequence_break = on_sequence_break
 
         self._ws: websockets.WebSocketClientProtocol | None = None
-        self._request_timeout = DEFAULT_REQUEST_TIMEOUT_SECONDS
+        self._request_timeout = 10
+        self._reconnect_initial_delay = 1
+        self._reconnect_max_delay = 10
         # FIXME: Replace with state?
         self._is_stopped = False
         self._next_request_id = 0
@@ -196,5 +200,99 @@ class StreamRpcClient:
         finally:
             self._pending_requests.pop(request_id, None)
 
+    def _fail_pending(self, exc: Exception) -> None:
+        raise NotImplementedError
+
+    # FIXME: Create a class for connection loop?
     async def _run_connection_loop(self):
+        """
+        Background task that maintains the connection (including reconnections)
+        and dispatches incoming messages.
+        """
+
+        reconnect_delay = self._reconnect_initial_delay
+        is_first_connection_attempt = True
+
+        extra_headers: dict[str, str] = {
+            RequestHeader.USER_AGENT: USER_AGENT,
+        }
+
+        if self._api_key is not None:
+            extra_headers[RequestHeader.API_KEY] = self._api_key
+
+        async def handle_lost_connection(exc: Exception) -> bool:
+            nonlocal reconnect_delay
+
+            self._ws = None
+            self._ready.clear()
+            self._fail_pending(StreamRpcConnectionError(f"Connection lost: {exc}"))
+
+            LOGGER.warning("Connection lost: %s", exc)
+
+            if self._is_stopped:
+                return False
+
+            jitter = random.uniform(0.0, 1.0)
+            reconnect_after = min(reconnect_delay + jitter, self._reconnect_max_delay)
+
+            LOGGER.debug("Reconnecting in %.1fs…", reconnect_after)
+
+            await asyncio.sleep(reconnect_after)
+            reconnect_delay = min(reconnect_delay * 1.5, self._reconnect_max_delay)
+
+            return True
+
+        while not self._is_stopped:
+            try:
+                self._ws = await websockets.connect(self._api_url, extra_headers=extra_headers)
+
+                LOGGER.debug("Connected to %s", self._api_url)
+
+                # `seq` restarts at 0 on each new connection
+                self._last_seq = None
+                reconnect_delay = self._reconnect_initial_delay
+
+                # await self._resubscribe()
+                # self._ready.set()
+                #
+                # if not first_attempt and self._on_reconnect:
+                #     await self._on_reconnect(list(self._subscriptions))
+                #
+                # first_attempt = False
+                #
+                # async for raw in ws:
+                #     if isinstance(raw, str):
+                #         self._dispatch_raw(raw)
+            except asyncio.CancelledError:
+                break
+            except (ConnectionClosed, OSError, asyncio.TimeoutError) as exc:
+                should_break = not await handle_lost_connection(exc)
+
+                if should_break:
+                    break
+            except Exception as exc:
+                LOGGER.exception("Unexpected error in connection loop: %s", exc)
+
+                self._ws = None
+                self._ready.clear()
+                self._fail_pending(StreamRpcConnectionError(str(exc)))
+
+                if self._is_stopped:
+                    break
+
+                await asyncio.sleep(self._reconnect_initial_delay)
+
+        # self._ws = None
+        # self._ready.clear()
+        # self._fail_pending(RpcConnectionError("Client stopped"))
+        # logger.info("Connection loop exited")
+
+    async def _resubscribe(self) -> None:
+        raise NotImplementedError
+
+    # FIXME: Create a dispatcher class?
+    def _dispatch_raw(self, raw: str) -> None:
+        pass
+
+    async def _dispatch_envelope(self, msg: dict[str, Any], sub_id: str) -> None:
         pass
