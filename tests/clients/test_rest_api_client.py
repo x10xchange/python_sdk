@@ -51,8 +51,8 @@ async def test_get_markets(aiohttp_server, create_btc_usd_market):
                 "collateralAssetName": "USD",
                 "collateralAssetPrecision": 6,
                 "active": True,
-                "isRfq": True,
-                "isOffHours": True,
+                "isRfq": False,
+                "isOffHours": False,
                 "marketStats": {
                     "dailyVolume": "2410800.768021",
                     "dailyVolumeBase": "37.94502",

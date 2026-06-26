@@ -71,8 +71,9 @@ def create_blocking_client(config: ClientConfig | None = None):
 def create_stream_client(config: ClientConfig):
     return StreamClient(api_url=config.endpoints.stream_url)
 
+
 def create_stream_rpc_client(config: ClientConfig):
-    return StreamRPCClient(api_url=config.endpoints.rpc_stream_url)
+    return StreamRPCClient(api_url=config.endpoints.stream_rpc_url)
 
 
 def get_adjust_price_by_pct(config: TradingConfigModel):

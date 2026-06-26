@@ -21,6 +21,8 @@ async def subscribe_to_rpc_stream(stop_event: asyncio.Event):
 
     async with create_stream_rpc_client(client_config) as client:
         pass
+
+
 #         await c.ping()
 #         print("Ping OK")
 #         await c.subscribe(TradesParams(market="BTC-USD"), on_trade)

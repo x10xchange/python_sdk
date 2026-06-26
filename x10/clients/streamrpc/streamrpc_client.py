@@ -2,6 +2,7 @@ from x10.utils.log import get_logger
 
 LOGGER = get_logger(__name__)
 
+
 class StreamRPCClient:
     """
     X10 WebSocket RPC client.
