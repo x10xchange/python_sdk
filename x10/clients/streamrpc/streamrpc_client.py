@@ -2,10 +2,12 @@ import asyncio
 from typing import Any, Callable, Coroutine, TypeVar
 
 import websockets
+from errors import StreamRpcError
 
 from x10.clients.streamrpc.subscription import (
     StreamMessageHandler,
     SubscribeParams,
+    TopicId,
     TopicSubscription,
 )
 from x10.utils.log import get_logger
@@ -18,7 +20,7 @@ OnReconnectCallback = Callable[[list[str]], Coroutine[Any, Any, None]]
 OnSequenceBreakCallback = Callable[[str, int, int], Coroutine[Any, Any, None]]
 
 
-class StreamRPCClient:
+class StreamRpcClient:
     """
     X10 WebSocket RPC client.
 
@@ -60,15 +62,31 @@ class StreamRPCClient:
         await self._ready.wait()
 
         result = await self._rpc("subscribe", params=params.to_dict())
-        topic_id: str = result["subscription"]
+        topic_id: TopicId = result["subscription"]
         self._subscriptions[topic_id] = TopicSubscription(params=params, handler=handler)
 
         LOGGER.debug("Subscribed to %s", topic_id)
 
         return topic_id
 
-    async def unsubscribe(self):
-        raise NotImplementedError
+    async def unsubscribe(self, topic_id: TopicId):
+        """
+        Cancel an active subscription.
+
+        :param topic_id: The string returned by :meth:`subscribe`.
+        :raises StreamRpcError: If no subscription with this ``topic_id`` exists.
+        """
+
+        subscription = self._subscriptions.get(topic_id)
+
+        if subscription is None:
+            raise StreamRpcError(f"No active subscription: {topic_id}")
+
+        await self._ready.wait()
+        await self._rpc("unsubscribe", params=subscription.params.to_dict())
+        self._subscriptions.pop(topic_id, None)
+
+        LOGGER.debug("Unsubscribed from %s", topic_id)
 
     def __init__(
         self,
@@ -96,9 +114,9 @@ class StreamRPCClient:
         self._pending: dict[str, asyncio.Future[dict[str, Any]]] = {}
 
         # Active subscriptions keyed by topic_id.
-        self._subscriptions: dict[str, TopicSubscription] = {}
+        self._subscriptions: dict[TopicId, TopicSubscription] = {}
 
-    async def __aenter__(self) -> "StreamRPCClient":
+    async def __aenter__(self) -> "StreamRpcClient":
         await self.connect()
         return self
 

@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Callable, Coroutine, Generic, TypeVar
+from typing import Any, Callable, Coroutine, Generic, TypeAlias, TypeVar
 
 from x10.models.stream_rpc import StreamMessageEnvelope
 from x10.models.trade import PublicTradeModel
 
 T = TypeVar("T")
+TopicId: TypeAlias = str
 StreamMessageHandler = Callable[[StreamMessageEnvelope[Any]], Coroutine[Any, Any, None] | None]
 
 
@@ -16,7 +17,7 @@ class SubscribeParams(ABC, Generic[T]):
 
     @property
     @abstractmethod
-    def topic_id(self) -> str:
+    def topic_id(self) -> TopicId:
         """
         The unique topic identifier (e.g. ``trades.BTC-USD``).
         """
@@ -47,7 +48,7 @@ class TradesParams(SubscribeParams[list[PublicTradeModel]]):
         self.market = market
 
     @property
-    def topic_id(self) -> str:
+    def topic_id(self) -> TopicId:
         return f"trades.{self.market or 'all'}"
 
     def to_dict(self) -> dict[str, Any]:

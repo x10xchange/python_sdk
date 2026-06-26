@@ -10,6 +10,10 @@ class NotSupportedError(SdkError, NotImplementedError):
     pass
 
 
+class StreamRpcError(SdkError):
+    pass
+
+
 class ApiError(SdkError):
     pass
 
