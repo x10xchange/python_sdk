@@ -30,6 +30,7 @@ class EndpointsConfig:
     api_base_url: str
     api_base_order_management_url: str
     stream_url: str
+    rpc_stream_url: str
     onboarding_url: str
 
     vault_asset_name: str
