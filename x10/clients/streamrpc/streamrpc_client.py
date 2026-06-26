@@ -1,8 +1,9 @@
 import asyncio
+import json
 from typing import Any, Callable, Coroutine, TypeAlias, TypeVar
 
 import websockets
-from errors import StreamRpcError
+from errors import StreamRpcConnectionError, StreamRpcError, StreamRpcTimeoutError
 
 from x10.clients.streamrpc.subscription import (
     StreamMessageHandler,
@@ -13,7 +14,7 @@ from x10.clients.streamrpc.subscription import (
 from x10.utils.log import get_logger
 
 LOGGER = get_logger(__name__)
-
+DEFAULT_REQUEST_TIMEOUT_SECONDS = 10
 
 T = TypeVar("T")
 RequestId: TypeAlias = str
@@ -103,6 +104,7 @@ class StreamRpcClient:
         self._on_sequence_break = on_sequence_break
 
         self._ws: websockets.WebSocketClientProtocol | None = None
+        self._request_timeout = DEFAULT_REQUEST_TIMEOUT_SECONDS
         # FIXME: Replace with state?
         self._is_stopped = False
         self._next_request_id = 0
@@ -120,7 +122,7 @@ class StreamRpcClient:
 
         # FIXME: Update description
         # Pending RPC request futures keyed by request id.
-        self._pending: dict[RequestId, asyncio.Future[dict[str, Any]]] = {}
+        self._pending_requests: dict[RequestId, asyncio.Future[dict[str, Any]]] = {}
 
         # FIXME: Update description
         # Active subscriptions keyed by topic_id.
@@ -142,4 +144,27 @@ class StreamRpcClient:
         Send an RPC request and wait for its response.
         """
 
-        raise NotImplementedError
+        if self._ws is None:
+            raise StreamRpcConnectionError("WebSocket connection is not open")
+
+        request_id = self._get_next_request_id()
+        request: dict[str, Any] = {"method": method, "id": request_id, "jsonrpc": "2.0"}
+
+        if kwargs:
+            request.update(kwargs)
+
+        loop = asyncio.get_running_loop()
+        request_result: asyncio.Future[dict[str, Any]] = loop.create_future()
+        self._pending_requests[request_id] = request_result
+
+        try:
+            await self._ws.send(json.dumps(request))
+            # Shield the future so that cancelling the outer `wait_for` does not
+            # cancel the future itself (it is cleaned up in the `finally` block).
+            return await asyncio.wait_for(asyncio.shield(request_result), timeout=self._request_timeout)
+        except asyncio.TimeoutError as exc:
+            raise StreamRpcTimeoutError(
+                f"RPC request timed out: {method} (id={request_id}) after {self._request_timeout}s"
+            ) from exc
+        finally:
+            self._pending_requests.pop(request_id, None)
