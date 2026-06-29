@@ -3,20 +3,20 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Callable, Coroutine, Generic, Optional, TypeAlias, TypeVar
 
-from models.balance import BalanceModel, SpotBalanceModel
-from models.candle import CandleModel
-from models.funding_rate import FundingRateModel
-from models.order import OpenOrderModel
-from models.position import PositionModel
-from models.vault import DepositRequestModel
 from pydantic import AliasChoices, Field
 
 from x10.errors import ValidationError
-from x10.models.account import AccountStreamDataModel
+from x10.models.balance import BalanceModel, SpotBalanceModel
 from x10.models.base import X10BaseModel
+from x10.models.candle import CandleModel
+from x10.models.deposit import DepositStatusUpdateModel
+from x10.models.funding_rate import FundingRateModel
+from x10.models.order import OpenOrderModel
 from x10.models.orderbook import OrderbookUpdateModel
+from x10.models.position import PositionModel
 from x10.models.stream_rpc import StreamMessageEnvelope
 from x10.models.trade import AccountTradeModel, PublicTradeModel
+from x10.models.withdrawal import WithdrawalStatusUpdateModel
 
 T = TypeVar("T")
 TopicId: TypeAlias = str
@@ -246,30 +246,9 @@ class AccountStreamDataModelSpotBalance(X10BaseModel):
     spotBalances: list[SpotBalanceModel]
 
 
-class DepositStatusUpdateModel(X10BaseModel):
-    pass
-    # assetId: zodLong(),
-    # amount: zodDecimal(),
-    # timestamp: z.number(),
-    # status: z.enum(['CREATED', 'PROCESSED', 'REJECTED']),
-
-
 class AccountStreamDataModelDeposit(X10BaseModel):
     isSnapshot: bool
     deposit: DepositStatusUpdateModel
-
-
-# export const WithdrawalStatusUpdateSchema = z.object({
-#     id: zodLong(),
-#     assetId: zodLong(),
-#     amount: zodDecimal(),
-#     status: z.enum(['CREATED', 'REJECTED', 'IN_PROGRESS', 'READY_FOR_CLAIM', 'COMPLETED']),
-#     reason: z.string().optional(),
-# })
-
-
-class WithdrawalStatusUpdateModel(X10BaseModel):
-    pass
 
 
 class AccountStreamDataModelWithdrawal(X10BaseModel):
