@@ -6,7 +6,7 @@ from typing import Any, Callable, Coroutine, TypeAlias, TypeVar
 import websockets
 from websockets import ConnectionClosed
 
-from x10.clients.streamrpc.subscription import (
+from x10.clients.streamrpc.subscription_params import (
     StreamMessageHandler,
     SubscribeParams,
     TopicId,
@@ -18,7 +18,7 @@ from x10.errors import (
     StreamRpcServerError,
     StreamRpcTimeoutError,
 )
-from x10.models.stream_rpc import StreamMessageEnvelope
+from x10.models.stream_rpc import StreamRpcResponseModel
 from x10.utils.http import USER_AGENT, RequestHeader
 from x10.utils.log import get_logger
 
@@ -449,7 +449,7 @@ class StreamRpcClient:
             )
             return
 
-        enveloped_data = StreamMessageEnvelope(
+        enveloped_data = StreamRpcResponseModel(
             type=msg_type,
             data=deserialized_data,
             ts=msg["ts"],

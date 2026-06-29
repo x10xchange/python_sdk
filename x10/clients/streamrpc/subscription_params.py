@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Callable, Coroutine, Generic, Optional, TypeAlias, TypeVar
+from typing import Any, Callable, Coroutine, Generic, TypeAlias, TypeVar
 
 from x10.errors import ValidationError
 from x10.models.candle import CandleModel

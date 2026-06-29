@@ -3,29 +3,30 @@ import logging
 from asyncio import run
 from signal import SIGINT, SIGTERM
 
-from clients.streamrpc.subscription import (
+from x10_rpc.params import FundingRatesParams
+
+from examples.utils import BTC_USD_MARKET, create_stream_rpc_client, init_env
+from x10.clients.streamrpc.subscription_params import (
     CandlesParams,
     FundingRatesParams,
     OrderbooksParams,
     PricesParams,
+    TradesParams,
 )
-from x10_rpc.params import FundingRatesParams
-
-from examples.utils import BTC_USD_MARKET, create_stream_rpc_client, init_env
-from x10.clients.streamrpc.subscription import AccountParams, TradesParams
 from x10.config import get_config_by_name
 from x10.models.account import AccountStreamDataModel
-from x10.models.stream_rpc import StreamMessageEnvelope
+from x10.models.stream_rpc import StreamRpcResponseModel
 from x10.models.trade import PublicTradeModel
 
 LOGGER = logging.getLogger()
 MARKET_NAME = BTC_USD_MARKET
 
 
-def on_message(message: StreamMessageEnvelope) -> None:
+def on_message(message: StreamRpcResponseModel) -> None:
     print(message)
 
 
+# FIXME: Cleanup
 async def subscribe_to_rpc_stream(stop_event: asyncio.Event):
     env_config = init_env()
     client_config = get_config_by_name(env_config.client_config_name)
