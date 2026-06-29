@@ -4,13 +4,14 @@ import random
 from typing import Any, Callable, Coroutine, TypeVar
 
 import websockets
-from clients.streamrpc.streamrpc_dispatcher import (
-    OnSequenceBreakCallback,
-    PendingRequestsMap,
-)
 from websockets import ConnectionClosed
 
-from x10.clients.streamrpc.streamrpc_dispatcher import RequestId, StreamRpcDispatcher
+from x10.clients.streamrpc.streamrpc_dispatcher import (
+    OnSequenceBreakCallback,
+    PendingRequestsMap,
+    RequestId,
+    StreamRpcDispatcher,
+)
 from x10.clients.streamrpc.subscription_params import (
     StreamMessageHandler,
     SubscribeParams,
