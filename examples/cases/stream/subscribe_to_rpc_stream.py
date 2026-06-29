@@ -36,9 +36,11 @@ async def subscribe_to_rpc_stream(stop_event: asyncio.Event):
         # await client.subscribe(params=TradesParams(market="ETH-USD"), handler=on_trade)
         # await client.subscribe(params=OrderBookParams(market="ETH-USD"), handler=on_message)
         # await client.subscribe(params=PricesParams(price_type="index", market="ETH-USD"), handler=on_message)
+        print(await client.list_subscriptions())
         await client.subscribe(
             params=CandlesParams(candle_type="index", market="ETH-USD", interval="PT1M"), handler=on_message
         )
+        print(await client.list_subscriptions())
         # FIXME: Change account
         # await client.subscribe(params=AccountParams(account="3375", api_key=env_config.api_key), handler=on_account)
         # await asyncio.sleep(5)
