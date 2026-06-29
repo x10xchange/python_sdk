@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Callable, Coroutine, Generic, TypeAlias, TypeVar
 
+from models.candle import CandleModel
 from models.funding_rate import FundingRateModel
 from pydantic import AliasChoices, Field
 
@@ -149,8 +150,9 @@ class PriceModel(X10BaseModel):
 
 class PricesParams(SubscribeParams[PriceModel]):
     """
-    Subscribe to index / mark price updates for a market (or all markets)
+    Subscribe to mark / index price updates for a market (or all markets)
 
+    :param price_type: ``"mark"`` or ``"index"``.
     :param market: Market symbol or ``None`` for all markets.
     """
 
@@ -173,6 +175,37 @@ class PricesParams(SubscribeParams[PriceModel]):
 
     def deserialize_data(self, data: dict[str, Any], msg_type: str | None) -> PriceModel:
         return PriceModel.model_validate(data)
+
+
+class CandlesParams(SubscribeParams[list[CandleModel]]):
+    """
+    Subscribe to candles OHLC (`mark` or `index`) / OHLCV (`last`) for a market and interval.
+
+    :param candle_type: ``"mark"``, ``"index"``, or ``"last"``.
+    :param market: Market symbol.
+    :param interval: ISO-8601 duration.
+    """
+
+    def __init__(self, candle_type: str, market: str, interval: str) -> None:
+        if candle_type not in ("mark", "index", "last"):
+            raise ValidationError(f"`candle_type` must be `mark`, `index`, or `last`, got {candle_type!r}")
+
+        self.candle_type = candle_type
+        self.market = market
+        self.interval = interval
+
+    @property
+    def topic_id(self) -> str:
+        return f"candles.{self.candle_type}.{self.market}.{self.interval}"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "scope": "candles",
+            "selector": {"type": self.candle_type, "market": self.market, "interval": self.interval},
+        }
+
+    def deserialize_data(self, data: dict[str, Any], msg_type: str | None) -> list[CandleModel]:
+        return [CandleModel.model_validate(item) for item in data]
 
 
 # FIXME: Rename
