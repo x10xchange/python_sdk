@@ -3,7 +3,11 @@ import logging
 from asyncio import run
 from signal import SIGINT, SIGTERM
 
-from clients.streamrpc.subscription import FundingRateParams, OrderBookParams
+from clients.streamrpc.subscription import (
+    FundingRatesParams,
+    OrderbooksParams,
+    PricesParams,
+)
 from x10_rpc.params import FundingRatesParams
 
 from examples.utils import BTC_USD_MARKET, create_stream_rpc_client, init_env
@@ -29,7 +33,7 @@ async def subscribe_to_rpc_stream(stop_event: asyncio.Event):
         # await client.subscribe(params=TradesParams(market="BTC-USD"), handler=on_trade)
         # await client.subscribe(params=TradesParams(market="ETH-USD"), handler=on_trade)
         # await client.subscribe(params=OrderBookParams(market="ETH-USD"), handler=on_message)
-        await client.subscribe(params=FundingRateParams(market="ETH-USD"), handler=on_message)
+        await client.subscribe(params=PricesParams(price_type="index", market="ETH-USD"), handler=on_message)
         # FIXME: Change account
         # await client.subscribe(params=AccountParams(account="3375", api_key=env_config.api_key), handler=on_account)
         # await asyncio.sleep(5)

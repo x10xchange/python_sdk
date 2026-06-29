@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import Any, Callable, Coroutine, Generic, TypeAlias, TypeVar
 
 from models.funding_rate import FundingRateModel
@@ -77,7 +78,7 @@ class OrderbookUpdateModel2(OrderbookUpdateModel):
     depth: str = Field(validation_alias=AliasChoices("depth", "d"), serialization_alias="d")
 
 
-class OrderBookParams(SubscribeParams[OrderbookUpdateModel]):
+class OrderbooksParams(SubscribeParams[OrderbookUpdateModel]):
     """
     Subscribe to order book snapshots and delta updates.
 
@@ -88,10 +89,10 @@ class OrderBookParams(SubscribeParams[OrderbookUpdateModel]):
 
     def __init__(self, market: str | None = None, depth: str = "full", rfq_only: bool = False) -> None:
         if depth not in ("full", "1"):
-            raise ValidationError(f"depth must be 'full' or '1', got {depth!r}")
+            raise ValidationError(f"`depth` must be `full` or `1`, got {depth!r}")
 
         if rfq_only and depth != "full":
-            raise ValueError("rfq_only is only valid when depth='full'")
+            raise ValidationError("`rfq_only` is only valid when depth is `full`")
 
         self.market = market
         self.depth = depth
@@ -118,7 +119,7 @@ class OrderBookParams(SubscribeParams[OrderbookUpdateModel]):
         return OrderbookUpdateModel2.model_validate(data)
 
 
-class FundingRateParams(SubscribeParams[FundingRateModel]):
+class FundingRatesParams(SubscribeParams[FundingRateModel]):
     """
     Subscribe to funding rate updates for a market (or all markets).
 
@@ -138,6 +139,40 @@ class FundingRateParams(SubscribeParams[FundingRateModel]):
     # FIXME: Remove `None` from `msg_type`
     def deserialize_data(self, data: dict[str, Any], msg_type: str | None) -> FundingRateModel:
         return FundingRateModel.model_validate(data)
+
+
+class PriceModel(X10BaseModel):
+    market: str = Field(validation_alias=AliasChoices("market", "m"), serialization_alias="m")
+    price: Decimal = Field(validation_alias=AliasChoices("price", "p"), serialization_alias="p")
+    ts: int
+
+
+class PricesParams(SubscribeParams[PriceModel]):
+    """
+    Subscribe to index / mark price updates for a market (or all markets)
+
+    :param market: Market symbol or ``None`` for all markets.
+    """
+
+    def __init__(self, price_type: str, market: str | None = None) -> None:
+        if price_type not in ("mark", "index"):
+            raise ValidationError(f"`price_type` must be `mark` or `index`, got {price_type!r}")
+
+        self.price_type = price_type
+        self.market = market
+
+    @property
+    def topic_id(self) -> str:
+        return f"prices.{self.price_type}.{self.market or 'all'}"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "scope": "prices",
+            "selector": {"type": self.price_type, "market": self.market},
+        }
+
+    def deserialize_data(self, data: dict[str, Any], msg_type: str | None) -> PriceModel:
+        return PriceModel.model_validate(data)
 
 
 # FIXME: Rename
