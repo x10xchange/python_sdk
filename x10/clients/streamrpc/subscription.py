@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Coroutine, Generic, TypeAlias, TypeVar
 
+from models.funding_rate import FundingRateModel
 from pydantic import AliasChoices, Field
 
 from x10.errors import ValidationError
@@ -115,6 +116,28 @@ class OrderBookParams(SubscribeParams[OrderbookUpdateModel]):
 
     def deserialize_data(self, data: dict[str, Any], msg_type: str | None) -> OrderbookUpdateModel2:
         return OrderbookUpdateModel2.model_validate(data)
+
+
+class FundingRateParams(SubscribeParams[FundingRateModel]):
+    """
+    Subscribe to funding rate updates for a market (or all markets).
+
+    :param market: Market symbol or ``None`` for all markets.
+    """
+
+    def __init__(self, market: str | None = None) -> None:
+        self.market = market
+
+    @property
+    def topic_id(self) -> str:
+        return f"funding-rates.{self.market or 'all'}"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"scope": "funding-rates", "selector": {"market": self.market}}
+
+    # FIXME: Remove `None` from `msg_type`
+    def deserialize_data(self, data: dict[str, Any], msg_type: str | None) -> FundingRateModel:
+        return FundingRateModel.model_validate(data)
 
 
 # FIXME: Rename
