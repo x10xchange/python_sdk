@@ -3,6 +3,8 @@ import logging
 from asyncio import run
 from signal import SIGINT, SIGTERM
 
+from clients.streamrpc.subscription import OrderBookParams
+
 from examples.utils import BTC_USD_MARKET, create_stream_rpc_client, init_env
 from x10.clients.streamrpc.subscription import AccountParams, TradesParams
 from x10.config import get_config_by_name
@@ -15,12 +17,15 @@ MARKET_NAME = BTC_USD_MARKET
 
 
 def on_trade(message: StreamMessageEnvelope[list[PublicTradeModel]]) -> None:
-    for t in message.data:
-        print(f"[trade] {t.market} {t.side} {t.qty} @ {t.price} (seq={message.seq})")
+    print(message)
+
+
+def on_orderbook(message: StreamMessageEnvelope) -> None:
+    print(message)
 
 
 def on_account(message: StreamMessageEnvelope[AccountStreamDataModel]) -> None:
-    print(message.data)
+    print(message)
 
 
 async def subscribe_to_rpc_stream(stop_event: asyncio.Event):
@@ -28,12 +33,13 @@ async def subscribe_to_rpc_stream(stop_event: asyncio.Event):
     client_config = get_config_by_name(env_config.client_config_name)
 
     async with create_stream_rpc_client(client_config) as client:
-        await client.subscribe(params=TradesParams(market="BTC-USD"), handler=on_trade)
-        await client.subscribe(params=TradesParams(market="ETH-USD"), handler=on_trade)
+        # await client.subscribe(params=TradesParams(market="BTC-USD"), handler=on_trade)
+        # await client.subscribe(params=TradesParams(market="ETH-USD"), handler=on_trade)
+        await client.subscribe(params=OrderBookParams(market="ETH-USD"), handler=on_orderbook)
         # FIXME: Change account
-        await client.subscribe(params=AccountParams(account="3375", api_key=env_config.api_key), handler=on_account)
-        await asyncio.sleep(5)
-        await client.unsubscribe(TradesParams(market="ETH-USD").topic_id)
+        # await client.subscribe(params=AccountParams(account="3375", api_key=env_config.api_key), handler=on_account)
+        # await asyncio.sleep(5)
+        # await client.unsubscribe(TradesParams(market="ETH-USD").topic_id)
         await stop_event.wait()
 
 
