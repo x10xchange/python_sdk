@@ -288,7 +288,8 @@ X: TypeAlias = (
 )
 
 
-class AccountParams(SubscribeParams[X]):
+# FIXME: Mark as not supported yet due to auth issues
+class _AccountParams(SubscribeParams[X]):
     """
     Subscribe to the private account stream.
     """
