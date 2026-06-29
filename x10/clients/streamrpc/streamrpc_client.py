@@ -6,7 +6,6 @@ from typing import Any, Callable, Coroutine, TypeAlias, TypeVar
 import websockets
 from websockets import ConnectionClosed
 
-from x10.models.stream_rpc import StreamMessageEnvelope
 from x10.clients.streamrpc.subscription import (
     StreamMessageHandler,
     SubscribeParams,
@@ -19,6 +18,7 @@ from x10.errors import (
     StreamRpcServerError,
     StreamRpcTimeoutError,
 )
+from x10.models.stream_rpc import StreamMessageEnvelope
 from x10.utils.http import USER_AGENT, RequestHeader
 from x10.utils.log import get_logger
 
@@ -412,7 +412,7 @@ class StreamRpcClient:
             LOGGER.warning("Received message for unknown subscription id=%s", subscription_id)
             return
 
-        msg_seq = msg['seq']
+        msg_seq = msg["seq"]
 
         if self._last_seq is not None and msg_seq != self._last_seq + 1:
             LOGGER.warning(
@@ -433,8 +433,8 @@ class StreamRpcClient:
 
         self._last_seq = msg_seq
 
-        msg_data = msg['data']
-        msg_type = msg['type']
+        msg_data = msg["data"]
+        msg_type = msg["type"]
 
         try:
             deserialized_data = subscription.params.deserialize_data(msg_data, msg_type)
@@ -451,7 +451,7 @@ class StreamRpcClient:
         enveloped_data = StreamMessageEnvelope(
             type=msg_type,
             data=deserialized_data,
-            ts=msg['ts'],
+            ts=msg["ts"],
             seq=msg_seq,
             subscription=subscription_id,
         )

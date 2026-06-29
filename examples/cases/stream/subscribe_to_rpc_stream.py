@@ -29,6 +29,7 @@ async def subscribe_to_rpc_stream(stop_event: asyncio.Event):
         await client.unsubscribe(TradesParams(market="ETH-USD").topic_id)
         await stop_event.wait()
 
+
 #         await c.ping()
 #         print("Ping OK")
 #         await c.subscribe(TradesParams(market="BTC-USD"), on_trade)
