@@ -22,9 +22,7 @@ class StreamRpcDispatcher:
         subscriptions: dict[TopicId, TopicSubscription],
         on_sequence_break: OnSequenceBreakCallback | None = None,
     ) -> None:
-        # FIXME: Update description
-        # Last observed connection-level sequence number; None until the first
-        # message arrives on a connection (also reset to None on each reconnect).
+        # Last observed connection-level sequence (reset to `None` on each re-connect).
         self._last_seq: int | None = None
         self._pending_requests = pending_requests
         self._subscriptions = subscriptions
@@ -48,7 +46,6 @@ class StreamRpcDispatcher:
         request_id: RequestId | None = msg.get("id")
 
         if request_id is not None:
-            # FIXME: Create a class instance?
             request_result = self._pending_requests.get(str(request_id))
 
             if not request_result:
@@ -67,7 +64,6 @@ class StreamRpcDispatcher:
             return
 
         # (2) Stream data
-        # FIXME: Create a class instance?
         subscription_id: str | None = msg.get("subscription")
 
         if subscription_id is not None:

@@ -116,7 +116,7 @@ class OrderbooksParams(SubscribeParams[OrderbookUpdateModel]):
             },
         }
 
-    def deserialize_data(self, data: dict[str, Any], msg_type: str | None) -> StreamRpcOrderbookUpdateModel:
+    def deserialize_data(self, data: dict[str, Any], msg_type: str) -> StreamRpcOrderbookUpdateModel:
         return StreamRpcOrderbookUpdateModel.model_validate(data)
 
 
@@ -138,7 +138,7 @@ class FundingRatesParams(SubscribeParams[FundingRateModel]):
         return {"scope": "funding-rates", "selector": {"market": self.market}}
 
     # FIXME: Remove `None` from `msg_type`
-    def deserialize_data(self, data: dict[str, Any], msg_type: str | None) -> FundingRateModel:
+    def deserialize_data(self, data: dict[str, Any], msg_type: str) -> FundingRateModel:
         return FundingRateModel.model_validate(data)
 
 
@@ -167,7 +167,7 @@ class PricesParams(SubscribeParams[StreamRpcPriceModel]):
             "selector": {"type": self.price_type, "market": self.market},
         }
 
-    def deserialize_data(self, data: dict[str, Any], msg_type: str | None) -> StreamRpcPriceModel:
+    def deserialize_data(self, data: dict[str, Any], msg_type: str) -> StreamRpcPriceModel:
         return StreamRpcPriceModel.model_validate(data)
 
 
@@ -198,7 +198,7 @@ class CandlesParams(SubscribeParams[list[CandleModel]]):
             "selector": {"type": self.candle_type, "market": self.market, "interval": self.interval},
         }
 
-    def deserialize_data(self, data: dict[str, Any], msg_type: str | None) -> list[CandleModel]:
+    def deserialize_data(self, data: dict[str, Any], msg_type: str) -> list[CandleModel]:
         return [CandleModel.model_validate(item) for item in data]
 
 
@@ -233,7 +233,7 @@ class _AccountParams(SubscribeParams[StreamRpcAccountUpdateType]):
             "selector": {"account": self.account},
         }
 
-    def deserialize_data(self, data: dict[str, Any], msg_type: str | None) -> StreamRpcAccountUpdateType:
+    def deserialize_data(self, data: dict[str, Any], msg_type: str) -> StreamRpcAccountUpdateType:
         match msg_type:
             case "ACCOUNT.POSITION":
                 return StreamRpcAccountPositionsModel.model_validate(data)

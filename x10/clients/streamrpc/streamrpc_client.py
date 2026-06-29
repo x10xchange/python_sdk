@@ -36,7 +36,6 @@ class StreamRpcClient:
     Supports automatic reconnection and transparent re-subscription after connection loss.
 
     :param api_url: Full WebSocket URL.
-    :param api_key: API key for private topics.
     :param on_reconnect: Optional async callback invoked after a successful reconnection.
     :param on_sequence_break: Optional callback invoked when a gap is detected in the
                               connection-level ``seq`` counter, indicating that one or more stream
@@ -164,27 +163,19 @@ class StreamRpcClient:
         self._on_reconnect = on_reconnect
         self._on_sequence_break = on_sequence_break
 
-        self._ws: websockets.WebSocketClientProtocol | None = None
         self._request_timeout = 10
         self._reconnect_initial_delay = 1
         self._reconnect_max_delay = 10
-        # FIXME: Replace with state?
         self._is_stopped = False
         self._next_request_id = 0
 
-        # FIXME: Update description
-        # Fires when a connection is fully established (and resubscription done).
+        self._ws: websockets.WebSocketClientProtocol | None = None
+        # Fires when a connection is established (and re-subscription is done).
         self._ready = asyncio.Event()
-
-        # FIXME: Rename?
         self._connection_loop_task: asyncio.Task[None] | None = None
-
-        # FIXME: Update description
-        # Pending RPC request futures keyed by request id.
+        # Pending RPC requests (as futures) keyed by request id.
         self._pending_requests: PendingRequestsMap = {}
-
-        # FIXME: Update description
-        # Active subscriptions keyed by topic_id.
+        # Active subscriptions keyed by topic id.
         self._subscriptions: dict[TopicId, TopicSubscription] = {}
 
         self._dispatcher = StreamRpcDispatcher(
@@ -245,7 +236,6 @@ class StreamRpcClient:
 
         self._pending_requests.clear()
 
-    # FIXME: Create a class for connection loop?
     async def _run_connection_loop(self):
         """
         Background task that maintains the connection (including reconnections)
@@ -258,10 +248,6 @@ class StreamRpcClient:
         extra_headers: dict[str, str] = {
             RequestHeader.USER_AGENT: USER_AGENT,
         }
-
-        # FIXME: Remove?
-        if self._api_key is not None:
-            extra_headers[RequestHeader.API_KEY] = self._api_key
 
         async def handle_lost_connection(exc: Exception) -> bool:
             nonlocal reconnect_delay
@@ -310,9 +296,9 @@ class StreamRpcClient:
             except asyncio.CancelledError:
                 break
             except (ConnectionClosed, OSError, asyncio.TimeoutError) as exc:
-                should_break = not await handle_lost_connection(exc)
+                should_try_to_reconnect = await handle_lost_connection(exc)
 
-                if should_break:
+                if not should_try_to_reconnect:
                     break
             except Exception as exc:
                 LOGGER.exception("Unexpected error in connection loop: %s", exc)
