@@ -45,6 +45,10 @@ class StreamRpcClient:
                               messages were dropped.
     """
 
+    _ws: websockets.WebSocketClientProtocol | None
+    _ready: asyncio.Event
+    _connection_loop_task: asyncio.Task[None] | None
+
     async def connect(self):
         """
         Starts the client's connection management loop and waits for the first connection to be established.
@@ -167,15 +171,15 @@ class StreamRpcClient:
         self._on_sequence_break = on_sequence_break
 
         self._request_timeout = 10
-        self._reconnect_initial_delay = 1
+        self._reconnect_initial_delay = 1.0
         self._reconnect_max_delay = 10
         self._is_stopped = False
         self._next_request_id = 0
 
-        self._ws: websockets.WebSocketClientProtocol | None = None
+        self._ws = None
         # Fires when a connection is established (and re-subscription is done).
         self._ready = asyncio.Event()
-        self._connection_loop_task: asyncio.Task[None] | None = None
+        self._connection_loop_task = None
         # Pending RPC requests (as futures) keyed by request id.
         self._pending_requests: PendingRequestsMap = {}
         # Active subscriptions keyed by topic id.

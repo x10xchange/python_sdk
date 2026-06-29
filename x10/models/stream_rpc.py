@@ -18,7 +18,7 @@ T = TypeVar("T")
 class StreamRpcResponseModel(X10BaseModel, Generic[T]):
     type: str
     data: T
-    error: str = None
+    error: str | None = None
     ts: int
     seq: int
     subscription: str

@@ -96,7 +96,11 @@ class StreamRpcDispatcher:
 
             if self._on_sequence_break:
                 try:
-                    result = await self._on_sequence_break(subscription_id, self._last_seq, msg_seq)
+                    result = await self._on_sequence_break(
+                        subscription_id,
+                        self._last_seq,
+                        msg_seq,
+                    )  # type: ignore[func-returns-value]
 
                     if asyncio.iscoroutine(result):
                         await result
