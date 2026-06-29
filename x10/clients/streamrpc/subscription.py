@@ -1,26 +1,28 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from decimal import Decimal
 from typing import Any, Callable, Coroutine, Generic, Optional, TypeAlias, TypeVar
 
-from pydantic import AliasChoices, Field
-
 from x10.errors import ValidationError
-from x10.models.balance import BalanceModel, SpotBalanceModel
-from x10.models.base import X10BaseModel
 from x10.models.candle import CandleModel
-from x10.models.deposit import DepositStatusUpdateModel
 from x10.models.funding_rate import FundingRateModel
-from x10.models.order import OpenOrderModel
 from x10.models.orderbook import OrderbookUpdateModel
-from x10.models.position import PositionModel
-from x10.models.stream_rpc import StreamMessageEnvelope
-from x10.models.trade import AccountTradeModel, PublicTradeModel
-from x10.models.withdrawal import WithdrawalStatusUpdateModel
+from x10.models.stream_rpc import (
+    StreamRpcAccountBalanceModel,
+    StreamRpcAccountDepositUpdateModel,
+    StreamRpcAccountOrdersModel,
+    StreamRpcAccountPositionsModel,
+    StreamRpcAccountSpotBalancesModel,
+    StreamRpcAccountTradesModel,
+    StreamRpcAccountWithdrawalUpdateModel,
+    StreamRpcOrderbookUpdateModel,
+    StreamRpcPriceModel,
+    StreamRpcResponseModel,
+)
+from x10.models.trade import PublicTradeModel
 
 T = TypeVar("T")
 TopicId: TypeAlias = str
-StreamMessageHandler = Callable[[StreamMessageEnvelope[Any]], Coroutine[Any, Any, None] | None]
+StreamMessageHandler = Callable[[StreamRpcResponseModel[Any]], Coroutine[Any, Any, None] | None]
 
 
 class SubscribeParams(ABC, Generic[T]):
@@ -57,7 +59,7 @@ class TradesParams(SubscribeParams[list[PublicTradeModel]]):
     Subscribe to public trade events for a market (or all markets).
     """
 
-    def __init__(self, market: str | None = None) -> None:
+    def __init__(self, *, market: str | None = None) -> None:
         self.market = market
 
     @property
@@ -77,12 +79,6 @@ class TopicSubscription:
     handler: StreamMessageHandler
 
 
-# FIXME: Rename
-class OrderbookUpdateModel2(OrderbookUpdateModel):
-    type: str = Field(validation_alias=AliasChoices("market", "m"), serialization_alias="m")
-    depth: str = Field(validation_alias=AliasChoices("depth", "d"), serialization_alias="d")
-
-
 class OrderbooksParams(SubscribeParams[OrderbookUpdateModel]):
     """
     Subscribe to order book snapshots and delta updates.
@@ -92,7 +88,7 @@ class OrderbooksParams(SubscribeParams[OrderbookUpdateModel]):
     :param rfq_only: If ``True``, only include RFQ (request-for-quote) levels. Only valid when ``depth="full"``.
     """
 
-    def __init__(self, market: str | None = None, depth: str = "full", rfq_only: bool = False) -> None:
+    def __init__(self, *, market: str | None = None, depth: str = "full", rfq_only: bool = False) -> None:
         if depth not in ("full", "1"):
             raise ValidationError(f"`depth` must be `full` or `1`, got {depth!r}")
 
@@ -120,8 +116,8 @@ class OrderbooksParams(SubscribeParams[OrderbookUpdateModel]):
             },
         }
 
-    def deserialize_data(self, data: dict[str, Any], msg_type: str | None) -> OrderbookUpdateModel2:
-        return OrderbookUpdateModel2.model_validate(data)
+    def deserialize_data(self, data: dict[str, Any], msg_type: str | None) -> StreamRpcOrderbookUpdateModel:
+        return StreamRpcOrderbookUpdateModel.model_validate(data)
 
 
 class FundingRatesParams(SubscribeParams[FundingRateModel]):
@@ -131,7 +127,7 @@ class FundingRatesParams(SubscribeParams[FundingRateModel]):
     :param market: Market symbol or ``None`` for all markets.
     """
 
-    def __init__(self, market: str | None = None) -> None:
+    def __init__(self, *, market: str | None = None) -> None:
         self.market = market
 
     @property
@@ -146,13 +142,7 @@ class FundingRatesParams(SubscribeParams[FundingRateModel]):
         return FundingRateModel.model_validate(data)
 
 
-class PriceModel(X10BaseModel):
-    market: str = Field(validation_alias=AliasChoices("market", "m"), serialization_alias="m")
-    price: Decimal = Field(validation_alias=AliasChoices("price", "p"), serialization_alias="p")
-    ts: int
-
-
-class PricesParams(SubscribeParams[PriceModel]):
+class PricesParams(SubscribeParams[StreamRpcPriceModel]):
     """
     Subscribe to mark / index price updates for a market (or all markets)
 
@@ -160,7 +150,7 @@ class PricesParams(SubscribeParams[PriceModel]):
     :param market: Market symbol or ``None`` for all markets.
     """
 
-    def __init__(self, price_type: str, market: str | None = None) -> None:
+    def __init__(self, *, price_type: str, market: str | None = None) -> None:
         if price_type not in ("mark", "index"):
             raise ValidationError(f"`price_type` must be `mark` or `index`, got {price_type!r}")
 
@@ -177,8 +167,8 @@ class PricesParams(SubscribeParams[PriceModel]):
             "selector": {"type": self.price_type, "market": self.market},
         }
 
-    def deserialize_data(self, data: dict[str, Any], msg_type: str | None) -> PriceModel:
-        return PriceModel.model_validate(data)
+    def deserialize_data(self, data: dict[str, Any], msg_type: str | None) -> StreamRpcPriceModel:
+        return StreamRpcPriceModel.model_validate(data)
 
 
 class CandlesParams(SubscribeParams[list[CandleModel]]):
@@ -190,7 +180,7 @@ class CandlesParams(SubscribeParams[list[CandleModel]]):
     :param interval: ISO-8601 duration.
     """
 
-    def __init__(self, candle_type: str, market: str, interval: str) -> None:
+    def __init__(self, *, candle_type: str, market: str, interval: str) -> None:
         if candle_type not in ("mark", "index", "last"):
             raise ValidationError(f"`candle_type` must be `mark`, `index`, or `last`, got {candle_type!r}")
 
@@ -212,76 +202,26 @@ class CandlesParams(SubscribeParams[list[CandleModel]]):
         return [CandleModel.model_validate(item) for item in data]
 
 
-class StreamResponseModel(X10BaseModel, Generic[T]):
-    type: str = None
-    data: T
-    error: Optional[str] = None
-    ts: int
-    seq: int
-    subscription: str
-
-
-class AccountStreamDataModelPosition(X10BaseModel):
-    isSnapshot: bool
-    positions: list[PositionModel]
-
-
-class AccountStreamDataModelOrder(X10BaseModel):
-    isSnapshot: bool
-    orders: list[OpenOrderModel]
-
-
-class AccountStreamDataModelTrade(X10BaseModel):
-    isSnapshot: bool
-    trades: list[AccountTradeModel]
-
-
-class AccountStreamDataModelBalance(X10BaseModel):
-    isSnapshot: bool
-    balance: BalanceModel
-
-
-class AccountStreamDataModelSpotBalance(X10BaseModel):
-    isSnapshot: bool
-    spotBalances: list[SpotBalanceModel]
-
-
-class AccountStreamDataModelDeposit(X10BaseModel):
-    isSnapshot: bool
-    deposit: DepositStatusUpdateModel
-
-
-class AccountStreamDataModelWithdrawal(X10BaseModel):
-    isSnapshot: bool
-    withdrawal: WithdrawalStatusUpdateModel
-
-
-X: TypeAlias = (
-    AccountStreamDataModelPosition
-    | AccountStreamDataModelOrder
-    | AccountStreamDataModelTrade
-    | AccountStreamDataModelBalance
-    | AccountStreamDataModelSpotBalance
-    | AccountStreamDataModelDeposit
-    | AccountStreamDataModelWithdrawal
+StreamRpcAccountUpdateType: TypeAlias = (
+    StreamRpcAccountPositionsModel
+    | StreamRpcAccountOrdersModel
+    | StreamRpcAccountTradesModel
+    | StreamRpcAccountBalanceModel
+    | StreamRpcAccountSpotBalancesModel
+    | StreamRpcAccountDepositUpdateModel
+    | StreamRpcAccountWithdrawalUpdateModel
 )
 
 
-# FIXME: Mark as not supported yet due to auth issues
-class _AccountParams(SubscribeParams[X]):
+class _AccountParams(SubscribeParams[StreamRpcAccountUpdateType]):
     """
+    NOT SUPPORTED DUE TO AUTH ISSUES. TO BE FIXED IN THE UPCOMING VERSIONS.
+
     Subscribe to the private account stream.
     """
 
-    def __init__(
-        self,
-        *,
-        account: str,
-        # FIXME: BE auth is broken
-        api_key: str,
-    ) -> None:
+    def __init__(self, *, account: str) -> None:
         self.account = account
-        self.api_key = api_key
 
     @property
     def topic_id(self) -> str:
@@ -291,24 +231,23 @@ class _AccountParams(SubscribeParams[X]):
         return {
             "scope": "account",
             "selector": {"account": self.account},
-            "apiKey": self.api_key,
         }
 
-    def deserialize_data(self, data: dict[str, Any], msg_type: str | None) -> X:
+    def deserialize_data(self, data: dict[str, Any], msg_type: str | None) -> StreamRpcAccountUpdateType:
         match msg_type:
             case "ACCOUNT.POSITION":
-                return AccountStreamDataModelOrder.model_validate(data)
+                return StreamRpcAccountPositionsModel.model_validate(data)
             case "ACCOUNT.ORDER":
-                return AccountStreamDataModelOrder.model_validate(data)
+                return StreamRpcAccountOrdersModel.model_validate(data)
             case "ACCOUNT.TRADE":
-                return AccountStreamDataModelTrade.model_validate(data)
+                return StreamRpcAccountTradesModel.model_validate(data)
             case "ACCOUNT.BALANCE":
-                return AccountStreamDataModelBalance.model_validate(data)
+                return StreamRpcAccountBalanceModel.model_validate(data)
             case "ACCOUNT.SPOT_BALANCE":
-                return AccountStreamDataModelSpotBalance.model_validate(data)
+                return StreamRpcAccountSpotBalancesModel.model_validate(data)
             case "ACCOUNT.DEPOSIT":
-                return AccountStreamDataModelDeposit.model_validate(data)
+                return StreamRpcAccountDepositUpdateModel.model_validate(data)
             case "ACCOUNT.WITHDRAWAL":
-                return AccountStreamDataModelWithdrawal.model_validate(data)
+                return StreamRpcAccountWithdrawalUpdateModel.model_validate(data)
             case _:
                 raise ValidationError(f"Unknown account stream message type: {msg_type!r}")
