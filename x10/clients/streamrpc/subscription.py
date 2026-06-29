@@ -70,7 +70,7 @@ class TopicSubscription:
     handler: StreamMessageHandler
 
 
-# FIXME
+# FIXME: Rename
 class OrderbookUpdateModel2(OrderbookUpdateModel):
     type: str = Field(validation_alias=AliasChoices("market", "m"), serialization_alias="m")
     depth: str = Field(validation_alias=AliasChoices("depth", "d"), serialization_alias="d")
@@ -117,7 +117,7 @@ class OrderBookParams(SubscribeParams[OrderbookUpdateModel]):
         return OrderbookUpdateModel2.model_validate(data)
 
 
-# FIXME
+# FIXME: Rename
 class AccountStreamDataModel2(X10BaseModel):
     pass
 

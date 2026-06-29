@@ -261,6 +261,7 @@ class StreamRpcClient:
             RequestHeader.USER_AGENT: USER_AGENT,
         }
 
+        # FIXME: Remove?
         if self._api_key is not None:
             extra_headers[RequestHeader.API_KEY] = self._api_key
 
