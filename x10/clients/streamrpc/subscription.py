@@ -1,10 +1,14 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Callable, Coroutine, Generic, TypeAlias, TypeVar
+from typing import Any, Callable, Coroutine, Generic, Optional, TypeAlias, TypeVar
 
+from models.balance import BalanceModel, SpotBalanceModel
 from models.candle import CandleModel
 from models.funding_rate import FundingRateModel
+from models.order import OpenOrderModel
+from models.position import PositionModel
+from models.vault import DepositRequestModel
 from pydantic import AliasChoices, Field
 
 from x10.errors import ValidationError
@@ -12,7 +16,7 @@ from x10.models.account import AccountStreamDataModel
 from x10.models.base import X10BaseModel
 from x10.models.orderbook import OrderbookUpdateModel
 from x10.models.stream_rpc import StreamMessageEnvelope
-from x10.models.trade import PublicTradeModel
+from x10.models.trade import AccountTradeModel, PublicTradeModel
 
 T = TypeVar("T")
 TopicId: TypeAlias = str
@@ -208,12 +212,83 @@ class CandlesParams(SubscribeParams[list[CandleModel]]):
         return [CandleModel.model_validate(item) for item in data]
 
 
-# FIXME: Rename
-class AccountStreamDataModel2(X10BaseModel):
+class StreamResponseModel(X10BaseModel, Generic[T]):
+    type: str = None
+    data: T
+    error: Optional[str] = None
+    ts: int
+    seq: int
+    subscription: str
+
+
+class AccountStreamDataModelPosition(X10BaseModel):
+    isSnapshot: bool
+    positions: list[PositionModel]
+
+
+class AccountStreamDataModelOrder(X10BaseModel):
+    isSnapshot: bool
+    orders: list[OpenOrderModel]
+
+
+class AccountStreamDataModelTrade(X10BaseModel):
+    isSnapshot: bool
+    trades: list[AccountTradeModel]
+
+
+class AccountStreamDataModelBalance(X10BaseModel):
+    isSnapshot: bool
+    balance: BalanceModel
+
+
+class AccountStreamDataModelSpotBalance(X10BaseModel):
+    isSnapshot: bool
+    spotBalances: list[SpotBalanceModel]
+
+
+class DepositStatusUpdateModel(X10BaseModel):
+    pass
+    # assetId: zodLong(),
+    # amount: zodDecimal(),
+    # timestamp: z.number(),
+    # status: z.enum(['CREATED', 'PROCESSED', 'REJECTED']),
+
+
+class AccountStreamDataModelDeposit(X10BaseModel):
+    isSnapshot: bool
+    deposit: DepositStatusUpdateModel
+
+
+# export const WithdrawalStatusUpdateSchema = z.object({
+#     id: zodLong(),
+#     assetId: zodLong(),
+#     amount: zodDecimal(),
+#     status: z.enum(['CREATED', 'REJECTED', 'IN_PROGRESS', 'READY_FOR_CLAIM', 'COMPLETED']),
+#     reason: z.string().optional(),
+# })
+
+
+class WithdrawalStatusUpdateModel(X10BaseModel):
     pass
 
 
-class AccountParams(SubscribeParams[AccountStreamDataModel2]):
+class AccountStreamDataModelWithdrawal(X10BaseModel):
+    isSnapshot: bool
+    withdrawal: WithdrawalStatusUpdateModel
+
+
+X: TypeAlias = (
+    AccountStreamDataModelPosition
+    | AccountStreamDataModelOrder
+    | AccountStreamDataModelTrade
+    | AccountStreamDataModelBalance
+    | AccountStreamDataModelSpotBalance
+    | AccountStreamDataModelDeposit
+    | AccountStreamDataModelWithdrawal
+)
+
+
+class AccountParams(SubscribeParams[X]):
     """
     Subscribe to the private account stream.
     """
@@ -239,22 +314,21 @@ class AccountParams(SubscribeParams[AccountStreamDataModel2]):
             "apiKey": self.api_key,
         }
 
-    def deserialize_data(self, data: dict[str, Any], msg_type: str | None) -> AccountStreamDataModel2:
-        # return [PublicTradeModel.model_validate(item) for item in data]
+    def deserialize_data(self, data: dict[str, Any], msg_type: str | None) -> X:
         match msg_type:
-            # case "ACCOUNT.ORDER":
-            #     return Order.from_dict(data)
-            # case "ACCOUNT.POSITION":
-            #     return Position.from_dict(data)
-            # case "ACCOUNT.BALANCE":
-            #     return Balance.from_dict(data)
-            # case "ACCOUNT.WITHDRAWAL":
-            #     return Withdrawal.from_dict(data)
-            # case "ACCOUNT.DEPOSIT":
-            #     return DepositUpdate.from_dict(data)
-            # case "ACCOUNT.TRADE":
-            #     return Trade.from_dict(data)
-            # case "ACCOUNT.SPOT_BALANCE":
-            #     return SpotBalance.from_dict(data)
+            case "ACCOUNT.POSITION":
+                return AccountStreamDataModelOrder.model_validate(data)
+            case "ACCOUNT.ORDER":
+                return AccountStreamDataModelOrder.model_validate(data)
+            case "ACCOUNT.TRADE":
+                return AccountStreamDataModelTrade.model_validate(data)
+            case "ACCOUNT.BALANCE":
+                return AccountStreamDataModelBalance.model_validate(data)
+            case "ACCOUNT.SPOT_BALANCE":
+                return AccountStreamDataModelSpotBalance.model_validate(data)
+            case "ACCOUNT.DEPOSIT":
+                return AccountStreamDataModelDeposit.model_validate(data)
+            case "ACCOUNT.WITHDRAWAL":
+                return AccountStreamDataModelWithdrawal.model_validate(data)
             case _:
-                raise ValueError(f"Unknown account stream message type: {msg_type!r}")
+                raise ValidationError(f"Unknown account stream message type: {msg_type!r}")
