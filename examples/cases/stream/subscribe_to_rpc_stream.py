@@ -4,8 +4,9 @@ from asyncio import run
 from signal import SIGINT, SIGTERM
 
 from examples.utils import BTC_USD_MARKET, create_stream_rpc_client, init_env
-from x10.clients.streamrpc.subscription import TradesParams
+from x10.clients.streamrpc.subscription import AccountParams, TradesParams
 from x10.config import get_config_by_name
+from x10.models.account import AccountStreamDataModel
 from x10.models.stream_rpc import StreamMessageEnvelope
 from x10.models.trade import PublicTradeModel
 
@@ -13,9 +14,13 @@ LOGGER = logging.getLogger()
 MARKET_NAME = BTC_USD_MARKET
 
 
-def on_trade(env: StreamMessageEnvelope[list[PublicTradeModel]]) -> None:
-    for t in env.data:
-        print(f"[trade] {t.market} {t.side.value} {t.qty} @ {t.price} (seq={env.seq})")
+def on_trade(message: StreamMessageEnvelope[list[PublicTradeModel]]) -> None:
+    for t in message.data:
+        print(f"[trade] {t.market} {t.side} {t.qty} @ {t.price} (seq={message.seq})")
+
+
+def on_account(message: StreamMessageEnvelope[AccountStreamDataModel]) -> None:
+    print(message.data)
 
 
 async def subscribe_to_rpc_stream(stop_event: asyncio.Event):
@@ -25,6 +30,8 @@ async def subscribe_to_rpc_stream(stop_event: asyncio.Event):
     async with create_stream_rpc_client(client_config) as client:
         await client.subscribe(params=TradesParams(market="BTC-USD"), handler=on_trade)
         await client.subscribe(params=TradesParams(market="ETH-USD"), handler=on_trade)
+        # FIXME: Change account
+        await client.subscribe(params=AccountParams(account="3375", api_key=env_config.api_key), handler=on_account)
         await asyncio.sleep(5)
         await client.unsubscribe(TradesParams(market="ETH-USD").topic_id)
         await stop_event.wait()

@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Coroutine, Generic, TypeAlias, TypeVar
 
+from x10.models.account import AccountStreamDataModel
 from x10.models.stream_rpc import StreamMessageEnvelope
 from x10.models.trade import PublicTradeModel
 
@@ -62,3 +63,48 @@ class TradesParams(SubscribeParams[list[PublicTradeModel]]):
 class TopicSubscription:
     params: SubscribeParams[Any]
     handler: StreamMessageHandler
+
+
+class AccountParams(SubscribeParams[AccountStreamDataModel]):
+    """
+    Subscribe to the private account stream.
+    """
+
+    def __init__(
+        self,
+        *,
+        account: str,
+        api_key: str,
+    ) -> None:
+        self.account = account
+        self.api_key = api_key
+
+    @property
+    def topic_id(self) -> str:
+        return f"account.{self.account}"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "scope": "account",
+            "selector": {"account": self.account},
+            "apiKey": self.api_key,
+        }
+
+    def deserialize_data(self, data: dict[str, Any], msg_type: str | None) -> AccountStreamDataModel:
+        match msg_type:
+            # case "ACCOUNT.ORDER":
+            #     return Order.from_dict(data)
+            # case "ACCOUNT.POSITION":
+            #     return Position.from_dict(data)
+            # case "ACCOUNT.BALANCE":
+            #     return Balance.from_dict(data)
+            # case "ACCOUNT.WITHDRAWAL":
+            #     return Withdrawal.from_dict(data)
+            # case "ACCOUNT.DEPOSIT":
+            #     return DepositUpdate.from_dict(data)
+            # case "ACCOUNT.TRADE":
+            #     return Trade.from_dict(data)
+            # case "ACCOUNT.SPOT_BALANCE":
+            #     return SpotBalance.from_dict(data)
+            case _:
+                raise ValueError(f"Unknown account stream message type: {msg_type!r}")
