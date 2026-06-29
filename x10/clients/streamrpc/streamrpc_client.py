@@ -12,7 +12,12 @@ from x10.clients.streamrpc.subscription import (
     TopicId,
     TopicSubscription,
 )
-from x10.errors import StreamRpcConnectionError, StreamRpcError, StreamRpcTimeoutError
+from x10.errors import (
+    StreamRpcConnectionError,
+    StreamRpcError,
+    StreamRpcServerError,
+    StreamRpcTimeoutError,
+)
 from x10.utils.http import USER_AGENT, RequestHeader
 from x10.utils.log import get_logger
 
@@ -70,13 +75,43 @@ class StreamRpcClient:
             ) from exc
 
     async def close(self):
-        raise NotImplementedError
+        """
+        Stops the client and close the WebSocket connection.
+        """
+
+        self._is_stopped = True
+        self._ready.clear()
+        self._fail_pending(StreamRpcConnectionError("Client disconnected"))
+
+        if self._ws is not None:
+            await self._ws.close()
+            self._ws = None
+
+        if self._connection_loop_task is not None:
+            self._connection_loop_task.cancel()
+
+            try:
+                await self._connection_loop_task
+            except (asyncio.CancelledError, Exception):
+                pass
+
+            self._connection_loop_task = None
 
     async def ping(self):
-        raise NotImplementedError
+        """
+        Sends a ping and wait for the server's acknowledgement.
+        """
+
+        await self._rpc("ping")
 
     async def list_subscriptions(self):
-        raise NotImplementedError
+        """
+        Return the list of active subscription IDs as reported by the server.
+        """
+
+        result = await self._rpc("list-subscriptions")
+        # FIXME: Simplify?
+        return result.get("subscriptions") or []
 
     async def subscribe(self, *, params: SubscribeParams[T], handler: StreamMessageHandler):
         """
@@ -201,7 +236,15 @@ class StreamRpcClient:
             self._pending_requests.pop(request_id, None)
 
     def _fail_pending(self, exc: Exception) -> None:
-        raise NotImplementedError
+        """
+        Resolve all pending RPC futures with an exception.
+        """
+
+        for request_result in list(self._pending_requests.values()):
+            if not request_result.done():
+                request_result.set_exception(exc)
+
+        self._pending_requests.clear()
 
     # FIXME: Create a class for connection loop?
     async def _run_connection_loop(self):
@@ -244,25 +287,26 @@ class StreamRpcClient:
 
         while not self._is_stopped:
             try:
-                self._ws = await websockets.connect(self._api_url, extra_headers=extra_headers)
+                async with websockets.connect(self._api_url, extra_headers=extra_headers) as ws:
+                    self._ws = ws
 
-                LOGGER.debug("Connected to %s", self._api_url)
+                    LOGGER.debug("Connected to %s", self._api_url)
 
-                # `seq` restarts at 0 on each new connection
-                self._last_seq = None
-                reconnect_delay = self._reconnect_initial_delay
+                    # `seq` restarts at 0 on each new connection
+                    self._last_seq = None
+                    reconnect_delay = self._reconnect_initial_delay
 
-                # await self._resubscribe()
-                # self._ready.set()
-                #
-                # if not first_attempt and self._on_reconnect:
-                #     await self._on_reconnect(list(self._subscriptions))
-                #
-                # first_attempt = False
-                #
-                # async for raw in ws:
-                #     if isinstance(raw, str):
-                #         self._dispatch_raw(raw)
+                    await self._resubscribe()
+                    self._ready.set()
+
+                    if not is_first_connection_attempt and self._on_reconnect:
+                        await self._on_reconnect(list(self._subscriptions))
+
+                    is_first_connection_attempt = False
+
+                    async for raw in ws:
+                        if isinstance(raw, str):
+                            self._dispatch_raw(raw)
             except asyncio.CancelledError:
                 break
             except (ConnectionClosed, OSError, asyncio.TimeoutError) as exc:
@@ -282,17 +326,78 @@ class StreamRpcClient:
 
                 await asyncio.sleep(self._reconnect_initial_delay)
 
-        # self._ws = None
-        # self._ready.clear()
-        # self._fail_pending(RpcConnectionError("Client stopped"))
-        # logger.info("Connection loop exited")
+        self._ws = None
+        self._ready.clear()
+        self._fail_pending(StreamRpcConnectionError("Client stopped"))
+
+        LOGGER.debug("Connection loop exited")
 
     async def _resubscribe(self) -> None:
-        raise NotImplementedError
+        """
+        Replay all active subscriptions after a reconnection.
+        """
+
+        if self._ws is None or not self._subscriptions:
+            return
+
+        LOGGER.debug("Resubscribing to %d topic(s)…", len(self._subscriptions))
+
+        for topic_id, subscription in list(self._subscriptions.items()):
+            request_id = self._get_next_request_id()
+            request = {
+                "method": "subscribe",
+                "id": request_id,
+                "jsonrpc": "2.0",
+                "params": subscription.params.to_dict(),
+            }
+            try:
+                await self._ws.send(json.dumps(request))
+            except Exception:
+                LOGGER.exception("Failed to resubscribe to %s", topic_id)
 
     # FIXME: Create a dispatcher class?
     def _dispatch_raw(self, raw: str) -> None:
-        pass
+        """
+        Parse a raw WebSocket text frame and route it to the right handler.
+        """
 
-    async def _dispatch_envelope(self, msg: dict[str, Any], sub_id: str) -> None:
-        pass
+        try:
+            msg: dict[str, Any] = json.loads(raw)
+        except json.JSONDecodeError:
+            LOGGER.warning("Received invalid JSON (%.120s…)", raw)
+            return
+
+        # (1) JSON-RPC response
+        request_id: RequestId | None = msg.get("id")
+
+        if request_id is not None:
+            request_result = self._pending_requests.get(str(request_id))
+
+            if not request_result:
+                LOGGER.warning("Received response for unknown request id=%s", request_id)
+                return
+
+            err = msg.get("error")
+
+            if err:
+                request_result.set_exception(
+                    StreamRpcServerError(code=err["code"], message=err["message"], data=err.get("data"))
+                )
+            else:
+                request_result.set_result(msg["result"])
+
+            return
+
+        # (2) Stream data
+        subscription_id: str | None = msg.get("subscription")
+
+        if subscription_id is not None:
+            asyncio.ensure_future(self._dispatch_envelope(msg, subscription_id))
+            return
+
+        # (3) Unknown message
+        LOGGER.error("Unrecognised message shape: %s", raw)
+
+    async def _dispatch_envelope(self, msg: dict[str, Any], subscription_id: str) -> None:
+        print(subscription_id)
+        print(msg)
