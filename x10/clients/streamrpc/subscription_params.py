@@ -137,7 +137,6 @@ class FundingRatesParams(SubscribeParams[FundingRateModel]):
     def to_dict(self) -> dict[str, Any]:
         return {"scope": "funding-rates", "selector": {"market": self.market}}
 
-    # FIXME: Remove `None` from `msg_type`
     def deserialize_data(self, data: dict[str, Any], msg_type: str) -> FundingRateModel:
         return FundingRateModel.model_validate(data)
 
