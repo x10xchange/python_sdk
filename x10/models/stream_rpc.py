@@ -25,7 +25,6 @@ class StreamRpcResponseModel(X10BaseModel, Generic[T]):
 
 
 class StreamRpcOrderbookUpdateModel(OrderbookUpdateModel):
-    type: str = Field(validation_alias=AliasChoices("market", "m"), serialization_alias="m")
     depth: str = Field(validation_alias=AliasChoices("depth", "d"), serialization_alias="d")
 
 
@@ -36,35 +35,35 @@ class StreamRpcPriceModel(X10BaseModel):
 
 
 class StreamRpcAccountPositionsModel(X10BaseModel):
-    isSnapshot: bool
+    is_snapshot: bool
     positions: list[PositionModel]
 
 
 class StreamRpcAccountOrdersModel(X10BaseModel):
-    isSnapshot: bool
+    is_snapshot: bool
     orders: list[OpenOrderModel]
 
 
 class StreamRpcAccountTradesModel(X10BaseModel):
-    isSnapshot: bool
+    is_snapshot: bool
     trades: list[AccountTradeModel]
 
 
 class StreamRpcAccountBalanceModel(X10BaseModel):
-    isSnapshot: bool
+    is_snapshot: bool
     balance: BalanceModel
 
 
 class StreamRpcAccountSpotBalancesModel(X10BaseModel):
-    isSnapshot: bool
+    is_snapshot: bool
     spotBalances: list[SpotBalanceModel]
 
 
 class StreamRpcAccountDepositUpdateModel(X10BaseModel):
-    isSnapshot: bool
+    is_snapshot: bool
     deposit: DepositStatusUpdateModel
 
 
 class StreamRpcAccountWithdrawalUpdateModel(X10BaseModel):
-    isSnapshot: bool
+    is_snapshot: bool
     withdrawal: WithdrawalStatusUpdateModel

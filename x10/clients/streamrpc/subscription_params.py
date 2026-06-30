@@ -198,7 +198,7 @@ class CandlesParams(SubscribeParams[list[CandleModel]]):
             "selector": {"type": self.candle_type, "market": self.market, "interval": self.interval},
         }
 
-    def deserialize_data(self, data: dict[str, Any], msg_type: str) -> list[CandleModel]:
+    def deserialize_data(self, data: list[dict[str, Any]], msg_type: str) -> list[CandleModel]:
         return [CandleModel.model_validate(item) for item in data]
 
 

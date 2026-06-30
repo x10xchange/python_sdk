@@ -36,7 +36,7 @@ class StreamRpcClient:
     X10 WebSocket RPC client.
 
     Implements the JSON-RPC 2.0 like protocol over a WebSocket connection.
-    Supports automatic reconnection and transparent re-subscription after connection loss.
+    Supports automatic reconnection and transparent resubscription after connection loss.
 
     :param api_url: Full WebSocket URL.
     :param on_reconnect: Optional async callback invoked after a successful reconnection.
@@ -186,7 +186,7 @@ class StreamRpcClient:
         self._next_request_id = 0
 
         self._ws = None
-        # Fires when a connection is established (and re-subscription is done).
+        # Fires when a connection is established (and resubscription is done).
         self._ready = asyncio.Event()
         self._connection_loop_task = None
         # Pending RPC requests (as futures) keyed by request id.
@@ -342,17 +342,10 @@ class StreamRpcClient:
         if self._ws is None or not self._subscriptions:
             return
 
-        LOGGER.debug("Resubscribing to %d topic(s)…", len(self._subscriptions))
+        LOGGER.debug("Resubscribing to topic(s): %s", ", ".join(list(self._subscriptions.keys())))
 
-        for topic_id, subscription in list(self._subscriptions.items()):
-            request_id = self._get_next_request_id()
-            request = {
-                "method": "subscribe",
-                "id": request_id,
-                "jsonrpc": "2.0",
-                "params": subscription.params.to_dict(),
-            }
+        for topic_id, subscription in self._subscriptions.items():
             try:
-                await self._ws.send(json.dumps(request))
+                await self._rpc("subscribe", params=subscription.params.to_dict())
             except Exception:
                 LOGGER.exception("Failed to resubscribe to %s", topic_id)

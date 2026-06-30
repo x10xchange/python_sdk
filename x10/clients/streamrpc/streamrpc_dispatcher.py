@@ -96,14 +96,10 @@ class StreamRpcDispatcher:
 
             if self._on_sequence_break:
                 try:
-                    result = await self._on_sequence_break(
-                        subscription_id,
-                        self._last_seq,
-                        msg_seq,
-                    )  # type: ignore[func-returns-value]
+                    sequence_break_result = self._on_sequence_break(subscription_id, self._last_seq, msg_seq)
 
-                    if asyncio.iscoroutine(result):
-                        await result
+                    if asyncio.iscoroutine(sequence_break_result):
+                        await sequence_break_result
                 except Exception:
                     LOGGER.exception("Unhandled exception in `on_sequence_break` callback")
 
@@ -127,15 +123,16 @@ class StreamRpcDispatcher:
         enveloped_data = StreamRpcResponseModel(
             type=msg_type,
             data=deserialized_data,
+            error=msg.get("error"),
             ts=msg["ts"],
             seq=msg_seq,
             subscription=subscription_id,
         )
 
         try:
-            result = subscription.handler(enveloped_data)
+            subscription_handler_result = subscription.handler(enveloped_data)
 
-            if asyncio.iscoroutine(result):
-                await result
+            if asyncio.iscoroutine(subscription_handler_result):
+                await subscription_handler_result
         except Exception:
             LOGGER.exception("Unhandled exception in handler for subscription %s", subscription_id)
