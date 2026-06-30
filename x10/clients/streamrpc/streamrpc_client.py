@@ -342,8 +342,9 @@ class StreamRpcClient:
 
         LOGGER.debug("Resubscribing to topic(s): %s", ", ".join(list(self._subscriptions.keys())))
 
-        for topic_id, subscription in self._subscriptions.items():
+        for topic_id, subscription in list(self._subscriptions.items()):
             try:
                 await self._rpc("subscribe", params=subscription.params.to_dict())
             except Exception:
                 LOGGER.exception("Failed to resubscribe to %s", topic_id)
+                self._subscriptions.pop(topic_id, None)

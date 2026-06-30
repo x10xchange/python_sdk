@@ -25,7 +25,7 @@ def create_candle_stream_message():
 
 def create_candle_stream_rpc_message():
     return StreamRpcResponseModel(
-        type="CANDLE",
+        type="CANDLES",
         data=[
             CandleModel(
                 open=Decimal("3458.64"),

@@ -71,7 +71,7 @@ async def test_candle_stream():
         msg.to_api_request_json(),
         equal_to(
             {
-                "type": "CANDLE",
+                "type": "CANDLES",
                 "data": [
                     {"o": "3458.64", "l": "3399.07", "h": "3476.89", "c": "3414.85", "v": "3.938", "T": 1721106000000}
                 ],
