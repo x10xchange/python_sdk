@@ -40,9 +40,6 @@ async def subscribe_to_rpc_stream(stop_event: asyncio.Event):
 
         subscriptions_after = await client.list_subscriptions()
 
-        # FIXME
-        await client._resubscribe()
-
         LOGGER.info("Active subscriptions: %s", subscriptions_after)
 
         await stop_event.wait()
