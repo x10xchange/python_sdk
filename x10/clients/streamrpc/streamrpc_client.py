@@ -52,7 +52,7 @@ class StreamRpcClient:
     async def connect(self):
         """
         Starts the client's connection management loop and waits for the first connection to be established.
-        :raises StreamRpcConnectionError: If the initial connection fails (reconnect is not attempted).
+        :raises StreamRpcConnectionError: If the initial connection is not established before the connect timeout.
         """
 
         if self._connection_loop_task is not None:

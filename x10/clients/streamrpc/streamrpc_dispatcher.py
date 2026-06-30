@@ -48,7 +48,7 @@ class StreamRpcDispatcher:
         if request_id is not None:
             request_result = self._pending_requests.get(str(request_id))
 
-            if not request_result:
+            if request_result is None:
                 LOGGER.warning("Received response for unknown request id=%s", request_id)
                 return
 
@@ -84,53 +84,47 @@ class StreamRpcDispatcher:
             LOGGER.warning("Received message for unknown subscription id=%s", subscription_id)
             return
 
-        msg_seq = msg["seq"]
+        try:
+            msg_model: StreamRpcResponseModel[Any] = StreamRpcResponseModel.model_validate(msg)
+        except Exception as exc:
+            LOGGER.exception("Failed to validate message for subscription %s: %s", subscription_id, exc)
+            return
 
-        if self._last_seq is not None and msg_seq != self._last_seq + 1:
+        if self._last_seq is not None and msg_model.seq != self._last_seq + 1:
             LOGGER.warning(
                 "Sequence break detected for subscription %s: last_seq=%s, msg_seq=%s",
                 subscription_id,
                 self._last_seq,
-                msg_seq,
+                msg_model.seq,
             )
 
             if self._on_sequence_break:
                 try:
-                    sequence_break_result = self._on_sequence_break(subscription_id, self._last_seq, msg_seq)
+                    sequence_break_result = self._on_sequence_break(subscription_id, self._last_seq, msg_model.seq)
 
                     if asyncio.iscoroutine(sequence_break_result):
                         await sequence_break_result
                 except Exception:
                     LOGGER.exception("Unhandled exception in `on_sequence_break` callback")
 
-        self._last_seq = msg_seq
-
-        msg_data = msg["data"]
-        msg_type = msg["type"]
+        self._last_seq = msg_model.seq
 
         try:
-            deserialized_data = subscription.params.deserialize_data(msg_data, msg_type)
+            deserialized_data = subscription.params.deserialize_data(msg_model.data, msg_model.type)
         except Exception as exc:
             LOGGER.exception(
                 "Failed to deserialize message for subscription %s (type=%s, seq=%s): %s",
                 subscription_id,
-                msg_type,
-                msg_seq,
+                msg_model.type,
+                msg_model.seq,
                 exc,
             )
             return
 
-        enveloped_data = StreamRpcResponseModel(
-            type=msg_type,
-            data=deserialized_data,
-            error=msg.get("error"),
-            ts=msg["ts"],
-            seq=msg_seq,
-            subscription=subscription_id,
-        )
+        msg_model_with_deserialized_data = msg_model.model_copy(update={"data": deserialized_data})
 
         try:
-            subscription_handler_result = subscription.handler(enveloped_data)
+            subscription_handler_result = subscription.handler(msg_model_with_deserialized_data)
 
             if asyncio.iscoroutine(subscription_handler_result):
                 await subscription_handler_result
