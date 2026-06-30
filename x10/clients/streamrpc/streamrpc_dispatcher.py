@@ -22,7 +22,7 @@ class StreamRpcDispatcher:
         subscriptions: dict[TopicId, TopicSubscription],
         on_sequence_break: OnSequenceBreakCallback | None = None,
     ) -> None:
-        # Last observed connection-level sequence (reset to `None` on each re-connect).
+        # Last observed connection-level sequence (reset to `None` on each reconnect).
         self._last_seq: int | None = None
         self._pending_requests = pending_requests
         self._subscriptions = subscriptions
