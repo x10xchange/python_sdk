@@ -170,12 +170,10 @@ class StreamRpcClient:
         self,
         *,
         api_url: str,
-        api_key: str | None = None,
         on_reconnect: OnReconnectCallback | None = None,
         on_sequence_break: OnSequenceBreakCallback | None = None,
     ):
         self._api_url = api_url
-        self._api_key = api_key
         self._on_reconnect = on_reconnect
         self._on_sequence_break = on_sequence_break
 

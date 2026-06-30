@@ -56,7 +56,7 @@ class StreamRpcAccountBalanceModel(X10BaseModel):
 
 class StreamRpcAccountSpotBalancesModel(X10BaseModel):
     is_snapshot: bool
-    spotBalances: list[SpotBalanceModel]
+    spot_balances: list[SpotBalanceModel]
 
 
 class StreamRpcAccountDepositUpdateModel(X10BaseModel):
