@@ -28,6 +28,8 @@ async def test_candle_stream():
         subscribe_msg_raw = await websocket.recv()
         subscribe_msg = json.loads(subscribe_msg_raw)
 
+        assert_that(subscribe_msg["method"], equal_to("subscribe"))
+
         await websocket.send(
             json.dumps(
                 {
@@ -37,14 +39,12 @@ async def test_candle_stream():
             )
         )
 
-        # Wait for the client's `subscribe` coroutine to register the
-        # subscription before the first stream message arrives.
-        await asyncio.sleep(0.1)
-
         await websocket.send(json.dumps(message_model.to_api_request_json()))
 
         unsubscribe_msg_raw = await websocket.recv()
         unsubscribe_msg = json.loads(unsubscribe_msg_raw)
+
+        assert_that(unsubscribe_msg["method"], equal_to("unsubscribe"))
 
         await websocket.send(
             json.dumps(

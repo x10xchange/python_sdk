@@ -130,13 +130,17 @@ class StreamRpcClient:
 
         await self._ready.wait()
 
-        result = await self._rpc("subscribe", params=params.to_dict())
-        topic_id: TopicId = result["subscription"]
-        self._subscriptions[topic_id] = TopicSubscription(params=params, handler=handler)
+        try:
+            self._subscriptions[params.topic_id] = TopicSubscription(params=params, handler=handler)
+            await self._rpc("subscribe", params=params.to_dict())
+        except Exception:
+            LOGGER.error("Failed to subscribe to %s", params.topic_id)
+            self._subscriptions.pop(params.topic_id, None)
+            raise
 
-        LOGGER.debug("Subscribed to %s", topic_id)
+        LOGGER.debug("Subscribed to %s", params.topic_id)
 
-        return topic_id
+        return params.topic_id
 
     async def unsubscribe(self, topic_id: TopicId):
         """
@@ -152,8 +156,13 @@ class StreamRpcClient:
             raise StreamRpcError(f"No active subscription: {topic_id}")
 
         await self._ready.wait()
-        await self._rpc("unsubscribe", params=subscription.params.to_dict())
-        self._subscriptions.pop(topic_id, None)
+
+        try:
+            self._subscriptions.pop(topic_id, None)
+            await self._rpc("unsubscribe", params=subscription.params.to_dict())
+        except Exception:
+            LOGGER.error("Failed to unsubscribe from %s", topic_id)
+            raise
 
         LOGGER.debug("Unsubscribed from %s", topic_id)
 
