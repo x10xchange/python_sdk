@@ -27,8 +27,8 @@ class SpotBalanceModel(X10BaseModel):
     notional_value: Decimal
     contribution_factor: Decimal
     equity_contribution: Decimal
-    available_to_withdraw: Decimal
-    updated_at: int
+    available_to_withdraw: Optional[Decimal] = None
     absolute_pnl: Optional[Decimal] = None
     pnl_percentage: Optional[Decimal] = None
     average_entry_price: Optional[Decimal] = None
+    updated_at: int

@@ -64,7 +64,7 @@ async def test_candle_stream():
 
         msg = await asyncio.wait_for(received_messages.get(), timeout=5)
 
-        await client.unsubscribe(subscription_id)
+        await client.unsubscribe(topic_id=subscription_id)
         await client.close()
 
     assert_that(
