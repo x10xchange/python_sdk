@@ -12,7 +12,8 @@ to the `fast_stark_crypto` Rust wrapper. Published to PyPI via Poetry.
 
 ## Commands
 
-Dependency management is via Poetry (`poetry install`). All checks run through the Makefile:
+Dependency management is via Poetry (`poetry install -E mcp` — the `mcp` extra is needed for mypy to pass
+on `x10/tools/mcp`; CI installs it too). All checks run through the Makefile:
 
 ```shell
 make format   # isort (black profile) + black, line length 120, target py310
@@ -29,6 +30,8 @@ poetry run pytest --forked tests/ -k test_get_markets --import-mode importlib   
 ```
 
 CI (`.github/workflows/code-checks.yml`) runs lint + tests on Python 3.10–3.13 for PRs targeting the `starknet` branch.
+
+Publishing to PyPI happens via GitHub release (`.github/workflows/build-release.yml`).
 
 All checks and tests are expected to pass.
 
