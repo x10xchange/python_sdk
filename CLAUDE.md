@@ -30,6 +30,8 @@ poetry run pytest --forked tests/ -k test_get_markets --import-mode importlib   
 
 CI (`.github/workflows/code-checks.yml`) runs lint + tests on Python 3.10–3.13 for PRs targeting the `starknet` branch.
 
+All checks and tests are expected to pass.
+
 ## Architecture
 
 Everything lives under the `x10/` package:
