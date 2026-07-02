@@ -8,7 +8,7 @@ Python SDK (`x10-python-trading-starknet`) for the Extended exchange API — a p
 Async-first (aiohttp/websockets), Pydantic v2 models, Python ≥3.10. Stark signing/hashing is delegated
 to the `fast_stark_crypto` Rust wrapper. Published to PyPI via Poetry.
 
-`starknet` branch is the default branch,
+`starknet` is the default GIT branch.
 
 ## Commands
 
