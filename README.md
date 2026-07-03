@@ -107,6 +107,11 @@ Placing orders and receiving updates in a blocking (synchronous) manner.
 Provides functionality for subscribing to real-time WebSocket updates.
 Each topic (stream) requires a separate WebSocket connection.
 
+### RPC Streaming
+
+Provides functionality for subscribing to real-time WebSocket updates by using a single WebSocket connection.
+You can use this client to subscribe to multiple topics (streams) at once.
+
 ## MCP (experimental)
 
 > [!WARNING]

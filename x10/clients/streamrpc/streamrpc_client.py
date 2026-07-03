@@ -31,8 +31,6 @@ OnReconnectCallback = Callable[[list[str]], Coroutine[Any, Any, None]]
 
 class StreamRpcClient:
     """
-    EXPERIMENTAL! NOT TO BE USED IN PRODUCTION! TO BE IMPROVED IN THE UPCOMING VERSIONS.
-
     X10 WebSocket RPC client.
 
     Implements the JSON-RPC 2.0 like protocol over a WebSocket connection.
@@ -142,7 +140,7 @@ class StreamRpcClient:
 
         return params.topic_id
 
-    async def unsubscribe(self, topic_id: TopicId):
+    async def unsubscribe(self, *, topic_id: TopicId):
         """
         Cancel an active subscription.
 

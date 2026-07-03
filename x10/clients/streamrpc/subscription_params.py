@@ -212,15 +212,14 @@ StreamRpcAccountUpdateType: TypeAlias = (
 )
 
 
-class _AccountParams(SubscribeParams[StreamRpcAccountUpdateType]):
+class AccountParams(SubscribeParams[StreamRpcAccountUpdateType]):
     """
-    NOT SUPPORTED DUE TO AUTH ISSUES. TO BE FIXED IN THE UPCOMING VERSIONS.
-
     Subscribe to the private account stream.
     """
 
-    def __init__(self, *, account: str) -> None:
+    def __init__(self, *, account: str, api_key: str) -> None:
         self.account = account
+        self.api_key = api_key
 
     @property
     def topic_id(self) -> str:
@@ -230,6 +229,7 @@ class _AccountParams(SubscribeParams[StreamRpcAccountUpdateType]):
         return {
             "scope": "account",
             "selector": {"account": self.account},
+            "apiKey": self.api_key,
         }
 
     def deserialize_data(self, data: dict[str, Any], msg_type: str) -> StreamRpcAccountUpdateType:
