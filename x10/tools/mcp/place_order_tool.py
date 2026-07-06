@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Optional
 
-from mcp.server import FastMCP
+from mcp.server.fastmcp import FastMCP
 
 from x10.clients.rest import RestApiClient
 from x10.clients.stream import StreamClient

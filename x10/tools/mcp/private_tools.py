@@ -1,6 +1,6 @@
 from typing import Optional
 
-from mcp.server import FastMCP
+from mcp.server.fastmcp import FastMCP
 
 from x10.tools.mcp.place_order_tool import register_place_order_tool
 from x10.tools.mcp.utils import create_private_rest_api_client, serialize_tool_result
