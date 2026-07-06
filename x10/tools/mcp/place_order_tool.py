@@ -30,7 +30,7 @@ LOGGER = get_logger(__name__)
 
 
 @dataclass(kw_only=True, frozen=True)
-class _McpOrderTpslTriggerParam:
+class McpOrderTpslTriggerParam:
     """
     MCP specific order trigger parameters.
     ``price`` is required for LIMIT price type only, for MARKET it defaults to
@@ -112,7 +112,7 @@ async def _get_top_of_book(market_name: str) -> tuple[OrderbookQuantityModel, Or
 
 
 async def _get_order_price(
-    *, client: RestApiClient, market: MarketModel, side: OrderSide, order_type: OrderType, price: Decimal | None
+    *, client: RestApiClient, market: MarketModel, side: OrderSide, price: Decimal | None
 ) -> Decimal:
     if price is not None:
         return price
@@ -146,8 +146,8 @@ def register_place_order_tool(mcp: FastMCP):
         external_id: Optional[str] = None,
         reduce_only: bool = False,
         tp_sl_type: Optional[OrderTpslType] = None,
-        take_profit: Optional[_McpOrderTpslTriggerParam] = None,
-        stop_loss: Optional[_McpOrderTpslTriggerParam] = None,
+        take_profit: Optional[McpOrderTpslTriggerParam] = None,
+        stop_loss: Optional[McpOrderTpslTriggerParam] = None,
     ) -> dict:
         """
         Place a new order. Requires authentication env vars.
@@ -179,13 +179,7 @@ def register_place_order_tool(mcp: FastMCP):
             markets = await client.info.get_markets_dict()
             market = markets[market_name]
 
-            order_price = await _get_order_price(
-                client=client,
-                market=market,
-                side=side,
-                order_type=order_type,
-                price=price,
-            )
+            order_price = await _get_order_price(client=client, market=market, side=side, price=price)
 
             close_side = OrderSide.SELL if side == OrderSide.BUY else OrderSide.BUY
             min_price_change = market.trading_config.min_price_change
