@@ -157,12 +157,12 @@ def register_place_order_tool(mcp: FastMCP):
             side: Order side, one of "BUY" or "SELL".
             amount_of_synthetic: Order quantity in base asset units.
             price: Order price. If not provided for MARKET orders, the best bid/ask price will be used.
-            order_type: One of "LIMIT", "MARKET". Defaults to "LIMIT".
-            post_only: If True, the order will be rejected if it would trade immediately.
+            order_type: One of "LIMIT", "MARKET", "TPSL". Defaults to "LIMIT".
+            post_only: If true, the order will be rejected if it would trade immediately.
             time_in_force: One of "GTT", "IOC", "FOK". Defaults to "GTT".
             self_trade_protection_level: One of "DISABLED", "ACCOUNT", "CLIENT". Defaults to "ACCOUNT".
             external_id: Optional client-assigned order ID.
-            reduce_only: If True, the order will only reduce an existing position.
+            reduce_only: If true, the order will only reduce an existing position. TPSL orders must be reduce-only.
             tp_sl_type: One of "ORDER" (TP/SL applies to this order's quantity) or "POSITION"
                 (TP/SL applies to the entire position). Required if take_profit or stop_loss is provided.
             take_profit: Take-profit trigger with fields: trigger_price, trigger_price_type
@@ -172,7 +172,9 @@ def register_place_order_tool(mcp: FastMCP):
             stop_loss: Stop-loss trigger, same fields as ``take_profit``.
         """
 
-        if order_type != OrderType.MARKET and not price:
+        if order_type == OrderType.TPSL:
+            price = Decimal(0)
+        elif order_type != OrderType.MARKET and not price:
             raise ValidationError("Price is required for non-MARKET orders")
 
         async with create_private_rest_api_client() as client:
