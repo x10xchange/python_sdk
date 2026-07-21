@@ -53,6 +53,7 @@ async def test_get_markets(aiohttp_server, create_btc_usd_market):
                 "active": True,
                 "isRfq": False,
                 "isOffHours": False,
+                "tradingHours": "CONTINUOUS",
                 "marketStats": {
                     "dailyVolume": "2410800.768021",
                     "dailyVolumeBase": "37.94502",

@@ -100,6 +100,12 @@ class MarketType(StrEnum):
     PERPETUAL = "PERPETUAL"
 
 
+class MarketTradingHours(StrEnum):
+    CONTINUOUS = "CONTINUOUS"
+    WEEKDAYS = "WEEKDAYS"
+    REGULAR = "REGULAR"
+
+
 class MarketModel(X10BaseModel):
     name: str
     type: MarketType
@@ -110,6 +116,7 @@ class MarketModel(X10BaseModel):
     active: bool
     is_rfq: bool
     is_off_hours: bool
+    trading_hours: MarketTradingHours
     market_stats: MarketStatsModel
     trading_config: TradingConfigModel
     l2_config: L2ConfigModel
