@@ -17,6 +17,7 @@ def get_btc_usd_market_json_data():
                 "active": true,
                 "isRfq": false,
                 "isOffHours": false,
+                "tradingHours": "CONTINUOUS",
                 "marketStats": {
                     "dailyVolume": "2410800.768021",
                     "dailyVolumeBase": "37.94502",

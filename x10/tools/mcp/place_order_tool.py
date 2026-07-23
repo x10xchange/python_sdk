@@ -213,5 +213,8 @@ def register_place_order_tool(mcp: FastMCP):
                 else None,
             )
 
-            result = await client.orders.place_order(order=order)
+            result = await (
+                client.orders.place_rfq_order(order=order) if market.is_rfq else client.orders.place_order(order=order)
+            )
+
             return serialize_tool_result(result.data)

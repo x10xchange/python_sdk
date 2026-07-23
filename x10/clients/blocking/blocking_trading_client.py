@@ -209,6 +209,7 @@ class BlockingTradingClient:
         order_type: OrderType = OrderType.LIMIT,
     ) -> TimedOpenOrderModel:
         market = (await self.get_markets()).get(market_name)
+
         if not market:
             raise ValidationError(f"Market '{market_name}' not found.")
 
@@ -239,8 +240,10 @@ class BlockingTradingClient:
         )
         placed_order_task = asyncio.create_task(place_order)
         order_waiter = self.__order_waiters[order.id]
+
         if order_waiter.open_order:
             return order_waiter.open_order
+
         async with order_waiter.condition:
             await asyncio.gather(
                 placed_order_task,
