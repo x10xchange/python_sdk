@@ -9,6 +9,7 @@ class TimeInForce(Enum):
     GTT = "GTT"
     IOC = "IOC"
     FOK = "FOK"
+    TOB = "TOB"
 
 
 class OrderSide(Enum):

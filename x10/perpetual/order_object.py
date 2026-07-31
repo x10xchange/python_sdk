@@ -22,6 +22,7 @@ from x10.perpetual.orders import (
     StarkSettlementModel,
     TimeInForce,
 )
+from x10.errors import X10Error
 from x10.utils.date import to_epoch_millis, utc_now
 from x10.utils.starkex import generate_nonce, hash_order
 
@@ -82,6 +83,9 @@ def __create_order_object(
 ) -> PerpetualOrderModel:
     if exact_only:
         raise NotImplementedError("`exact_only` option is not supported yet")
+
+    if time_in_force == TimeInForce.TOB and not post_only:
+        raise X10Error("TOB `time_in_force` value requires a post-only order")
 
     if expire_time is None:
         expire_time = utc_now() + timedelta(hours=8)

@@ -238,3 +238,53 @@ async def test_external_order_id(mocker: MockerFixture, create_trading_account, 
             }
         ),
     )
+
+
+@pytest.mark.asyncio
+async def test_create_tob_order(mocker: MockerFixture, create_trading_account, create_btc_usd_market):
+    mocker.patch("x10.utils.starkex.generate_nonce", return_value=FROZEN_NONCE)
+
+    from x10.perpetual.order_object import create_order_object
+    from x10.perpetual.orders import TimeInForce
+
+    order_obj = create_order_object(
+        account=create_trading_account(),
+        market=create_btc_usd_market(),
+        amount_of_synthetic=Decimal("0.00100000"),
+        price=Decimal("43445.11680000"),
+        side=OrderSide.BUY,
+        post_only=True,
+        time_in_force=TimeInForce.TOB,
+        expire_time=utc_now() + timedelta(days=14),
+    )
+
+    assert_that(
+        order_obj.to_api_request_json(),
+        has_entries(
+            {
+                "timeInForce": equal_to("TOB"),
+                "postOnly": equal_to(True),
+            }
+        ),
+    )
+
+
+@pytest.mark.asyncio
+async def test_tob_order_requires_post_only(mocker: MockerFixture, create_trading_account, create_btc_usd_market):
+    mocker.patch("x10.utils.starkex.generate_nonce", return_value=FROZEN_NONCE)
+
+    from x10.errors import X10Error
+    from x10.perpetual.order_object import create_order_object
+    from x10.perpetual.orders import TimeInForce
+
+    with pytest.raises(X10Error):
+        create_order_object(
+            account=create_trading_account(),
+            market=create_btc_usd_market(),
+            amount_of_synthetic=Decimal("0.00100000"),
+            price=Decimal("43445.11680000"),
+            side=OrderSide.BUY,
+            post_only=False,
+            time_in_force=TimeInForce.TOB,
+            expire_time=utc_now() + timedelta(days=14),
+        )
