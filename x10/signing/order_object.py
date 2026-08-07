@@ -209,6 +209,9 @@ def __create_order_object(
     if time_in_force == TimeInForce.FOK:
         raise ValidationError("FOK `time_in_force` value is deprecated")
 
+    if time_in_force == TimeInForce.TOB and post_only == False:
+        raise ValidationError("`post_only` must be true for TOB `time_in_force`")
+
     if expire_time is None:
         raise ValidationError("`expire_time` must be provided")
 
