@@ -10,6 +10,7 @@ class TimeInForce(StrEnum):
     GTT = "GTT"
     IOC = "IOC"
     FOK = "FOK"
+    TOB = "TOB"
 
 
 class OrderSide(StrEnum):
