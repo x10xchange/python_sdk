@@ -10,7 +10,7 @@ class TimeInForce(StrEnum):
     GTT = "GTT"
     IOC = "IOC"
     FOK = "FOK"
-    TOB = "TOB" # post only must be set
+    TOB = "TOB"
 
 
 class OrderSide(StrEnum):
