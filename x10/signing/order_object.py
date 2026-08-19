@@ -25,11 +25,9 @@ from x10.signing.order_object_settlement import (
     create_order_settlement_data,
 )
 from x10.utils.date import to_epoch_millis, utc_now
-from x10.utils.log import get_logger
 from x10.utils.nonce import generate_nonce
 from x10.utils.order import calc_entire_position_size
 
-LOGGER = get_logger(__name__)
 DEFAULT_TAKER_FEE = Decimal("0.0005")
 
 
@@ -282,6 +280,7 @@ def __create_order_object(
         side=side,
         qty=settlement_data.synthetic_amount_human.value,
         price=price,
+        rfq_start_price=rfq_start_price,
         post_only=post_only,
         time_in_force=time_in_force,
         expiry_epoch_millis=to_epoch_millis(expire_time),

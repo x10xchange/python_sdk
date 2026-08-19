@@ -180,11 +180,11 @@ def register_place_order_tool(mcp: FastMCP):
 
             order_price = (
                 await _get_best_market_price(client=client, market=market, side=side)
-                if order_type == OrderType.MARKET and not price
+                if order_type == OrderType.MARKET and price is None
                 else price
             )
 
-            if not order_price:
+            if order_price is None:
                 raise ValidationError("`order_price` is required")
 
             close_side = OrderSide.SELL if side == OrderSide.BUY else OrderSide.BUY
