@@ -218,7 +218,7 @@ class OpenOrderModel(X10BaseModel):
     cancelled_qty: Optional[Decimal] = None
     reduce_only: bool
     post_only: bool
-    chase_order: bool
+    chase_order: Optional[bool] = None
     payed_fee: Optional[Decimal] = None
     created_time: int
     updated_time: int
