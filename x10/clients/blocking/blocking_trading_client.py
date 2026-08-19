@@ -207,6 +207,7 @@ class BlockingTradingClient:
         time_in_force: TimeInForce = TimeInForce.GTT,
         reduce_only: bool = False,
         order_type: OrderType = OrderType.LIMIT,
+        rfq_start_price: Optional[Decimal] = None,
     ) -> TimedOpenOrderModel:
         market = (await self.get_markets()).get(market_name)
 
@@ -219,6 +220,7 @@ class BlockingTradingClient:
             order_type=order_type,
             amount_of_synthetic=amount_of_synthetic,
             price=price,
+            rfq_start_price=rfq_start_price,
             side=side,
             post_only=post_only,
             reduce_only=reduce_only,

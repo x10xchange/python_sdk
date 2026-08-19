@@ -25,9 +25,11 @@ from x10.signing.order_object_settlement import (
     create_order_settlement_data,
 )
 from x10.utils.date import to_epoch_millis, utc_now
+from x10.utils.log import get_logger
 from x10.utils.nonce import generate_nonce
 from x10.utils.order import calc_entire_position_size
 
+LOGGER = get_logger(__name__)
 DEFAULT_TAKER_FEE = Decimal("0.0005")
 
 
@@ -53,6 +55,7 @@ def create_order_object(
     market: MarketModel,
     amount_of_synthetic: Decimal,
     price: Decimal,
+    rfq_start_price: Optional[Decimal] = None,
     side: OrderSide,
     starknet_domain: StarknetDomain,
     order_type: OrderType = OrderType.LIMIT,
@@ -84,6 +87,7 @@ def create_order_object(
         order_type=order_type,
         synthetic_amount=amount_of_synthetic,
         price=price,
+        rfq_start_price=rfq_start_price,
         side=side,
         collateral_position_id=account.vault,
         signer=account.sign,
@@ -154,6 +158,7 @@ def __create_order_object(
     order_type: OrderType,
     synthetic_amount: Decimal,
     price: Decimal,
+    rfq_start_price: Optional[Decimal] = None,
     side: OrderSide,
     collateral_position_id: int,
     signer: Callable[[int], Tuple[int, int]],
@@ -186,6 +191,13 @@ def __create_order_object(
     def validate_conditional_order():
         if not trigger:
             raise ValidationError("CONDITIONAL orders must have `trigger` specified")
+
+    def validate_rfq_start_price():
+        if rfq_start_price and not market.is_rfq:
+            raise ValidationError("`rfq_start_price` must not be provided for non-RFQ markets")
+
+        if rfq_start_price and order_type != OrderType.MARKET:
+            raise ValidationError("`rfq_start_price` must not be provided for non-MARKET orders")
 
     def validate_tpsl_order():
         if not reduce_only:
@@ -221,6 +233,8 @@ def __create_order_object(
         validate_conditional_order()
     elif order_type == OrderType.TPSL:
         validate_tpsl_order()
+
+    validate_rfq_start_price()
 
     if nonce is None:
         nonce = generate_nonce()
