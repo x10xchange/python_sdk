@@ -111,22 +111,18 @@ async def _get_top_of_book(market_name: str) -> tuple[OrderbookQuantityModel, Or
     return None
 
 
-async def _get_order_price(
-    *, client: RestApiClient, market: MarketModel, side: OrderSide, price: Decimal | None
-) -> Decimal:
-    if price is not None:
-        return price
-
+async def _get_best_market_price(*, client: RestApiClient, market: MarketModel, side: OrderSide) -> Decimal:
     best_bid_and_ask = await _get_top_of_book(market.name)
 
     if best_bid_and_ask is None:
         raise ValidationError(f"Failed to fetch top of book for {market.name}")
 
     best_bid, best_ask = best_bid_and_ask
+    best_price = best_ask.price if side == OrderSide.BUY else best_bid.price
 
     return get_price_with_slippage(
         side=side,
-        price=best_ask.price if side == OrderSide.BUY else best_bid.price,
+        price=best_price,
         min_price_change=market.trading_config.min_price_change,
         slippage=client.config.defaults.market_price_slippage,
     )
@@ -174,14 +170,22 @@ def register_place_order_tool(mcp: FastMCP):
 
         if order_type == OrderType.TPSL:
             price = Decimal(0)
-        elif order_type != OrderType.MARKET and not price:
-            raise ValidationError("Price is required for non-MARKET orders")
 
         async with create_private_rest_api_client() as client:
             markets = await client.info.get_markets_dict()
             market = markets[market_name]
 
-            order_price = await _get_order_price(client=client, market=market, side=side, price=price)
+            if market.is_rfq:
+                raise ValidationError("RFQ markets are not supported by MCP")
+
+            order_price = (
+                await _get_best_market_price(client=client, market=market, side=side)
+                if order_type == OrderType.MARKET and price is None
+                else price
+            )
+
+            if order_price is None:
+                raise ValidationError("`order_price` is required")
 
             close_side = OrderSide.SELL if side == OrderSide.BUY else OrderSide.BUY
             min_price_change = market.trading_config.min_price_change

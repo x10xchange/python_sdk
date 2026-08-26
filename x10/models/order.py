@@ -153,12 +153,18 @@ class CreateOrderTpslTriggerModel(X10BaseModel):
 
 
 class NewOrderModel(X10BaseModel):
+    """
+    Attributes:
+        rfq_start_price: The start price of the quote walk. Supported for RFQ markets MARKET orders only.
+    """
+
     id: str
     market: str
     type: OrderType
     side: OrderSide
     qty: Decimal
     price: Decimal
+    rfq_start_price: Optional[Decimal] = None
     reduce_only: bool = False
     post_only: bool = False
     time_in_force: TimeInForce
@@ -206,11 +212,13 @@ class OpenOrderModel(X10BaseModel):
     status_reason: Optional[OrderStatusReason] = None
     price: Optional[Decimal] = None
     average_price: Optional[Decimal] = None
+    rfq_start_price: Optional[Decimal] = None
     qty: Decimal
     filled_qty: Optional[Decimal] = None
     cancelled_qty: Optional[Decimal] = None
     reduce_only: bool
     post_only: bool
+    chase_order: Optional[bool] = None
     payed_fee: Optional[Decimal] = None
     created_time: int
     updated_time: int

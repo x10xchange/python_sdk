@@ -104,6 +104,7 @@ class MarketTradingHours(StrEnum):
     CONTINUOUS = "CONTINUOUS"
     WEEKDAYS = "WEEKDAYS"
     REGULAR = "REGULAR"
+    NO_OVERNIGHT = "NO_OVERNIGHT"
 
 
 class MarketModel(X10BaseModel):

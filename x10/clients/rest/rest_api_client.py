@@ -63,6 +63,7 @@ class RestApiClient:
         tp_sl_type: Optional[OrderTpslType] = None,
         take_profit: Optional[OrderTpslTriggerParam] = None,
         stop_loss: Optional[OrderTpslTriggerParam] = None,
+        rfq_start_price: Optional[Decimal] = None,
     ) -> WrappedApiResponseModel[PlacedOrderModel]:
         # FIXME: Remove all the checks, should proxy the request?
         if not self.__stark_account:
@@ -84,6 +85,7 @@ class RestApiClient:
             market=market,
             amount_of_synthetic=amount_of_synthetic,
             price=price,
+            rfq_start_price=rfq_start_price,
             side=side,
             post_only=post_only,
             previous_order_external_id=previous_order_id,
