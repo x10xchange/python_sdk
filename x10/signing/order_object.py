@@ -17,6 +17,7 @@ from x10.models.order import (
     OrderTriggerDirection,
     OrderTriggerPriceType,
     OrderType,
+    CreateOrderRfqModel,
     SelfTradeProtectionLevel,
     TimeInForce,
 )
@@ -71,6 +72,7 @@ def create_order_object(
     tp_sl_type: Optional[OrderTpslType] = None,
     take_profit: Optional[OrderTpslTriggerParam] = None,
     stop_loss: Optional[OrderTpslTriggerParam] = None,
+    rfq: Optional[CreateOrderRfqModel] = None,
 ) -> NewOrderModel:
     """
     Creates an order object to be placed on the exchange using the `place_order` method.
@@ -105,6 +107,7 @@ def create_order_object(
         tp_sl_type=tp_sl_type,
         take_profit=take_profit,
         stop_loss=stop_loss,
+        rfq=rfq,
     )
 
 
@@ -175,6 +178,7 @@ def __create_order_object(
     tp_sl_type: Optional[OrderTpslType] = None,
     take_profit: Optional[OrderTpslTriggerParam] = None,
     stop_loss: Optional[OrderTpslTriggerParam] = None,
+    rfq: Optional[CreateOrderRfqModel] = None,
 ) -> NewOrderModel:
     def validate_market_order():
         if post_only:
@@ -288,6 +292,7 @@ def __create_order_object(
         builder_fee=builder_fee,
         builder_id=builder_id,
         reduce_only=reduce_only,
+        rfq=rfq,
     )
 
     return order

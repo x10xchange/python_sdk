@@ -83,6 +83,7 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
                 "debuggingAmounts": {"collateralAmount": "-43445117", "feeAmount": "21723", "syntheticAmount": "1000"},
                 "builderFee": None,
                 "builderId": None,
+                "rfq": None,
             }
         ),
     )

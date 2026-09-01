@@ -151,6 +151,11 @@ class CreateOrderTpslTriggerModel(X10BaseModel):
     debugging_amounts: Optional[StarkDebuggingOrderAmountsModel] = None
 
 
+class CreateOrderRfqModel(X10BaseModel):
+    start_price: Optional[Decimal] = None
+    max_reprice_steps: Optional[int] = None
+
+
 class NewOrderModel(X10BaseModel):
     id: str
     market: str
@@ -174,6 +179,7 @@ class NewOrderModel(X10BaseModel):
     debugging_amounts: Optional[StarkDebuggingOrderAmountsModel] = None
     builder_fee: Optional[Decimal] = None
     builder_id: Optional[int] = None
+    rfq: Optional[CreateOrderRfqModel] = None
 
 
 class PlacedOrderModel(X10BaseModel):
