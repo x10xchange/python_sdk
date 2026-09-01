@@ -34,6 +34,14 @@ class StreamClient:
         url = self.__get_url("/orderbooks/<market?>", market=market_name, query={"depth": depth})
         return self.__connect(url, WrappedStreamResponseModel[OrderbookUpdateModel])
 
+    def subscribe_to_rfq_orderbooks(self, market_name: Optional[str] = None):
+        """
+        Subscribe to the RFQ orderbook stream.
+        """
+
+        url = self.__get_url("/orderbooks/rfq/<market?>", market=market_name)
+        return self.__connect(url, WrappedStreamResponseModel[OrderbookUpdateModel])
+
     def subscribe_to_public_trades(self, market_name: Optional[str] = None):
         """
         https://api.docs.extended.exchange/#trades-stream

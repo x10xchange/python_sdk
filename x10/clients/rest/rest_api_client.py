@@ -18,6 +18,7 @@ from x10.models.order import (
     PlacedOrderModel,
     SelfTradeProtectionLevel,
     TimeInForce,
+    OrderType
 )
 from x10.signing.order_object import OrderTpslTriggerParam, create_order_object
 from x10.utils.date import utc_now
@@ -51,6 +52,7 @@ class RestApiClient:
         price: Decimal,
         side: OrderSide,
         taker_fee: Decimal,
+        order_type: OrderType = OrderType.LIMIT,
         post_only: bool = False,
         previous_order_id=None,
         expire_time: Optional[datetime] = None,
@@ -85,6 +87,7 @@ class RestApiClient:
             amount_of_synthetic=amount_of_synthetic,
             price=price,
             side=side,
+            order_type=order_type,
             post_only=post_only,
             previous_order_external_id=previous_order_id,
             expire_time=expire_time,
