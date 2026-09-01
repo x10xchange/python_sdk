@@ -107,7 +107,19 @@ Placing orders and receiving updates in a blocking (synchronous) manner.
 Provides functionality for subscribing to real-time WebSocket updates.
 Each topic (stream) requires a separate WebSocket connection.
 
+### RPC Streaming
+
+Provides functionality for subscribing to real-time WebSocket updates by using a single WebSocket connection.
+You can use this client to subscribe to multiple topics (streams) at once.
+
 ## MCP (experimental)
+
+> [!WARNING]
+> This feature is experimental. **SDK connects to a PROD environment and can execute real, on-chain financial transactions.**
+> Trade operations are irreversible. Use TESTNET environment to validate strategies before committing real funds.
+> By using this software, you accept full responsibility for any financial losses, errors, or unintended actions that result from its use.
+>
+> This software is provided "as is," without warranty of any kind. The authors and contributors accept no liability for financial losses of any kind.
 
 SDK has an experimental support for MCP (Model Context Protocol).
 You can start MCP server by (SDK must be installed with `mcp` extra in the same environment):
@@ -115,8 +127,7 @@ You can start MCP server by (SDK must be installed with `mcp` extra in the same 
 - Running `python -m x10.tools.mcp.mcp_server` -- starts STDIO MCP server.
 - Importing `from x10.tools.mcp.mcp_server import mcp` and running server with the params required.
 
-MCP server expects credentials to be passed via `X10_*` env variables.
-See `EnvConfig` implementation for more details.
+MCP server expects credentials to be passed via `X10_*` env variables (see `EnvConfig` implementation for more details).
 
 ## Onboarding via SDK
 

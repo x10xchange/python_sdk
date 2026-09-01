@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from x10.clients.blocking import BlockingTradingClient
 from x10.clients.rest import RestApiClient
 from x10.clients.stream import StreamClient
+from x10.clients.streamrpc.streamrpc_client import StreamRpcClient
 from x10.config import get_config_by_name
 from x10.core.client_config import ClientConfig
 from x10.core.env_config import EnvConfig
@@ -69,6 +70,10 @@ def create_blocking_client(config: ClientConfig | None = None):
 
 def create_stream_client(config: ClientConfig):
     return StreamClient(api_url=config.endpoints.stream_url)
+
+
+def create_stream_rpc_client(config: ClientConfig):
+    return StreamRpcClient(api_url=config.endpoints.stream_rpc_url)
 
 
 def get_adjust_price_by_pct(config: TradingConfigModel):
