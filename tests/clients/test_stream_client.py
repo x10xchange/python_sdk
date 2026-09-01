@@ -35,6 +35,7 @@ async def test_orderbook_stream(create_orderbook_message):
                     "type": "SNAPSHOT",
                     "data": {
                         "m": message_model.data.market,
+                        "t": None,
                         "b": [{"q": "0.008", "p": "43547.00"}, {"q": "0.007000", "p": "43548.00"}],
                         "a": [{"q": "0.008", "p": "43546.00"}],
                     },
