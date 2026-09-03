@@ -13,11 +13,11 @@ from x10.core.stark_account import StarkPerpetualAccount
 from x10.errors import ValidationError
 from x10.models.market import MarketModel
 from x10.models.order import (
+    CreateOrderRfqModel,
     OrderSide,
     OrderTpslType,
     OrderType,
     PlacedOrderModel,
-    CreateOrderRfqModel,
     SelfTradeProtectionLevel,
     TimeInForce,
 )
@@ -79,9 +79,6 @@ class RestApiClient:
 
         if not market:
             raise ValidationError(f"Market {market_name} not found")
-
-        if rfq is not None and not market.is_rfq:
-            raise ValidationError(f"`rfq` is only supported for RFQ markets, {market_name} is not one")
 
         if expire_time is None:
             expire_time = utc_now() + timedelta(hours=1)

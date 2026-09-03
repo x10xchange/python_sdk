@@ -153,23 +153,25 @@ class CreateOrderTpslTriggerModel(X10BaseModel):
 
 
 class CreateOrderRfqModel(X10BaseModel):
+    """
+    RFQ quote walk parameters. Supported for RFQ markets only.
+
+    Attributes:
+        start_price: The start price of the quote walk.
+        max_reprice_steps: The maximum number of repricing steps of the quote walk.
+    """
+
     start_price: Optional[Decimal] = None
     max_reprice_steps: Optional[int] = None
 
 
 class NewOrderModel(X10BaseModel):
-    """
-    Attributes:
-        rfq_start_price: The start price of the quote walk. Supported for RFQ markets MARKET orders only.
-    """
-
     id: str
     market: str
     type: OrderType
     side: OrderSide
     qty: Decimal
     price: Decimal
-    rfq_start_price: Optional[Decimal] = None
     reduce_only: bool = False
     post_only: bool = False
     time_in_force: TimeInForce
