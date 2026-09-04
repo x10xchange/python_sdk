@@ -65,7 +65,6 @@ async def test_create_buy_partial_tpsl_order(mocker: MockerFixture, create_tradi
                 "side": "SELL",
                 "qty": "0.0001",
                 "price": "0",
-                "rfqStartPrice": None,
                 "reduceOnly": True,
                 "postOnly": False,
                 "timeInForce": "GTT",
@@ -110,6 +109,7 @@ async def test_create_buy_partial_tpsl_order(mocker: MockerFixture, create_tradi
                 "debuggingAmounts": {"collateralAmount": "0", "feeAmount": "0", "syntheticAmount": "-100"},
                 "builderFee": None,
                 "builderId": None,
+                "rfq": None,
             }
         ),
     )
@@ -160,7 +160,6 @@ async def test_create_buy_position_tpsl_order(mocker: MockerFixture, create_trad
                 "side": "SELL",
                 "qty": "0",
                 "price": "0",
-                "rfqStartPrice": None,
                 "reduceOnly": True,
                 "postOnly": False,
                 "timeInForce": "GTT",
@@ -213,6 +212,7 @@ async def test_create_buy_position_tpsl_order(mocker: MockerFixture, create_trad
                 "debuggingAmounts": {"collateralAmount": "0", "feeAmount": "0", "syntheticAmount": "0"},
                 "builderFee": None,
                 "builderId": None,
+                "rfq": None,
             }
         ),
     )

@@ -1,5 +1,11 @@
 # Migration Guide
 
+## 2.6.0 -> 2.7.0
+
+- The `rfq_start_price` argument of `RestApiClient.place_order`, `BlockingTradingClient.create_and_place_order`
+  and `create_order_object` has been replaced with `rfq: CreateOrderRfqModel` (`x10.models.order`), which carries
+  `start_price` and the new `max_reprice_steps`. `NewOrderModel.rfq_start_price` has been replaced with `NewOrderModel.rfq`.
+
 ## 2.0.0 -> 2.3.0
 
 - `Config` dataclass has been renamed to `ClientConfig` and moved to `x10.core.client_config`.

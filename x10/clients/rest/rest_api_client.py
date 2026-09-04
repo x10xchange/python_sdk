@@ -13,8 +13,10 @@ from x10.core.stark_account import StarkPerpetualAccount
 from x10.errors import ValidationError
 from x10.models.market import MarketModel
 from x10.models.order import (
+    CreateOrderRfqModel,
     OrderSide,
     OrderTpslType,
+    OrderType,
     PlacedOrderModel,
     SelfTradeProtectionLevel,
     TimeInForce,
@@ -51,6 +53,7 @@ class RestApiClient:
         price: Decimal,
         side: OrderSide,
         taker_fee: Decimal,
+        order_type: OrderType = OrderType.LIMIT,
         post_only: bool = False,
         previous_order_id=None,
         expire_time: Optional[datetime] = None,
@@ -63,7 +66,7 @@ class RestApiClient:
         tp_sl_type: Optional[OrderTpslType] = None,
         take_profit: Optional[OrderTpslTriggerParam] = None,
         stop_loss: Optional[OrderTpslTriggerParam] = None,
-        rfq_start_price: Optional[Decimal] = None,
+        rfq: Optional[CreateOrderRfqModel] = None,
     ) -> WrappedApiResponseModel[PlacedOrderModel]:
         # FIXME: Remove all the checks, should proxy the request?
         if not self.__stark_account:
@@ -85,8 +88,8 @@ class RestApiClient:
             market=market,
             amount_of_synthetic=amount_of_synthetic,
             price=price,
-            rfq_start_price=rfq_start_price,
             side=side,
+            order_type=order_type,
             post_only=post_only,
             previous_order_external_id=previous_order_id,
             expire_time=expire_time,
@@ -101,6 +104,7 @@ class RestApiClient:
             tp_sl_type=tp_sl_type,
             take_profit=take_profit,
             stop_loss=stop_loss,
+            rfq=rfq,
         )
 
         if market.is_rfq:

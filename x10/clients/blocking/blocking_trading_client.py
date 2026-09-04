@@ -14,6 +14,7 @@ from x10.models.account import AccountStreamDataModel
 from x10.models.http import WrappedStreamResponseModel
 from x10.models.market import MarketModel
 from x10.models.order import (
+    CreateOrderRfqModel,
     NewOrderModel,
     OpenOrderModel,
     OrderSide,
@@ -207,7 +208,7 @@ class BlockingTradingClient:
         time_in_force: TimeInForce = TimeInForce.GTT,
         reduce_only: bool = False,
         order_type: OrderType = OrderType.LIMIT,
-        rfq_start_price: Optional[Decimal] = None,
+        rfq: Optional[CreateOrderRfqModel] = None,
     ) -> TimedOpenOrderModel:
         market = (await self.get_markets()).get(market_name)
 
@@ -220,7 +221,6 @@ class BlockingTradingClient:
             order_type=order_type,
             amount_of_synthetic=amount_of_synthetic,
             price=price,
-            rfq_start_price=rfq_start_price,
             side=side,
             post_only=post_only,
             reduce_only=reduce_only,
@@ -231,6 +231,7 @@ class BlockingTradingClient:
             builder_id=builder_id,
             time_in_force=time_in_force,
             taker_fee=taker_fee,
+            rfq=rfq,
         )
 
         if order.id in self.__order_waiters:

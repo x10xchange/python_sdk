@@ -51,7 +51,6 @@ async def test_create_sell_order_with_default_expiration(
                 "side": "SELL",
                 "qty": "0.00100000",
                 "price": "43445.11680000",
-                "rfqStartPrice": None,
                 "reduceOnly": False,
                 "postOnly": False,
                 "timeInForce": "GTT",
@@ -75,6 +74,7 @@ async def test_create_sell_order_with_default_expiration(
                 "debuggingAmounts": {"collateralAmount": "43445116", "feeAmount": "21723", "syntheticAmount": "-1000"},
                 "builderFee": None,
                 "builderId": None,
+                "rfq": None,
             }
         ),
     )
@@ -110,7 +110,6 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
                 "side": "SELL",
                 "qty": "0.00100000",
                 "price": "43445.11680000",
-                "rfqStartPrice": None,
                 "reduceOnly": False,
                 "postOnly": False,
                 "timeInForce": "GTT",
@@ -134,6 +133,7 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
                 "debuggingAmounts": {"collateralAmount": "43445116", "feeAmount": "21723", "syntheticAmount": "-1000"},
                 "builderFee": None,
                 "builderId": None,
+                "rfq": None,
             }
         ),
     )
@@ -169,7 +169,6 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
                 "side": "BUY",
                 "qty": "0.00100000",
                 "price": "43445.11680000",
-                "rfqStartPrice": None,
                 "reduceOnly": False,
                 "postOnly": False,
                 "timeInForce": "GTT",
@@ -193,6 +192,7 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
                 "debuggingAmounts": {"collateralAmount": "-43445117", "feeAmount": "21723", "syntheticAmount": "1000"},
                 "builderFee": None,
                 "builderId": None,
+                "rfq": None,
             }
         ),
     )
@@ -241,7 +241,6 @@ async def test_create_buy_order_with_order_tpsl(mocker: MockerFixture, create_tr
                 "side": "BUY",
                 "qty": "0.00100000",
                 "price": "43445.11680000",
-                "rfqStartPrice": None,
                 "reduceOnly": False,
                 "postOnly": False,
                 "timeInForce": "GTT",
@@ -301,6 +300,7 @@ async def test_create_buy_order_with_order_tpsl(mocker: MockerFixture, create_tr
                 "debuggingAmounts": {"collateralAmount": "-43445117", "feeAmount": "21723", "syntheticAmount": "1000"},
                 "builderFee": None,
                 "builderId": None,
+                "rfq": None,
             }
         ),
     )
@@ -351,7 +351,6 @@ async def test_create_buy_order_with_position_tpsl(
                 "side": "BUY",
                 "qty": "0.00100000",
                 "price": "43445.11680000",
-                "rfqStartPrice": None,
                 "reduceOnly": False,
                 "postOnly": False,
                 "timeInForce": "GTT",
@@ -411,6 +410,7 @@ async def test_create_buy_order_with_position_tpsl(
                 "debuggingAmounts": {"collateralAmount": "-43445117", "feeAmount": "21723", "syntheticAmount": "1000"},
                 "builderFee": None,
                 "builderId": None,
+                "rfq": None,
             }
         ),
     )

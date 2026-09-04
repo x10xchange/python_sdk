@@ -54,7 +54,6 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
                 "side": "SELL",
                 "qty": "0.00100000",
                 "price": "49625.0",
-                "rfqStartPrice": None,
                 "reduceOnly": False,
                 "postOnly": False,
                 "timeInForce": "IOC",
@@ -78,6 +77,7 @@ async def test_create_sell_order(mocker: MockerFixture, create_trading_account, 
                 "debuggingAmounts": {"collateralAmount": "49625000", "feeAmount": "24813", "syntheticAmount": "-1000"},
                 "builderFee": None,
                 "builderId": None,
+                "rfq": None,
             }
         ),
     )
@@ -122,7 +122,6 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
                 "side": "BUY",
                 "qty": "0.00100000",
                 "price": "50375.0",
-                "rfqStartPrice": None,
                 "reduceOnly": False,
                 "postOnly": False,
                 "timeInForce": "IOC",
@@ -146,6 +145,7 @@ async def test_create_buy_order(mocker: MockerFixture, create_trading_account, c
                 "debuggingAmounts": {"collateralAmount": "-50375000", "feeAmount": "25188", "syntheticAmount": "1000"},
                 "builderFee": None,
                 "builderId": None,
+                "rfq": None,
             }
         ),
     )

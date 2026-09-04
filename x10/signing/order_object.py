@@ -9,6 +9,7 @@ from x10.errors import NotSupportedError, ValidationError
 from x10.models.market import MarketModel
 from x10.models.order import (
     CreateOrderConditionalTriggerModel,
+    CreateOrderRfqModel,
     CreateOrderTpslTriggerModel,
     NewOrderModel,
     OrderPriceType,
@@ -53,7 +54,6 @@ def create_order_object(
     market: MarketModel,
     amount_of_synthetic: Decimal,
     price: Decimal,
-    rfq_start_price: Optional[Decimal] = None,
     side: OrderSide,
     starknet_domain: StarknetDomain,
     order_type: OrderType = OrderType.LIMIT,
@@ -72,6 +72,7 @@ def create_order_object(
     tp_sl_type: Optional[OrderTpslType] = None,
     take_profit: Optional[OrderTpslTriggerParam] = None,
     stop_loss: Optional[OrderTpslTriggerParam] = None,
+    rfq: Optional[CreateOrderRfqModel] = None,
 ) -> NewOrderModel:
     """
     Creates an order object to be placed on the exchange using the `place_order` method.
@@ -85,7 +86,6 @@ def create_order_object(
         order_type=order_type,
         synthetic_amount=amount_of_synthetic,
         price=price,
-        rfq_start_price=rfq_start_price,
         side=side,
         collateral_position_id=account.vault,
         signer=account.sign,
@@ -107,6 +107,7 @@ def create_order_object(
         tp_sl_type=tp_sl_type,
         take_profit=take_profit,
         stop_loss=stop_loss,
+        rfq=rfq,
     )
 
 
@@ -156,7 +157,6 @@ def __create_order_object(
     order_type: OrderType,
     synthetic_amount: Decimal,
     price: Decimal,
-    rfq_start_price: Optional[Decimal] = None,
     side: OrderSide,
     collateral_position_id: int,
     signer: Callable[[int], Tuple[int, int]],
@@ -178,6 +178,7 @@ def __create_order_object(
     tp_sl_type: Optional[OrderTpslType] = None,
     take_profit: Optional[OrderTpslTriggerParam] = None,
     stop_loss: Optional[OrderTpslTriggerParam] = None,
+    rfq: Optional[CreateOrderRfqModel] = None,
 ) -> NewOrderModel:
     def validate_market_order():
         if post_only:
@@ -190,12 +191,9 @@ def __create_order_object(
         if not trigger:
             raise ValidationError("CONDITIONAL orders must have `trigger` specified")
 
-    def validate_rfq_start_price():
-        if rfq_start_price and not market.is_rfq:
-            raise ValidationError("`rfq_start_price` must not be provided for non-RFQ markets")
-
-        if rfq_start_price and order_type != OrderType.MARKET:
-            raise ValidationError("`rfq_start_price` must not be provided for non-MARKET orders")
+    def validate_rfq():
+        if rfq is not None and not market.is_rfq:
+            raise ValidationError(f"`rfq` is only supported for RFQ markets, {market.name} is not one")
 
     def validate_tpsl_order():
         if not reduce_only:
@@ -232,7 +230,7 @@ def __create_order_object(
     elif order_type == OrderType.TPSL:
         validate_tpsl_order()
 
-    validate_rfq_start_price()
+    validate_rfq()
 
     if nonce is None:
         nonce = generate_nonce()
@@ -280,7 +278,6 @@ def __create_order_object(
         side=side,
         qty=settlement_data.synthetic_amount_human.value,
         price=price,
-        rfq_start_price=rfq_start_price,
         post_only=post_only,
         time_in_force=time_in_force,
         expiry_epoch_millis=to_epoch_millis(expire_time),
@@ -304,6 +301,7 @@ def __create_order_object(
         builder_fee=builder_fee,
         builder_id=builder_id,
         reduce_only=reduce_only,
+        rfq=rfq,
     )
 
     return order
