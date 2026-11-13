@@ -174,11 +174,11 @@ components:
 
     ReferralDashboardTimeRange:
       type: string
-      enum: [LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS, ALL_TIME]
+      enum: [DAY, WEEK, MONTH, YEAR, ALL]
 
     ReferralDashboardGranularity:
       type: string
-      enum: [DAILY, WEEKLY, MONTHLY]
+      enum: [DAY, WEEK, MONTH]
 
     TradeType:
       type: string
@@ -1305,22 +1305,35 @@ components:
     CreateReferralLinkCodeRequest:
       type: object
       properties:
-        code:
+        id:
           type: string
-        description:
+          description: Referral link code
+        isDefault:
+          type: boolean
+        label:
           type: string
+          description: Defaults to the link code
+        hiddenAtUi:
+          type: boolean
+          default: false
       required:
-        - code
+        - id
+        - isDefault
 
     UpdateReferralLinkCodeRequest:
       type: object
       properties:
-        code:
+        id:
           type: string
-        description:
-          type: string
+          description: Referral link code
+        isDefault:
+          type: boolean
+        hiddenAtUi:
+          type: boolean
       required:
-        - code
+        - id
+        - isDefault
+        - hiddenAtUi
 
     UseReferralCodeRequest:
       type: object
@@ -1864,7 +1877,7 @@ paths:
                       data:
                         $ref: "#/components/schemas/ClientRankings"
 
-  /info/referral/link:
+  /referrals/info/link:
     get:
       tags: [Referral (Public)]
       summary: Get public referral link information
@@ -3860,7 +3873,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /user/referrals/status:
+  /referrals/status:
     get:
       tags: [Referrals]
       summary: Get referral status
@@ -3883,7 +3896,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /user/referrals/links:
+  /referrals/links:
     get:
       tags: [Referrals]
       summary: Get all referral links
@@ -3906,7 +3919,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /user/referrals:
+  /referrals:
     post:
       tags: [Referrals]
       summary: Create a referral link
@@ -3968,7 +3981,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /user/referrals/use:
+  /referrals/use:
     post:
       tags: [Referrals]
       summary: Use a referral code
@@ -4003,7 +4016,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /user/referrals/rebates/period/csv:
+  /referrals/rebates/period/csv:
     get:
       tags: [Referrals]
       summary: Get referral rebates by period as CSV
@@ -4023,7 +4036,7 @@ paths:
           required: true
           schema:
             $ref: "#/components/schemas/ReferralDashboardGranularity"
-        - name: links[]
+        - name: links
           in: query
           schema:
             type: array
@@ -4031,12 +4044,13 @@ paths:
               type: string
           style: form
           explode: true
-        - name: subaffiliates[]
+        - name: subaffiliates
           in: query
           schema:
             type: array
             items:
-              type: string
+              type: integer
+              format: int64
           style: form
           explode: true
       responses:
@@ -4054,7 +4068,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /user/referrals/rebates/user/csv:
+  /referrals/rebates/user/csv:
     get:
       tags: [Referrals]
       summary: Get referral rebates by user as CSV
@@ -4069,7 +4083,7 @@ paths:
           required: true
           schema:
             $ref: "#/components/schemas/ReferralDashboardTimeRange"
-        - name: links[]
+        - name: links
           in: query
           schema:
             type: array
@@ -4077,12 +4091,13 @@ paths:
               type: string
           style: form
           explode: true
-        - name: subaffiliates[]
+        - name: subaffiliates
           in: query
           schema:
             type: array
             items:
-              type: string
+              type: integer
+              format: int64
           style: form
           explode: true
       responses:
@@ -4100,7 +4115,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /user/referrals/rebates/subaffiliate/csv:
+  /referrals/rebates/subaffiliate/csv:
     get:
       tags: [Referrals]
       summary: Get referral rebates by subaffiliate as CSV
@@ -4115,12 +4130,13 @@ paths:
           required: true
           schema:
             $ref: "#/components/schemas/ReferralDashboardTimeRange"
-        - name: subaffiliates[]
+        - name: subaffiliates
           in: query
           schema:
             type: array
             items:
-              type: string
+              type: integer
+              format: int64
           style: form
           explode: true
       responses:
@@ -4138,7 +4154,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /user/referrals/rebates/link/csv:
+  /referrals/rebates/link/csv:
     get:
       tags: [Referrals]
       summary: Get referral rebates by link as CSV
@@ -4153,7 +4169,7 @@ paths:
           required: true
           schema:
             $ref: "#/components/schemas/ReferralDashboardTimeRange"
-        - name: links[]
+        - name: links
           in: query
           schema:
             type: array
@@ -4176,7 +4192,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /user/referrals/dashboard:
+  /referrals/dashboard:
     get:
       tags: [Referrals]
       summary: Get referral dashboard data
@@ -4205,7 +4221,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /user/affiliate:
+  /referrals/affiliate:
     get:
       tags: [Referrals]
       summary: Get affiliate information
