@@ -5,6 +5,12 @@
 - The `rfq_start_price` argument of `RestApiClient.place_order`, `BlockingTradingClient.create_and_place_order`
   and `create_order_object` has been replaced with `rfq: CreateOrderRfqModel` (`x10.models.order`), which carries
   `start_price` and the new `max_reprice_steps`. `NewOrderModel.rfq_start_price` has been replaced with `NewOrderModel.rfq`.
+- `RestApiClient.place_order` has a new `order_type` parameter (default `OrderType.LIMIT`) right after `taker_fee`.
+  Callers passing `post_only` or later arguments positionally must switch to keyword arguments.
+- `DEFAULT_TAKER_FEE` (`x10.signing.order_object`), used by `create_order_object` when `taker_fee` is not passed,
+  has changed from 5 bps (`0.0005`) to 5.5 bps (`0.00055`). Order hashes and signatures for such orders change accordingly.
+- `AccountModule.get_fees` now returns `taker_fee_rate` as 5.5 bps (`0.00055`) for every market, regardless of the
+  value returned by the API. `maker_fee_rate` and `builder_fee_rate` are returned unchanged.
 
 ## 2.0.0 -> 2.3.0
 
