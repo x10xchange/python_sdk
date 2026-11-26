@@ -29,7 +29,7 @@ from x10.utils.date import to_epoch_millis, utc_now
 from x10.utils.nonce import generate_nonce
 from x10.utils.order import calc_entire_position_size
 
-DEFAULT_TAKER_FEE = Decimal("0.0005")
+DEFAULT_TAKER_FEE = Decimal("0.00055")
 
 
 @dataclass(kw_only=True, frozen=True)

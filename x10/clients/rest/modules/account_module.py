@@ -20,6 +20,7 @@ from x10.models.order import OpenOrderModel, OrderSide, OrderSortBy, OrderType
 from x10.models.position import PositionHistoryModel, PositionModel, PositionSide
 from x10.models.trade import AccountTradeModel, TradeType
 from x10.models.transfer import TransferResponseModel
+from x10.signing.order_object import DEFAULT_TAKER_FEE
 from x10.signing.transfer_object import create_transfer_object
 from x10.signing.withdrawal_object import create_withdrawal_object
 from x10.utils.http import (
@@ -197,8 +198,14 @@ class AccountModule(BaseModule):
                 "builderId": builder_id,
             },
         )
-        return await send_get_request(
+        response = await send_get_request(
             await self._get_session(), url, List[TradingFeeModel], api_key=self._get_api_key()
+        )
+        if response.data is None:
+            return response
+
+        return response.model_copy(
+            update={"data": [fee.model_copy(update={"taker_fee_rate": DEFAULT_TAKER_FEE}) for fee in response.data]}
         )
 
     async def get_leverage(
