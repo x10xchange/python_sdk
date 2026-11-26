@@ -1,4 +1,6 @@
 import dataclasses
+import json
+from decimal import Decimal
 from typing import List
 
 import pytest
@@ -176,3 +178,30 @@ async def test_get_asset_operations(aiohttp_server, create_asset_operations, cre
             ]
         ),
     )
+
+
+@pytest.mark.asyncio
+async def test_get_fees_signs_with_5_5_bps_taker_fee_whatever_the_api_returns(aiohttp_server, create_trading_account):
+    from x10.clients.rest import RestApiClient
+
+    api_response = {
+        "status": "OK",
+        "data": [{"market": "BTC-USD", "makerFeeRate": "0.0001", "takerFeeRate": "0.0002", "builderFeeRate": "0.0003"}],
+    }
+
+    app = web.Application()
+    app.router.add_get("/user/fees", serve_data(json.dumps(api_response)))
+
+    server = await aiohttp_server(app)
+    url = f"http://{server.host}:{server.port}"
+
+    endpoints_config = dataclasses.replace(TESTNET_CONFIG.endpoints, api_base_url=url)
+    config = dataclasses.replace(TESTNET_CONFIG, endpoints=endpoints_config)
+    rest_client = RestApiClient(config=config, stark_account=create_trading_account())
+    fees = await rest_client.account.get_fees(market_names=["BTC-USD"])
+
+    assert_that(fees.data, has_length(1))
+    assert_that(fees.data[0].market, equal_to("BTC-USD"))
+    assert_that(fees.data[0].taker_fee_rate, equal_to(Decimal("0.00055")))
+    assert_that(fees.data[0].maker_fee_rate, equal_to(Decimal("0.0001")))
+    assert_that(fees.data[0].builder_fee_rate, equal_to(Decimal("0.0003")))
