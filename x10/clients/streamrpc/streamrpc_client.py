@@ -3,8 +3,9 @@ import json
 import random
 from typing import Any, Callable, Coroutine, TypeVar
 
-import websockets
 from websockets import ConnectionClosed
+from websockets.legacy.client import WebSocketClientProtocol
+from websockets.legacy.client import connect as ws_connect
 
 from x10.clients.streamrpc.streamrpc_dispatcher import (
     OnSequenceBreakCallback,
@@ -43,7 +44,7 @@ class StreamRpcClient:
                               messages were dropped.
     """
 
-    _ws: websockets.WebSocketClientProtocol | None
+    _ws: WebSocketClientProtocol | None
     _ready: asyncio.Event
     _connection_loop_task: asyncio.Task[None] | None
 
@@ -285,7 +286,7 @@ class StreamRpcClient:
 
         while not self._is_stopped:
             try:
-                async with websockets.connect(self._api_url, extra_headers=extra_headers) as ws:
+                async with ws_connect(self._api_url, extra_headers=extra_headers) as ws:
                     self._ws = ws
 
                     LOGGER.debug("Connected to %s", self._api_url)
