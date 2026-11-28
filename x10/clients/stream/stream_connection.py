@@ -2,7 +2,8 @@ from types import TracebackType
 from typing import AsyncIterator, Generic, Optional, Type, TypeVar
 
 import websockets
-from websockets import WebSocketClientProtocol
+from websockets.legacy.client import WebSocketClientProtocol
+from websockets.legacy.client import connect as ws_connect
 
 from x10.models.base import X10BaseModel
 from x10.utils.http import USER_AGENT, RequestHeader
@@ -108,7 +109,7 @@ class StreamConnection(Generic[StreamMsgResponseType]):
         if self.__api_key is not None:
             extra_headers[RequestHeader.API_KEY] = self.__api_key
 
-        self.__websocket = await websockets.connect(
+        self.__websocket = await ws_connect(
             self.__stream_url,
             extra_headers=extra_headers,
             close_timeout=self.__close_timeout,
